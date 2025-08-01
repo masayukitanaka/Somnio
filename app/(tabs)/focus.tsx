@@ -98,8 +98,7 @@ export default function FocusScreen() {
   };
 
   const handlePomodoroTimer = () => {
-    // TODO: Navigate to pomodoro timer screen
-    console.log('Navigate to pomodoro timer');
+    router.push('/pomodoro-timer');
   };
 
   const handleTasks = () => {

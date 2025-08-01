@@ -32,6 +32,12 @@ export default function RootLayout() {
           headerShown: false 
         }} 
       />
+      <Stack.Screen 
+        name="pomodoro-timer" 
+        options={{ 
+          headerShown: false 
+        }} 
+      />
     </Stack>
   );
 }
