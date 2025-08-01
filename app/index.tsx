@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View, TouchableOpacity, SafeAreaView, StatusBar } from "react-native";
 import { Link } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
+import { RemoveAdsButton } from "@/components/RemoveAdsButton";
 
 export default function Index() {
   return (
@@ -10,6 +11,7 @@ export default function Index() {
     >
       <SafeAreaView style={styles.container}>
         <StatusBar barStyle="light-content" backgroundColor="#0A2647" />
+        <RemoveAdsButton />
         <View style={styles.innerContainer}>
       <View style={styles.header}>
         <Text style={styles.title}>Welcome to Somnio</Text>

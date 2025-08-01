@@ -4,6 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { RemoveAdsButton } from '@/components/RemoveAdsButton';
 
 export default function ProfileScreen() {
   return (
@@ -13,6 +14,7 @@ export default function ProfileScreen() {
     >
       <SafeAreaView style={styles.container}>
         <StatusBar barStyle="light-content" backgroundColor="#0A2647" />
+        <RemoveAdsButton />
         <ScrollView style={styles.scrollView}>
         <ThemedView style={[styles.header, { backgroundColor: 'transparent' }]}>
         <ThemedText type="title">Profile</ThemedText>

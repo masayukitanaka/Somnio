@@ -6,6 +6,7 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { PlayerModal } from '@/components/PlayerModal';
+import { RemoveAdsButton } from '@/components/RemoveAdsButton';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.7;
@@ -106,6 +107,7 @@ export default function SleepScreen() {
       >
         <SafeAreaView style={styles.container}>
           <StatusBar barStyle="light-content" backgroundColor="#0A2647" />
+          <RemoveAdsButton />
           <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
             <ThemedView style={[styles.header, { backgroundColor: 'transparent' }]}>
               <ThemedText type="title">Sleep</ThemedText>
