@@ -9,6 +9,8 @@ import {
   Dimensions,
   PanResponder,
   TouchableWithoutFeedback,
+  Image,
+  ImageBackground,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
@@ -24,6 +26,8 @@ interface PlayerModalProps {
     duration: string;
     color: string;
     icon: string;
+    thumbnail?: string;
+    description?: string;
   } | null;
 }
 
@@ -106,14 +110,35 @@ export function PlayerModal({ visible, onClose, item }: PlayerModalProps) {
           <View style={styles.content}>
             <View style={styles.header}>
               <View style={styles.thumbnailContainer}>
-                <MaterialIcons
-                  name={item.icon as any}
-                  size={60}
-                  color="rgba(255, 255, 255, 0.8)"
-                />
+                {item.thumbnail ? (
+                  <ImageBackground 
+                    source={{ uri: item.thumbnail }}
+                    style={styles.thumbnailImage}
+                    imageStyle={styles.thumbnailImageStyle}
+                  >
+                    <View style={styles.thumbnailOverlay} />
+                    <MaterialIcons
+                      name={item.icon as any}
+                      size={60}
+                      color="rgba(255, 255, 255, 0.9)"
+                      style={styles.thumbnailIcon}
+                    />
+                  </ImageBackground>
+                ) : (
+                  <View style={[styles.thumbnailImage, { backgroundColor: 'rgba(255, 255, 255, 0.1)' }]}>
+                    <MaterialIcons
+                      name={item.icon as any}
+                      size={60}
+                      color="rgba(255, 255, 255, 0.8)"
+                    />
+                  </View>
+                )}
               </View>
               
               <Text style={styles.title}>{item.title}</Text>
+              {item.description && (
+                <Text style={styles.description}>{item.description}</Text>
+              )}
               <Text style={styles.duration}>{item.duration}</Text>
             </View>
 
@@ -210,16 +235,52 @@ const styles = StyleSheet.create({
     width: 200,
     height: 200,
     borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    overflow: 'hidden',
+    marginBottom: 30,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  thumbnailImage: {
+    width: '100%',
+    height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 30,
+  },
+  thumbnailImageStyle: {
+    borderRadius: 20,
+  },
+  thumbnailOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+  },
+  thumbnailIcon: {
+    position: 'absolute',
+    bottom: 16,
+    right: 16,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    borderRadius: 30,
+    padding: 8,
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
     color: '#ffffff',
     marginBottom: 8,
+    textAlign: 'center',
+  },
+  description: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.8)',
+    marginBottom: 8,
+    textAlign: 'center',
+    paddingHorizontal: 20,
   },
   duration: {
     fontSize: 16,
