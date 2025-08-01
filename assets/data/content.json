@@ -1,0 +1,264 @@
+{
+  "sleep": {
+    "sleepyMusic": [
+      {
+        "id": "sm1",
+        "title": "Deep Sleep Ambient",
+        "duration": "60 min",
+        "color": "#6366F1",
+        "icon": "music-note",
+        "thumbnail": "https://lazyvlog.beezynx.dev/assets/images/iOS_4.png",
+        "audioUrl": "https://example.com/audio/deep-sleep-ambient.mp3",
+        "description": "Soothing ambient sounds for deep sleep"
+      },
+      {
+        "id": "sm2",
+        "title": "Rain Sounds",
+        "duration": "45 min",
+        "color": "#8B5CF6",
+        "icon": "cloud",
+        "thumbnail": "https://picsum.photos/300/200?random=2",
+        "audioUrl": "https://example.com/audio/rain-sounds.mp3",
+        "description": "Gentle rain sounds for relaxation"
+      },
+      {
+        "id": "sm3",
+        "title": "Ocean Waves",
+        "duration": "90 min",
+        "color": "#EC4899",
+        "icon": "waves",
+        "thumbnail": "https://picsum.photos/300/200?random=3",
+        "audioUrl": "https://example.com/audio/ocean-waves.mp3",
+        "description": "Calming ocean waves for peaceful sleep"
+      },
+      {
+        "id": "sm4",
+        "title": "Forest Night",
+        "duration": "120 min",
+        "color": "#06B6D4",
+        "icon": "nature",
+        "thumbnail": "https://picsum.photos/300/200?random=4",
+        "audioUrl": "https://example.com/audio/forest-night.mp3",
+        "description": "Night sounds from a peaceful forest"
+      }
+    ],
+    "stories": [
+      {
+        "id": "st1",
+        "title": "The Sleepy Village",
+        "duration": "20 min",
+        "color": "#10B981",
+        "icon": "menu-book",
+        "thumbnail": "https://picsum.photos/300/200?random=5",
+        "audioUrl": "https://example.com/audio/sleepy-village.mp3",
+        "description": "A gentle bedtime story about a peaceful village"
+      },
+      {
+        "id": "st2",
+        "title": "Journey to Dreamland",
+        "duration": "15 min",
+        "color": "#F59E0B",
+        "icon": "bedtime",
+        "thumbnail": "https://picsum.photos/300/200?random=6",
+        "audioUrl": "https://example.com/audio/journey-dreamland.mp3",
+        "description": "A magical journey to help you fall asleep"
+      },
+      {
+        "id": "st3",
+        "title": "The Calm Lake",
+        "duration": "25 min",
+        "color": "#EF4444",
+        "icon": "water",
+        "thumbnail": "https://picsum.photos/300/200?random=7",
+        "audioUrl": "https://example.com/audio/calm-lake.mp3",
+        "description": "A soothing story by a tranquil lake"
+      }
+    ],
+    "meditation": [
+      {
+        "id": "med1",
+        "title": "Body Scan Meditation",
+        "duration": "30 min",
+        "color": "#8B5CF6",
+        "icon": "self-improvement",
+        "thumbnail": "https://picsum.photos/300/200?random=8",
+        "audioUrl": "https://example.com/audio/body-scan.mp3",
+        "description": "Progressive body relaxation for sleep"
+      },
+      {
+        "id": "med2",
+        "title": "Breathing for Sleep",
+        "duration": "15 min",
+        "color": "#06B6D4",
+        "icon": "air",
+        "thumbnail": "https://picsum.photos/300/200?random=9",
+        "audioUrl": "https://example.com/audio/breathing-sleep.mp3",
+        "description": "Guided breathing exercises for better sleep"
+      }
+    ],
+    "whiteNoise": [
+      {
+        "id": "wn1",
+        "title": "White Noise",
+        "duration": "∞",
+        "color": "#6B7280",
+        "icon": "graphic-eq",
+        "thumbnail": "https://picsum.photos/300/200?random=10",
+        "audioUrl": "https://example.com/audio/white-noise.mp3",
+        "description": "Classic white noise for masking sounds"
+      },
+      {
+        "id": "wn2",
+        "title": "Pink Noise",
+        "duration": "∞",
+        "color": "#EC4899",
+        "icon": "equalizer",
+        "thumbnail": "https://picsum.photos/300/200?random=11",
+        "audioUrl": "https://example.com/audio/pink-noise.mp3",
+        "description": "Softer pink noise for gentle background"
+      },
+      {
+        "id": "wn3",
+        "title": "Brown Noise",
+        "duration": "∞",
+        "color": "#92400E",
+        "icon": "tune",
+        "thumbnail": "https://picsum.photos/300/200?random=12",
+        "audioUrl": "https://example.com/audio/brown-noise.mp3",
+        "description": "Deep brown noise for ultimate relaxation"
+      }
+    ]
+  },
+  "relax": {
+    "calmingSounds": [
+      {
+        "id": "cs1",
+        "title": "Gentle Piano",
+        "duration": "45 min",
+        "color": "#6366F1",
+        "icon": "piano",
+        "thumbnail": "https://picsum.photos/300/200?random=13",
+        "audioUrl": "https://example.com/audio/gentle-piano.mp3",
+        "description": "Soft piano melodies for relaxation"
+      },
+      {
+        "id": "cs2",
+        "title": "Nature Harmony",
+        "duration": "60 min",
+        "color": "#10B981",
+        "icon": "eco",
+        "thumbnail": "https://picsum.photos/300/200?random=14",
+        "audioUrl": "https://example.com/audio/nature-harmony.mp3",
+        "description": "Natural sounds blended with soft music"
+      }
+    ],
+    "guidedRelaxation": [
+      {
+        "id": "gr1",
+        "title": "Progressive Muscle Relaxation",
+        "duration": "20 min",
+        "color": "#8B5CF6",
+        "icon": "fitness-center",
+        "thumbnail": "https://picsum.photos/300/200?random=15",
+        "audioUrl": "https://example.com/audio/muscle-relaxation.mp3",
+        "description": "Step-by-step muscle relaxation guide"
+      },
+      {
+        "id": "gr2",
+        "title": "Mindfulness Relaxation",
+        "duration": "15 min",
+        "color": "#F59E0B",
+        "icon": "psychology",
+        "thumbnail": "https://picsum.photos/300/200?random=16",
+        "audioUrl": "https://example.com/audio/mindfulness.mp3",
+        "description": "Mindful awareness for stress relief"
+      }
+    ]
+  },
+  "focus": {
+    "workMusic": [
+      {
+        "id": "wm1",
+        "title": "Lo-fi Study Beats",
+        "duration": "60 min",
+        "color": "#6366F1",
+        "icon": "headphones",
+        "thumbnail": "https://picsum.photos/300/200?random=17",
+        "audioUrl": "https://example.com/audio/lofi-study.mp3",
+        "description": "Chill lo-fi beats for studying and work"
+      },
+      {
+        "id": "wm2",
+        "title": "Classical Focus",
+        "duration": "45 min",
+        "color": "#8B5CF6",
+        "icon": "piano",
+        "thumbnail": "https://picsum.photos/300/200?random=18",
+        "audioUrl": "https://example.com/audio/classical-focus.mp3",
+        "description": "Classical music to enhance concentration"
+      },
+      {
+        "id": "wm3",
+        "title": "Ambient Workspace",
+        "duration": "90 min",
+        "color": "#EC4899",
+        "icon": "work",
+        "thumbnail": "https://picsum.photos/300/200?random=19",
+        "audioUrl": "https://example.com/audio/ambient-workspace.mp3",
+        "description": "Ambient sounds for productive work sessions"
+      },
+      {
+        "id": "wm4",
+        "title": "Electronic Focus",
+        "duration": "30 min",
+        "color": "#06B6D4",
+        "icon": "equalizer",
+        "thumbnail": "https://picsum.photos/300/200?random=20",
+        "audioUrl": "https://example.com/audio/electronic-focus.mp3",
+        "description": "Upbeat electronic music for energy and focus"
+      }
+    ],
+    "quickMeditation": [
+      {
+        "id": "qm1",
+        "title": "Focus Meditation",
+        "duration": "5 min",
+        "color": "#10B981",
+        "icon": "center-focus-strong",
+        "thumbnail": "https://picsum.photos/300/200?random=21",
+        "audioUrl": "https://example.com/audio/focus-meditation.mp3",
+        "description": "Quick meditation to sharpen focus"
+      },
+      {
+        "id": "qm2",
+        "title": "Clarity Boost",
+        "duration": "3 min",
+        "color": "#F59E0B",
+        "icon": "lightbulb",
+        "thumbnail": "https://picsum.photos/300/200?random=22",
+        "audioUrl": "https://example.com/audio/clarity-boost.mp3",
+        "description": "Short session to clear your mind"
+      },
+      {
+        "id": "qm3",
+        "title": "Mind Reset",
+        "duration": "7 min",
+        "color": "#EF4444",
+        "icon": "refresh",
+        "thumbnail": "https://picsum.photos/300/200?random=23",
+        "audioUrl": "https://example.com/audio/mind-reset.mp3",
+        "description": "Reset your mental state for better focus"
+      },
+      {
+        "id": "qm4",
+        "title": "Concentration",
+        "duration": "10 min",
+        "color": "#8B5CF6",
+        "icon": "psychology",
+        "thumbnail": "https://picsum.photos/300/200?random=24",
+        "audioUrl": "https://example.com/audio/concentration.mp3",
+        "description": "Deep concentration practice"
+      }
+    ]
+  }
+}

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { StyleSheet, ScrollView, SafeAreaView, StatusBar, View, Text, FlatList, TouchableOpacity, Dimensions } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, ScrollView, SafeAreaView, StatusBar, View, Text, FlatList, TouchableOpacity, Dimensions, ActivityIndicator, Image, ImageBackground } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useRouter } from 'expo-router';
@@ -8,73 +8,91 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { RemoveAdsButton } from '@/components/RemoveAdsButton';
 import { PlayerModal } from '@/components/PlayerModal';
+import { getRelaxContent, ContentItem } from '@/services/contentService';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.7;
 const CARD_MARGIN = 10;
 
-// Sample data for relaxation content
-const ambientSoundsData = [
-  { id: '1', title: 'Forest Birds', duration: '∞', color: '#2D5A27', icon: 'forest' },
-  { id: '2', title: 'Ocean Waves', duration: '∞', color: '#1B4B5A', icon: 'waves' },
-  { id: '3', title: 'Gentle Rain', duration: '∞', color: '#4A5568', icon: 'water-drop' },
-  { id: '4', title: 'Crackling Fire', duration: '∞', color: '#B83280', icon: 'local-fire-department' },
-];
+interface RelaxContent {
+  calmingSounds: ContentItem[];
+  guidedRelaxation: ContentItem[];
+}
 
-const guidedMeditationData = [
-  { id: '1', title: 'Mindful Breathing', duration: '10 min', color: '#553C9A', icon: 'air' },
-  { id: '2', title: 'Body Relaxation', duration: '15 min', color: '#6B46C1', icon: 'accessibility' },
-  { id: '3', title: 'Stress Relief', duration: '12 min', color: '#7C3AED', icon: 'self-improvement' },
-  { id: '4', title: 'Inner Peace', duration: '20 min', color: '#8B5CF6', icon: 'spa' },
-];
-
-const natureSoundsData = [
-  { id: '1', title: 'Mountain Stream', duration: '∞', color: '#065F46', icon: 'landscape' },
-  { id: '2', title: 'Wind in Trees', duration: '∞', color: '#059669', icon: 'nature' },
-  { id: '3', title: 'Night Crickets', duration: '∞', color: '#10B981', icon: 'nightlife' },
-  { id: '4', title: 'Thunderstorm', duration: '∞', color: '#34D399', icon: 'thunderstorm' },
-];
-
-const ContentCard = ({ item, onPress }: { item: any; onPress: () => void }) => (
+const ContentCard = ({ item, onPress }: { item: ContentItem; onPress: () => void }) => (
   <TouchableOpacity 
-    style={[styles.card, { backgroundColor: item.color }]}
+    style={styles.card}
     activeOpacity={0.8}
     onPress={onPress}
   >
-    <MaterialIcons 
-      name={item.icon as any} 
-      size={36} 
-      color="rgba(255, 255, 255, 0.6)" 
-      style={styles.cardIcon}
-    />
-    <View style={styles.cardContent}>
-      <Text style={styles.cardTitle}>{item.title}</Text>
-      <Text style={styles.cardDuration}>{item.duration}</Text>
-    </View>
+    {item.thumbnail ? (
+      <ImageBackground 
+        source={{ uri: item.thumbnail }}
+        style={styles.cardBackground}
+        imageStyle={styles.cardBackgroundImage}
+      >
+        <View style={styles.cardOverlay} />
+        <MaterialIcons 
+          name={item.icon as any} 
+          size={36} 
+          color="rgba(255, 255, 255, 0.8)" 
+          style={styles.cardIcon}
+        />
+        <View style={styles.cardContent}>
+          <Text style={styles.cardTitle}>{item.title}</Text>
+          <Text style={styles.cardDuration}>{item.duration}</Text>
+        </View>
+      </ImageBackground>
+    ) : (
+      <View style={[styles.cardBackground, { backgroundColor: item.color }]}>
+        <MaterialIcons 
+          name={item.icon as any} 
+          size={36} 
+          color="rgba(255, 255, 255, 0.6)" 
+          style={styles.cardIcon}
+        />
+        <View style={styles.cardContent}>
+          <Text style={styles.cardTitle}>{item.title}</Text>
+          <Text style={styles.cardDuration}>{item.duration}</Text>
+        </View>
+      </View>
+    )}
   </TouchableOpacity>
 );
 
-const ContentSection = ({ title, data, icon, onItemPress }: { title: string; data: any[]; icon?: string; onItemPress: (item: any) => void }) => (
+const ContentSection = ({ title, data, icon, onItemPress, isLoading }: { 
+  title: string; 
+  data: ContentItem[]; 
+  icon?: string; 
+  onItemPress: (item: ContentItem) => void;
+  isLoading?: boolean;
+}) => (
   <View style={styles.section}>
     <View style={styles.sectionHeader}>
       {icon && <MaterialIcons name={icon as any} size={24} color="#ffffff" style={styles.sectionIcon} />}
       <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>{title}</ThemedText>
     </View>
-    <FlatList
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      data={data}
-      renderItem={({ item }) => (
-        <ContentCard 
-          item={item} 
-          onPress={() => onItemPress(item)}
-        />
-      )}
-      keyExtractor={(item) => item.id}
-      contentContainerStyle={styles.listContainer}
-      snapToInterval={CARD_WIDTH + CARD_MARGIN * 2}
-      decelerationRate="fast"
-    />
+    {isLoading ? (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#ffffff" />
+      </View>
+    ) : (
+      <FlatList
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        data={data}
+        renderItem={({ item }) => (
+          <ContentCard 
+            item={item} 
+            onPress={() => onItemPress(item)}
+          />
+        )}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.listContainer}
+        snapToInterval={CARD_WIDTH + CARD_MARGIN * 2}
+        decelerationRate="fast"
+      />
+    )}
   </View>
 );
 
@@ -92,9 +110,30 @@ const ActionButton = ({ title, icon, onPress, color }: { title: string; icon: st
 export default function RelaxScreen() {
   const router = useRouter();
   const [modalVisible, setModalVisible] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [selectedItem, setSelectedItem] = useState<ContentItem | null>(null);
+  const [content, setContent] = useState<RelaxContent>({
+    calmingSounds: [],
+    guidedRelaxation: [],
+  });
+  const [isLoading, setIsLoading] = useState(true);
 
-  const handleItemPress = (item: any) => {
+  useEffect(() => {
+    loadContent();
+  }, []);
+
+  const loadContent = async () => {
+    try {
+      setIsLoading(true);
+      const relaxContent = await getRelaxContent();
+      setContent(relaxContent);
+    } catch (error) {
+      console.error('Error loading relax content:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleItemPress = (item: ContentItem) => {
     setSelectedItem(item);
     setModalVisible(true);
   };
@@ -164,22 +203,18 @@ export default function RelaxScreen() {
 
             {/* Content Sections */}
             <ContentSection 
-              title="Ambient Sounds" 
-              data={ambientSoundsData} 
+              title="Calming Sounds" 
+              data={content.calmingSounds} 
               icon="volume-up" 
               onItemPress={handleItemPress}
+              isLoading={isLoading}
             />
             <ContentSection 
-              title="Guided Meditation" 
-              data={guidedMeditationData} 
+              title="Guided Relaxation" 
+              data={content.guidedRelaxation} 
               icon="self-improvement" 
               onItemPress={handleItemPress}
-            />
-            <ContentSection 
-              title="Nature Sounds" 
-              data={natureSoundsData} 
-              icon="nature" 
-              onItemPress={handleItemPress}
+              isLoading={isLoading}
             />
 
             <View style={styles.bottomPadding} />
@@ -256,13 +291,29 @@ const styles = StyleSheet.create({
     height: 140,
     borderRadius: 20,
     marginRight: CARD_MARGIN * 2,
-    padding: 20,
-    justifyContent: 'flex-end',
+    overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 6,
     elevation: 5,
+  },
+  cardBackground: {
+    width: '100%',
+    height: '100%',
+    padding: 20,
+    justifyContent: 'flex-end',
+  },
+  cardBackgroundImage: {
+    borderRadius: 20,
+  },
+  cardOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
   },
   cardContent: {
     gap: 8,
@@ -317,5 +368,11 @@ const styles = StyleSheet.create({
   },
   bottomPadding: {
     height: 100,
+  },
+  loadingContainer: {
+    height: 140,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginHorizontal: 20,
   },
 });

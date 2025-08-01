@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { StyleSheet, ScrollView, SafeAreaView, StatusBar, View, Text, FlatList, TouchableOpacity, Dimensions } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, ScrollView, SafeAreaView, StatusBar, View, Text, FlatList, TouchableOpacity, Dimensions, ActivityIndicator, Image, ImageBackground } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useRouter } from 'expo-router';
@@ -8,66 +8,91 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { RemoveAdsButton } from '@/components/RemoveAdsButton';
 import { PlayerModal } from '@/components/PlayerModal';
+import { getFocusContent, ContentItem } from '@/services/contentService';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.7;
 const CARD_MARGIN = 10;
 
-// Sample data for focus content
-const workMusicData = [
-  { id: '1', title: 'Lo-fi Study Beats', duration: '60 min', color: '#6366F1', icon: 'headphones' },
-  { id: '2', title: 'Classical Focus', duration: '45 min', color: '#8B5CF6', icon: 'piano' },
-  { id: '3', title: 'Ambient Workspace', duration: '90 min', color: '#EC4899', icon: 'work' },
-  { id: '4', title: 'Electronic Focus', duration: '30 min', color: '#06B6D4', icon: 'equalizer' },
-];
+interface FocusContent {
+  workMusic: ContentItem[];
+  quickMeditation: ContentItem[];
+}
 
-const quickMeditationData = [
-  { id: '1', title: 'Focus Meditation', duration: '5 min', color: '#10B981', icon: 'center-focus-strong' },
-  { id: '2', title: 'Clarity Boost', duration: '3 min', color: '#F59E0B', icon: 'lightbulb' },
-  { id: '3', title: 'Mind Reset', duration: '7 min', color: '#EF4444', icon: 'refresh' },
-  { id: '4', title: 'Concentration', duration: '10 min', color: '#8B5CF6', icon: 'psychology' },
-];
-
-const ContentCard = ({ item, onPress }: { item: any; onPress: () => void }) => (
+const ContentCard = ({ item, onPress }: { item: ContentItem; onPress: () => void }) => (
   <TouchableOpacity 
-    style={[styles.card, { backgroundColor: item.color }]}
+    style={styles.card}
     activeOpacity={0.8}
     onPress={onPress}
   >
-    <MaterialIcons 
-      name={item.icon as any} 
-      size={36} 
-      color="rgba(255, 255, 255, 0.6)" 
-      style={styles.cardIcon}
-    />
-    <View style={styles.cardContent}>
-      <Text style={styles.cardTitle}>{item.title}</Text>
-      <Text style={styles.cardDuration}>{item.duration}</Text>
-    </View>
+    {item.thumbnail ? (
+      <ImageBackground 
+        source={{ uri: item.thumbnail }}
+        style={styles.cardBackground}
+        imageStyle={styles.cardBackgroundImage}
+      >
+        <View style={styles.cardOverlay} />
+        <MaterialIcons 
+          name={item.icon as any} 
+          size={36} 
+          color="rgba(255, 255, 255, 0.8)" 
+          style={styles.cardIcon}
+        />
+        <View style={styles.cardContent}>
+          <Text style={styles.cardTitle}>{item.title}</Text>
+          <Text style={styles.cardDuration}>{item.duration}</Text>
+        </View>
+      </ImageBackground>
+    ) : (
+      <View style={[styles.cardBackground, { backgroundColor: item.color }]}>
+        <MaterialIcons 
+          name={item.icon as any} 
+          size={36} 
+          color="rgba(255, 255, 255, 0.6)" 
+          style={styles.cardIcon}
+        />
+        <View style={styles.cardContent}>
+          <Text style={styles.cardTitle}>{item.title}</Text>
+          <Text style={styles.cardDuration}>{item.duration}</Text>
+        </View>
+      </View>
+    )}
   </TouchableOpacity>
 );
 
-const ContentSection = ({ title, data, icon, onItemPress }: { title: string; data: any[]; icon?: string; onItemPress: (item: any) => void }) => (
+const ContentSection = ({ title, data, icon, onItemPress, isLoading }: { 
+  title: string; 
+  data: ContentItem[]; 
+  icon?: string; 
+  onItemPress: (item: ContentItem) => void;
+  isLoading?: boolean;
+}) => (
   <View style={styles.section}>
     <View style={styles.sectionHeader}>
       {icon && <MaterialIcons name={icon as any} size={24} color="#ffffff" style={styles.sectionIcon} />}
       <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>{title}</ThemedText>
     </View>
-    <FlatList
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      data={data}
-      renderItem={({ item }) => (
-        <ContentCard 
-          item={item} 
-          onPress={() => onItemPress(item)}
-        />
-      )}
-      keyExtractor={(item) => item.id}
-      contentContainerStyle={styles.listContainer}
-      snapToInterval={CARD_WIDTH + CARD_MARGIN * 2}
-      decelerationRate="fast"
-    />
+    {isLoading ? (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#ffffff" />
+      </View>
+    ) : (
+      <FlatList
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        data={data}
+        renderItem={({ item }) => (
+          <ContentCard 
+            item={item} 
+            onPress={() => onItemPress(item)}
+          />
+        )}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.listContainer}
+        snapToInterval={CARD_WIDTH + CARD_MARGIN * 2}
+        decelerationRate="fast"
+      />
+    )}
   </View>
 );
 
@@ -85,9 +110,30 @@ const ToolButton = ({ title, icon, onPress, color }: { title: string; icon: stri
 export default function FocusScreen() {
   const router = useRouter();
   const [modalVisible, setModalVisible] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [selectedItem, setSelectedItem] = useState<ContentItem | null>(null);
+  const [content, setContent] = useState<FocusContent>({
+    workMusic: [],
+    quickMeditation: [],
+  });
+  const [isLoading, setIsLoading] = useState(true);
 
-  const handleItemPress = (item: any) => {
+  useEffect(() => {
+    loadContent();
+  }, []);
+
+  const loadContent = async () => {
+    try {
+      setIsLoading(true);
+      const focusContent = await getFocusContent();
+      setContent(focusContent);
+    } catch (error) {
+      console.error('Error loading focus content:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleItemPress = (item: ContentItem) => {
     setSelectedItem(item);
     setModalVisible(true);
   };
@@ -178,15 +224,17 @@ export default function FocusScreen() {
             {/* Content Sections */}
             <ContentSection 
               title="Work Music" 
-              data={workMusicData} 
+              data={content.workMusic} 
               icon="music-note" 
               onItemPress={handleItemPress}
+              isLoading={isLoading}
             />
             <ContentSection 
               title="Quick Meditation" 
-              data={quickMeditationData} 
+              data={content.quickMeditation} 
               icon="self-improvement" 
               onItemPress={handleItemPress}
+              isLoading={isLoading}
             />
 
             <View style={styles.bottomPadding} />
@@ -297,13 +345,29 @@ const styles = StyleSheet.create({
     height: 140,
     borderRadius: 20,
     marginRight: CARD_MARGIN * 2,
-    padding: 20,
-    justifyContent: 'flex-end',
+    overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 6,
     elevation: 5,
+  },
+  cardBackground: {
+    width: '100%',
+    height: '100%',
+    padding: 20,
+    justifyContent: 'flex-end',
+  },
+  cardBackgroundImage: {
+    borderRadius: 20,
+  },
+  cardOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
   },
   cardContent: {
     gap: 8,
@@ -324,5 +388,11 @@ const styles = StyleSheet.create({
   },
   bottomPadding: {
     height: 100,
+  },
+  loadingContainer: {
+    height: 140,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginHorizontal: 20,
   },
 });

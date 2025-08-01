@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { StyleSheet, ScrollView, SafeAreaView, StatusBar, View, Text, FlatList, TouchableOpacity, Dimensions } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, ScrollView, SafeAreaView, StatusBar, View, Text, FlatList, TouchableOpacity, Dimensions, ActivityIndicator, Image, ImageBackground } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
@@ -7,89 +7,124 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { PlayerModal } from '@/components/PlayerModal';
 import { RemoveAdsButton } from '@/components/RemoveAdsButton';
+import { getSleepContent, ContentItem } from '@/services/contentService';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.7;
 const CARD_MARGIN = 10;
 
-// Sample data for each section
-const sleepyMusicData = [
-  { id: '1', title: 'Peaceful Piano', duration: '45 min', color: '#4A628A', icon: 'piano' },
-  { id: '2', title: 'Nature Sounds', duration: '60 min', color: '#5C769C', icon: 'forest' },
-  { id: '3', title: 'Ambient Dreams', duration: '30 min', color: '#6E8AAE', icon: 'cloud' },
-  { id: '4', title: 'Soft Guitar', duration: '40 min', color: '#7F9EC0', icon: 'music-note' },
-];
+interface SleepContent {
+  sleepyMusic: ContentItem[];
+  stories: ContentItem[];
+  meditation: ContentItem[];
+  whiteNoise: ContentItem[];
+}
 
-const storyData = [
-  { id: '1', title: 'The Enchanted Forest', duration: '25 min', color: '#B0A695', icon: 'auto-stories' },
-  { id: '2', title: 'Journey to the Stars', duration: '30 min', color: '#C3B8A7', icon: 'star' },
-  { id: '3', title: 'The Peaceful Village', duration: '20 min', color: '#D6CAB9', icon: 'home' },
-  { id: '4', title: 'Ocean Adventures', duration: '35 min', color: '#E9DCCB', icon: 'waves' },
-];
-
-const meditationData = [
-  { id: '1', title: 'Body Scan', duration: '15 min', color: '#7077A1', icon: 'accessibility' },
-  { id: '2', title: 'Breathing Exercise', duration: '10 min', color: '#8289B3', icon: 'air' },
-  { id: '3', title: 'Mindful Sleep', duration: '20 min', color: '#949BC5', icon: 'self-improvement' },
-  { id: '4', title: 'Relaxation Journey', duration: '25 min', color: '#A6ADD7', icon: 'explore' },
-];
-
-const whiteNoiseData = [
-  { id: '1', title: 'Rain Sounds', duration: '∞', color: '#2D5071', icon: 'water-drop' },
-  { id: '2', title: 'Ocean Waves', duration: '∞', color: '#3F6283', icon: 'waves' },
-  { id: '3', title: 'Fan Noise', duration: '∞', color: '#517495', icon: 'toys' },
-  { id: '4', title: 'Pink Noise', duration: '∞', color: '#6386A7', icon: 'graphic-eq' },
-];
-
-const ContentCard = ({ item, index, onPress }: { item: any; index: number; onPress: () => void }) => (
+const ContentCard = ({ item, onPress }: { item: ContentItem; onPress: () => void }) => (
   <TouchableOpacity 
-    style={[styles.card, { backgroundColor: item.color }]}
+    style={styles.card}
     activeOpacity={0.8}
     onPress={onPress}
   >
-    <MaterialIcons 
-      name={item.icon as any} 
-      size={36} 
-      color="rgba(255, 255, 255, 0.6)" 
-      style={styles.cardIcon}
-    />
-    <View style={styles.cardContent}>
-      <Text style={styles.cardTitle}>{item.title}</Text>
-      <Text style={styles.cardDuration}>{item.duration}</Text>
-    </View>
+    {item.thumbnail ? (
+      <ImageBackground 
+        source={{ uri: item.thumbnail }}
+        style={styles.cardBackground}
+        imageStyle={styles.cardBackgroundImage}
+      >
+        <View style={styles.cardOverlay} />
+        <MaterialIcons 
+          name={item.icon as any} 
+          size={36} 
+          color="rgba(255, 255, 255, 0.8)" 
+          style={styles.cardIcon}
+        />
+        <View style={styles.cardContent}>
+          <Text style={styles.cardTitle}>{item.title}</Text>
+          <Text style={styles.cardDuration}>{item.duration}</Text>
+        </View>
+      </ImageBackground>
+    ) : (
+      <View style={[styles.cardBackground, { backgroundColor: item.color }]}>
+        <MaterialIcons 
+          name={item.icon as any} 
+          size={36} 
+          color="rgba(255, 255, 255, 0.6)" 
+          style={styles.cardIcon}
+        />
+        <View style={styles.cardContent}>
+          <Text style={styles.cardTitle}>{item.title}</Text>
+          <Text style={styles.cardDuration}>{item.duration}</Text>
+        </View>
+      </View>
+    )}
   </TouchableOpacity>
 );
 
-const ContentSection = ({ title, data, icon, onItemPress }: { title: string; data: any[]; icon?: string; onItemPress: (item: any) => void }) => (
+const ContentSection = ({ title, data, icon, onItemPress, isLoading }: { 
+  title: string; 
+  data: ContentItem[]; 
+  icon?: string; 
+  onItemPress: (item: ContentItem) => void;
+  isLoading?: boolean;
+}) => (
   <View style={styles.section}>
     <View style={styles.sectionHeader}>
       {icon && <MaterialIcons name={icon as any} size={24} color="#ffffff" style={styles.sectionIcon} />}
       <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>{title}</ThemedText>
     </View>
-    <FlatList
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      data={data}
-      renderItem={({ item, index }) => (
-        <ContentCard 
-          item={item} 
-          index={index} 
-          onPress={() => onItemPress(item)}
-        />
-      )}
-      keyExtractor={(item) => item.id}
-      contentContainerStyle={styles.listContainer}
-      snapToInterval={CARD_WIDTH + CARD_MARGIN * 2}
-      decelerationRate="fast"
-    />
+    {isLoading ? (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#ffffff" />
+      </View>
+    ) : (
+      <FlatList
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        data={data}
+        renderItem={({ item }) => (
+          <ContentCard 
+            item={item}
+            onPress={() => onItemPress(item)}
+          />
+        )}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.listContainer}
+        snapToInterval={CARD_WIDTH + CARD_MARGIN * 2}
+        decelerationRate="fast"
+      />
+    )}
   </View>
 );
 
 export default function SleepScreen() {
   const [modalVisible, setModalVisible] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [selectedItem, setSelectedItem] = useState<ContentItem | null>(null);
+  const [content, setContent] = useState<SleepContent>({
+    sleepyMusic: [],
+    stories: [],
+    meditation: [],
+    whiteNoise: [],
+  });
+  const [isLoading, setIsLoading] = useState(true);
 
-  const handleItemPress = (item: any) => {
+  useEffect(() => {
+    loadContent();
+  }, []);
+
+  const loadContent = async () => {
+    try {
+      setIsLoading(true);
+      const sleepContent = await getSleepContent();
+      setContent(sleepContent);
+    } catch (error) {
+      console.error('Error loading sleep content:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleItemPress = (item: ContentItem) => {
     setSelectedItem(item);
     setModalVisible(true);
   };
@@ -116,27 +151,31 @@ export default function SleepScreen() {
             
             <ContentSection 
               title="Sleepy Music" 
-              data={sleepyMusicData} 
+              data={content.sleepyMusic} 
               icon="music-note" 
               onItemPress={handleItemPress}
+              isLoading={isLoading}
             />
             <ContentSection 
               title="Story" 
-              data={storyData} 
+              data={content.stories} 
               icon="menu-book" 
               onItemPress={handleItemPress}
+              isLoading={isLoading}
             />
             <ContentSection 
               title="Sleep Meditation" 
-              data={meditationData} 
+              data={content.meditation} 
               icon="spa" 
               onItemPress={handleItemPress}
+              isLoading={isLoading}
             />
             <ContentSection 
               title="White Noise" 
-              data={whiteNoiseData} 
+              data={content.whiteNoise} 
               icon="hearing" 
               onItemPress={handleItemPress}
+              isLoading={isLoading}
             />
             
             <View style={styles.bottomPadding} />
@@ -194,13 +233,29 @@ const styles = StyleSheet.create({
     height: 140,
     borderRadius: 20,
     marginRight: CARD_MARGIN * 2,
-    padding: 20,
-    justifyContent: 'flex-end',
+    overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 6,
     elevation: 5,
+  },
+  cardBackground: {
+    width: '100%',
+    height: '100%',
+    padding: 20,
+    justifyContent: 'flex-end',
+  },
+  cardBackgroundImage: {
+    borderRadius: 20,
+  },
+  cardOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
   },
   cardContent: {
     gap: 8,
@@ -221,5 +276,11 @@ const styles = StyleSheet.create({
   },
   bottomPadding: {
     height: 100,
+  },
+  loadingContainer: {
+    height: 140,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginHorizontal: 20,
   },
 });
