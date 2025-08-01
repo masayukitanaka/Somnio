@@ -26,6 +26,12 @@ export default function RootLayout() {
           headerShown: false 
         }} 
       />
+      <Stack.Screen 
+        name="breathing-exercise" 
+        options={{ 
+          headerShown: false 
+        }} 
+      />
     </Stack>
   );
 }
