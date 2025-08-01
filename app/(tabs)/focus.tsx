@@ -102,13 +102,11 @@ export default function FocusScreen() {
   };
 
   const handleTasks = () => {
-    // TODO: Navigate to tasks screen
-    console.log('Navigate to tasks');
+    router.push('/tasks');
   };
 
   const handleJournal = () => {
-    // TODO: Navigate to journal screen
-    console.log('Navigate to journal');
+    router.push('/journal');
   };
 
   const handleGoalSetting = () => {
