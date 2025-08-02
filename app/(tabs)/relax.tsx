@@ -8,6 +8,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { RemoveAdsButton } from '@/components/RemoveAdsButton';
 import { PlayerModal } from '@/components/PlayerModal';
+import CoffeeSteamAnimation from '@/components/CoffeeSteamAnimation';
 import { getRelaxContent, ContentItem } from '@/services/contentService';
 
 const { width } = Dimensions.get('window');
@@ -165,19 +166,13 @@ export default function RelaxScreen() {
             
             {/* Hero Image Section */}
             <View style={styles.heroSection}>
-              <View style={styles.heroImageContainer}>
-                <MaterialIcons 
-                  name="spa" 
-                  size={80} 
-                  color="rgba(255, 255, 255, 0.3)" 
-                />
-              </View>
               <ThemedView style={[styles.heroContent, { backgroundColor: 'transparent' }]}>
                 <ThemedText type="title" style={styles.heroTitle}>Relax</ThemedText>
                 <ThemedText type="subtitle" style={styles.heroSubtitle}>
                   Unwind and let go of stress
                 </ThemedText>
               </ThemedView>
+              <CoffeeSteamAnimation />
             </View>
 
             {/* Action Buttons */}
@@ -243,17 +238,8 @@ const styles = StyleSheet.create({
   },
   heroSection: {
     alignItems: 'center',
-    paddingVertical: 40,
+    paddingTop: 40,
     paddingHorizontal: 20,
-  },
-  heroImageContainer: {
-    width: 160,
-    height: 160,
-    borderRadius: 80,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 20,
   },
   heroContent: {
     alignItems: 'center',
