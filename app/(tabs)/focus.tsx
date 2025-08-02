@@ -8,6 +8,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { RemoveAdsButton } from '@/components/RemoveAdsButton';
 import { PlayerModal } from '@/components/PlayerModal';
+import PenAnimation from '@/components/PenAnimation';
 import { getFocusContent, ContentItem } from '@/services/contentService';
 
 const { width } = Dimensions.get('window');
@@ -173,19 +174,15 @@ export default function FocusScreen() {
             
             {/* Hero Image Section */}
             <View style={styles.heroSection}>
-              <View style={styles.heroImageContainer}>
-                <MaterialIcons 
-                  name="psychology" 
-                  size={80} 
-                  color="rgba(255, 255, 255, 0.3)" 
-                />
-              </View>
               <ThemedView style={[styles.heroContent, { backgroundColor: 'transparent' }]}>
                 <ThemedText type="title" style={styles.heroTitle}>Focus</ThemedText>
                 <ThemedText type="subtitle" style={styles.heroSubtitle}>
                   Enhance your concentration and productivity
                 </ThemedText>
               </ThemedView>
+              <View style={styles.heroImageContainer}>
+                <PenAnimation />
+              </View>
             </View>
 
             {/* Tool Buttons */}
@@ -267,10 +264,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   heroImageContainer: {
-    width: 160,
-    height: 160,
-    borderRadius: 80,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 20,

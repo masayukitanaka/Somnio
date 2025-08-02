@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
   coffeeContainer: {
     alignItems: 'center',
     marginTop: 30,
-    marginBottom: 0,
+    marginBottom: -30,
     position: 'relative',
   },
   coffeeImage: {
