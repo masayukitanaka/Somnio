@@ -1,8 +1,10 @@
 import { Stack } from "expo-router";
+import { AudioProvider } from '@/contexts/AudioContext';
 
 export default function RootLayout() {
   return (
-    <Stack
+    <AudioProvider>
+      <Stack
       screenOptions={{
         headerStyle: {
           backgroundColor: '#0A2647',
@@ -51,5 +53,6 @@ export default function RootLayout() {
         }} 
       />
     </Stack>
+    </AudioProvider>
   );
 }

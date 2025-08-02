@@ -8,8 +8,8 @@
         "color": "#6366F1",
         "icon": "music-note",
         "thumbnail": "https://lazyvlog.beezynx.dev/assets/images/iOS_4.png",
-        "audioUrl": "https://example.com/audio/deep-sleep-ambient.mp3",
-        "description": "Soothing ambient sounds for deep sleep"
+        "audioUrl": "https://public-persistent-us-west-2.s3.us-west-2.amazonaws.com/temp/normal_en.mp3",
+        "description": "Guided Meditation for relaxing"
       },
       {
         "id": "sm2",

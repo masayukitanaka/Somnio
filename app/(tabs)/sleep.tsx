@@ -7,7 +7,9 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { PlayerModal } from '@/components/PlayerModal';
 import { RemoveAdsButton } from '@/components/RemoveAdsButton';
+import { MiniPlayer } from '@/components/MiniPlayer';
 import { getSleepContent, ContentItem } from '@/services/contentService';
+import { useAudio } from '@/contexts/AudioContext';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.7;
@@ -100,6 +102,7 @@ const ContentSection = ({ title, data, icon, onItemPress, isLoading }: {
 export default function SleepScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedItem, setSelectedItem] = useState<ContentItem | null>(null);
+  const { currentItem } = useAudio();
   const [content, setContent] = useState<SleepContent>({
     sleepyMusic: [],
     stories: [],
@@ -188,6 +191,13 @@ export default function SleepScreen() {
         onClose={handleCloseModal}
         item={selectedItem}
       />
+
+      <MiniPlayer onPress={() => {
+        if (currentItem) {
+          setSelectedItem(currentItem);
+          setModalVisible(true);
+        }
+      }} />
     </>
   );
 }

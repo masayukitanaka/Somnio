@@ -15,6 +15,11 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { BlurView } from 'expo-blur';
+import { Audio } from 'expo-av';
+import { useAudio } from '@/contexts/AudioContext';
+import { useSleepTimer } from '@/hooks/useSleepTimer';
+import { VolumeSlider } from './VolumeSlider';
+import { SleepTimer } from './SleepTimer';
 
 const { height: screenHeight, width: screenWidth } = Dimensions.get('window');
 
@@ -28,13 +33,39 @@ interface PlayerModalProps {
     icon: string;
     thumbnail?: string;
     description?: string;
+    audioUrl?: string;
   } | null;
 }
 
 export function PlayerModal({ visible, onClose, item }: PlayerModalProps) {
   const translateY = useRef(new Animated.Value(screenHeight)).current;
-  const [isPlaying, setIsPlaying] = React.useState(false);
-  const [progress, setProgress] = React.useState(0);
+  const [volumeSliderVisible, setVolumeSliderVisible] = React.useState(false);
+  const [sleepTimerVisible, setSleepTimerVisible] = React.useState(false);
+  const {
+    currentSound,
+    currentItem,
+    isPlaying,
+    isLoaded,
+    position,
+    duration,
+    progress,
+    setCurrentSound,
+    setCurrentItem,
+    setIsPlaying,
+    setIsLoaded,
+    setPosition,
+    setDuration,
+    setProgress,
+    togglePlayPause: globalTogglePlayPause,
+    stopAndUnloadAudio: globalStopAndUnloadAudio,
+    seekTo,
+    volume,
+    isMuted,
+    toggleMute,
+    sleepTimerMinutes,
+  } = useAudio();
+
+  const { timeRemaining: sleepTimerRemaining } = useSleepTimer();
 
   useEffect(() => {
     if (visible) {
@@ -44,14 +75,124 @@ export function PlayerModal({ visible, onClose, item }: PlayerModalProps) {
         tension: 65,
         friction: 11,
       }).start();
+      if (!currentItem || currentItem.id !== item?.id) {
+        loadAudio();
+      }
     } else {
       Animated.timing(translateY, {
         toValue: screenHeight,
         duration: 300,
         useNativeDriver: true,
       }).start();
+      // Don't stop audio when closing modal
     }
   }, [visible]);
+
+  // Removed cleanup effect as it's handled in context
+
+  const loadAudio = async () => {
+    if (!item?.audioUrl) return;
+
+    // If same track is already loaded, don't reload
+    if (currentItem && (currentItem as any).id === (item as any).id && currentSound && isLoaded) {
+      return;
+    }
+
+    try {
+      // Enable background audio playback
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: false,
+        staysActiveInBackground: true,
+        playsInSilentModeIOS: true,
+        shouldDuckAndroid: true,
+        playThroughEarpieceAndroid: false,
+      });
+
+      // Stop current audio if playing different track
+      if (currentSound && (currentItem as any)?.id !== (item as any).id) {
+        try {
+          await currentSound.stopAsync();
+          await currentSound.unloadAsync();
+        } catch (error) {
+          console.error('Error stopping previous audio:', error);
+        }
+      }
+
+      // Reset loading state only when loading new track
+      setIsLoaded(false);
+
+      const { sound: newSound } = await Audio.Sound.createAsync(
+        { uri: item.audioUrl },
+        { shouldPlay: false }
+      );
+      
+      newSound.setOnPlaybackStatusUpdate((status) => {
+        if (status.isLoaded) {
+          setDuration(status.durationMillis || 0);
+          setPosition(status.positionMillis || 0);
+          setProgress((status.positionMillis / (status.durationMillis || 1)) * 100);
+          setIsPlaying(status.isPlaying);
+          setIsLoaded(true);
+        } else {
+          setIsLoaded(false);
+        }
+      });
+
+      setCurrentSound(newSound);
+      setCurrentItem(item);
+    } catch (error) {
+      console.error('Error loading audio:', error);
+      setIsLoaded(false);
+    }
+  };
+
+  const togglePlayPause = async () => {
+    await globalTogglePlayPause();
+  };
+
+
+  const seekBackward = async () => {
+    if (!currentSound || !isLoaded) return;
+    try {
+      const newPosition = Math.max(0, position - 10000);
+      await seekTo(newPosition);
+    } catch (error) {
+      console.error('Error seeking backward:', error);
+    }
+  };
+
+  const seekForward = async () => {
+    if (!currentSound || !isLoaded) return;
+    try {
+      const newPosition = Math.min(duration, position + 10000);
+      await seekTo(newPosition);
+    } catch (error) {
+      console.error('Error seeking forward:', error);
+    }
+  };
+
+  const formatTime = (millis: number) => {
+    const totalSeconds = Math.floor(millis / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+  };
+
+  const handleProgressBarPress = (event: any) => {
+    const { locationX } = event.nativeEvent;
+    const barWidth = event.currentTarget.offsetWidth || 300; // fallback width
+    const percentage = locationX / barWidth;
+    const newPosition = duration * percentage;
+    
+    seekTo(newPosition);
+  };
+
+  const getVolumeIcon = () => {
+    if (isMuted || volume === 0) return 'volume-off';
+    if (volume < 0.3) return 'volume-down';
+    if (volume < 0.7) return 'volume-up';
+    return 'volume-up';
+  };
 
   const panResponder = useRef(
     PanResponder.create({
@@ -143,25 +284,29 @@ export function PlayerModal({ visible, onClose, item }: PlayerModalProps) {
             </View>
 
             <View style={styles.progressContainer}>
-              <View style={styles.progressBar}>
+              <TouchableOpacity 
+                style={styles.progressBar}
+                onPress={handleProgressBarPress}
+                activeOpacity={1}
+              >
                 <View 
                   style={[styles.progressFill, { width: `${progress}%` }]} 
                 />
-              </View>
+              </TouchableOpacity>
               <View style={styles.timeContainer}>
-                <Text style={styles.timeText}>0:00</Text>
-                <Text style={styles.timeText}>{item.duration}</Text>
+                <Text style={styles.timeText}>{formatTime(position)}</Text>
+                <Text style={styles.timeText}>{formatTime(duration)}</Text>
               </View>
             </View>
 
             <View style={styles.controls}>
-              <TouchableOpacity style={styles.controlButton}>
+              <TouchableOpacity style={styles.controlButton} onPress={seekBackward}>
                 <MaterialIcons name="replay-10" size={32} color="#ffffff" />
               </TouchableOpacity>
               
               <TouchableOpacity 
                 style={styles.playButton}
-                onPress={() => setIsPlaying(!isPlaying)}
+                onPress={togglePlayPause}
               >
                 <MaterialIcons
                   name={isPlaying ? "pause" : "play-arrow"}
@@ -170,7 +315,7 @@ export function PlayerModal({ visible, onClose, item }: PlayerModalProps) {
                 />
               </TouchableOpacity>
               
-              <TouchableOpacity style={styles.controlButton}>
+              <TouchableOpacity style={styles.controlButton} onPress={seekForward}>
                 <MaterialIcons name="forward-10" size={32} color="#ffffff" />
               </TouchableOpacity>
             </View>
@@ -180,18 +325,51 @@ export function PlayerModal({ visible, onClose, item }: PlayerModalProps) {
                 <MaterialIcons name="favorite-border" size={24} color="#ffffff" />
               </TouchableOpacity>
               
-              <TouchableOpacity style={styles.bottomButton}>
-                <MaterialIcons name="access-time" size={24} color="#ffffff" />
-                <Text style={styles.bottomButtonText}>Sleep Timer</Text>
+              <TouchableOpacity 
+                style={styles.bottomButton}
+                onPress={() => setSleepTimerVisible(true)}
+              >
+                <MaterialIcons 
+                  name="access-time" 
+                  size={24} 
+                  color={sleepTimerMinutes ? '#FFD700' : '#ffffff'} 
+                />
+                <Text style={[
+                  styles.bottomButtonText,
+                  sleepTimerMinutes ? { color: '#FFD700' } : null
+                ]}>
+                  {sleepTimerRemaining ? (
+                    `⏰ ${Math.floor(sleepTimerRemaining / 60)}:${(sleepTimerRemaining % 60).toString().padStart(2, '0')}`
+                  ) : (
+                    'Sleep Timer'
+                  )}
+                </Text>
               </TouchableOpacity>
               
-              <TouchableOpacity style={styles.bottomButton}>
-                <MaterialIcons name="volume-up" size={24} color="#ffffff" />
+              <TouchableOpacity 
+                style={styles.bottomButton}
+                onPress={() => setVolumeSliderVisible(true)}
+              >
+                <MaterialIcons 
+                  name={getVolumeIcon()} 
+                  size={24} 
+                  color={isMuted ? '#FF6B6B' : '#ffffff'} 
+                />
               </TouchableOpacity>
             </View>
           </View>
         </LinearGradient>
       </Animated.View>
+
+      <VolumeSlider
+        visible={volumeSliderVisible}
+        onClose={() => setVolumeSliderVisible(false)}
+      />
+
+      <SleepTimer
+        visible={sleepTimerVisible}
+        onClose={() => setSleepTimerVisible(false)}
+      />
     </Modal>
   );
 }
