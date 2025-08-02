@@ -22,46 +22,117 @@ interface SleepContent {
   whiteNoise: ContentItem[];
 }
 
-const ContentCard = ({ item, onPress }: { item: ContentItem; onPress: () => void }) => (
-  <TouchableOpacity 
-    style={styles.card}
-    activeOpacity={0.8}
-    onPress={onPress}
-  >
-    {item.thumbnail ? (
-      <ImageBackground 
-        source={{ uri: item.thumbnail }}
-        style={styles.cardBackground}
-        imageStyle={styles.cardBackgroundImage}
-      >
-        <View style={styles.cardOverlay} />
-        <MaterialIcons 
-          name={item.icon as any} 
-          size={36} 
-          color="rgba(255, 255, 255, 0.8)" 
-          style={styles.cardIcon}
-        />
-        <View style={styles.cardContent}>
-          <Text style={styles.cardTitle}>{item.title}</Text>
-          <Text style={styles.cardDuration}>{item.duration}</Text>
+const ContentCard = ({ item, onPress }: { 
+  item: ContentItem; 
+  onPress: () => void;
+}) => {
+  const [isDownloaded, setIsDownloaded] = React.useState(false);
+  const [isDownloading, setIsDownloading] = React.useState(false);
+  const { isAudioDownloaded, downloadAudio } = useAudio();
+
+  React.useEffect(() => {
+    checkDownloadStatus();
+  }, [item.id]);
+
+  const checkDownloadStatus = async () => {
+    try {
+      const downloaded = await isAudioDownloaded(item.id);
+      setIsDownloaded(downloaded);
+    } catch (error) {
+      console.error('Error checking download status:', error);
+    }
+  };
+
+  const handleDownloadClick = async (e: any) => {
+    e.stopPropagation();
+    
+    if (isDownloaded || isDownloading || !item.audioUrl) return;
+
+    setIsDownloading(true);
+    try {
+      await downloadAudio(item.id, item.audioUrl);
+      setIsDownloaded(true);
+    } catch (error) {
+      console.error('Download failed:', error);
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
+  const getDownloadIcon = () => {
+    if (isDownloading) return "hourglass-empty";
+    if (isDownloaded) return "check-circle";
+    return "download";
+  };
+
+  const getDownloadIconColor = () => {
+    if (isDownloaded) return "#4CAF50";
+    return "rgba(255, 255, 255, 0.9)";
+  };
+
+  return (
+    <TouchableOpacity 
+      style={styles.card}
+      activeOpacity={0.8}
+      onPress={onPress}
+    >
+      {item.thumbnail ? (
+        <ImageBackground 
+          source={{ uri: item.thumbnail }}
+          style={styles.cardBackground}
+          imageStyle={styles.cardBackgroundImage}
+        >
+          <View style={styles.cardOverlay} />
+          <MaterialIcons 
+            name={item.icon as any} 
+            size={36} 
+            color="rgba(255, 255, 255, 0.8)" 
+            style={styles.cardIcon}
+          />
+          <TouchableOpacity 
+            style={[styles.downloadButton, isDownloaded && styles.downloadedButton]}
+            onPress={handleDownloadClick}
+            disabled={isDownloaded || isDownloading}
+          >
+            <MaterialIcons 
+              name={getDownloadIcon() as any}
+              size={20} 
+              color={getDownloadIconColor()}
+            />
+          </TouchableOpacity>
+          <View style={styles.cardContent}>
+            <Text style={styles.cardTitle}>{item.title}</Text>
+            <Text style={styles.cardDuration}>{item.duration}</Text>
+          </View>
+        </ImageBackground>
+      ) : (
+        <View style={[styles.cardBackground, { backgroundColor: item.color }]}>
+          <MaterialIcons 
+            name={item.icon as any} 
+            size={36} 
+            color="rgba(255, 255, 255, 0.6)" 
+            style={styles.cardIcon}
+          />
+          <TouchableOpacity 
+            style={[styles.downloadButton, isDownloaded && styles.downloadedButton]}
+            onPress={handleDownloadClick}
+            disabled={isDownloaded || isDownloading}
+          >
+            <MaterialIcons 
+              name={getDownloadIcon() as any}
+              size={20} 
+              color={getDownloadIconColor()}
+            />
+          </TouchableOpacity>
+          <View style={styles.cardContent}>
+            <Text style={styles.cardTitle}>{item.title}</Text>
+            <Text style={styles.cardDuration}>{item.duration}</Text>
+          </View>
         </View>
-      </ImageBackground>
-    ) : (
-      <View style={[styles.cardBackground, { backgroundColor: item.color }]}>
-        <MaterialIcons 
-          name={item.icon as any} 
-          size={36} 
-          color="rgba(255, 255, 255, 0.6)" 
-          style={styles.cardIcon}
-        />
-        <View style={styles.cardContent}>
-          <Text style={styles.cardTitle}>{item.title}</Text>
-          <Text style={styles.cardDuration}>{item.duration}</Text>
-        </View>
-      </View>
-    )}
-  </TouchableOpacity>
-);
+      )}
+    </TouchableOpacity>
+  );
+};
 
 const ContentSection = ({ title, data, icon, onItemPress, isLoading }: { 
   title: string; 
@@ -274,6 +345,20 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 20,
     right: 20,
+  },
+  downloadButton: {
+    position: 'absolute',
+    top: 20,
+    left: 20,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  downloadedButton: {
+    backgroundColor: 'rgba(76, 175, 80, 0.2)',
   },
   cardTitle: {
     fontSize: 18,

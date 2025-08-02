@@ -63,6 +63,7 @@ export function PlayerModal({ visible, onClose, item }: PlayerModalProps) {
     isMuted,
     toggleMute,
     sleepTimerMinutes,
+    getAudioPathWithAutoDownload,
   } = useAudio();
 
   const { timeRemaining: sleepTimerRemaining } = useSleepTimer();
@@ -121,8 +122,13 @@ export function PlayerModal({ visible, onClose, item }: PlayerModalProps) {
       // Reset loading state only when loading new track
       setIsLoaded(false);
 
+      // Get audio path with automatic background download
+      // This will use local file if available, or stream while downloading in background
+      const audioPath = await getAudioPathWithAutoDownload((item as any).id, item.audioUrl);
+      console.log('Loading audio from:', audioPath);
+
       const { sound: newSound } = await Audio.Sound.createAsync(
-        { uri: item.audioUrl },
+        { uri: audioPath },
         { shouldPlay: false }
       );
       

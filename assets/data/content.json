@@ -18,7 +18,7 @@
         "color": "#8B5CF6",
         "icon": "cloud",
         "thumbnail": "https://picsum.photos/300/200?random=2",
-        "audioUrl": "https://example.com/audio/rain-sounds.mp3",
+        "audioUrl": "https://public-persistent-us-west-2.s3.us-west-2.amazonaws.com/temp/normal_en.mp3",
         "description": "Gentle rain sounds for relaxation"
       },
       {
@@ -28,7 +28,7 @@
         "color": "#EC4899",
         "icon": "waves",
         "thumbnail": "https://picsum.photos/300/200?random=3",
-        "audioUrl": "https://example.com/audio/ocean-waves.mp3",
+        "audioUrl": "https://public-persistent-us-west-2.s3.us-west-2.amazonaws.com/temp/normal_en.mp3",
         "description": "Calming ocean waves for peaceful sleep"
       },
       {
@@ -38,7 +38,7 @@
         "color": "#06B6D4",
         "icon": "nature",
         "thumbnail": "https://picsum.photos/300/200?random=4",
-        "audioUrl": "https://example.com/audio/forest-night.mp3",
+        "audioUrl": "https://public-persistent-us-west-2.s3.us-west-2.amazonaws.com/temp/normal_en.mp3",
         "description": "Night sounds from a peaceful forest"
       }
     ],
@@ -50,7 +50,7 @@
         "color": "#10B981",
         "icon": "menu-book",
         "thumbnail": "https://picsum.photos/300/200?random=5",
-        "audioUrl": "https://example.com/audio/sleepy-village.mp3",
+        "audioUrl": "https://public-persistent-us-west-2.s3.us-west-2.amazonaws.com/temp/normal_en.mp3",
         "description": "A gentle bedtime story about a peaceful village"
       },
       {
@@ -60,7 +60,7 @@
         "color": "#F59E0B",
         "icon": "bedtime",
         "thumbnail": "https://picsum.photos/300/200?random=6",
-        "audioUrl": "https://example.com/audio/journey-dreamland.mp3",
+        "audioUrl": "https://public-persistent-us-west-2.s3.us-west-2.amazonaws.com/temp/normal_en.mp3",
         "description": "A magical journey to help you fall asleep"
       },
       {
@@ -70,7 +70,7 @@
         "color": "#EF4444",
         "icon": "water",
         "thumbnail": "https://picsum.photos/300/200?random=7",
-        "audioUrl": "https://example.com/audio/calm-lake.mp3",
+        "audioUrl": "https://public-persistent-us-west-2.s3.us-west-2.amazonaws.com/temp/normal_en.mp3",
         "description": "A soothing story by a tranquil lake"
       }
     ],
@@ -82,7 +82,7 @@
         "color": "#8B5CF6",
         "icon": "self-improvement",
         "thumbnail": "https://picsum.photos/300/200?random=8",
-        "audioUrl": "https://example.com/audio/body-scan.mp3",
+        "audioUrl": "https://public-persistent-us-west-2.s3.us-west-2.amazonaws.com/temp/normal_en.mp3",
         "description": "Progressive body relaxation for sleep"
       },
       {
@@ -92,7 +92,7 @@
         "color": "#06B6D4",
         "icon": "air",
         "thumbnail": "https://picsum.photos/300/200?random=9",
-        "audioUrl": "https://example.com/audio/breathing-sleep.mp3",
+        "audioUrl": "https://public-persistent-us-west-2.s3.us-west-2.amazonaws.com/temp/normal_en.mp3",
         "description": "Guided breathing exercises for better sleep"
       }
     ],
@@ -104,7 +104,7 @@
         "color": "#6B7280",
         "icon": "graphic-eq",
         "thumbnail": "https://picsum.photos/300/200?random=10",
-        "audioUrl": "https://example.com/audio/white-noise.mp3",
+        "audioUrl": "https://public-persistent-us-west-2.s3.us-west-2.amazonaws.com/temp/normal_en.mp3",
         "description": "Classic white noise for masking sounds"
       },
       {
@@ -114,7 +114,7 @@
         "color": "#EC4899",
         "icon": "equalizer",
         "thumbnail": "https://picsum.photos/300/200?random=11",
-        "audioUrl": "https://example.com/audio/pink-noise.mp3",
+        "audioUrl": "https://public-persistent-us-west-2.s3.us-west-2.amazonaws.com/temp/normal_en.mp3",
         "description": "Softer pink noise for gentle background"
       },
       {
@@ -124,7 +124,7 @@
         "color": "#92400E",
         "icon": "tune",
         "thumbnail": "https://picsum.photos/300/200?random=12",
-        "audioUrl": "https://example.com/audio/brown-noise.mp3",
+        "audioUrl": "https://public-persistent-us-west-2.s3.us-west-2.amazonaws.com/temp/normal_en.mp3",
         "description": "Deep brown noise for ultimate relaxation"
       }
     ]
@@ -138,7 +138,7 @@
         "color": "#6366F1",
         "icon": "piano",
         "thumbnail": "https://picsum.photos/300/200?random=13",
-        "audioUrl": "https://example.com/audio/gentle-piano.mp3",
+        "audioUrl": "https://public-persistent-us-west-2.s3.us-west-2.amazonaws.com/temp/normal_en.mp3",
         "description": "Soft piano melodies for relaxation"
       },
       {
@@ -148,7 +148,7 @@
         "color": "#10B981",
         "icon": "eco",
         "thumbnail": "https://picsum.photos/300/200?random=14",
-        "audioUrl": "https://example.com/audio/nature-harmony.mp3",
+        "audioUrl": "https://public-persistent-us-west-2.s3.us-west-2.amazonaws.com/temp/normal_en.mp3",
         "description": "Natural sounds blended with soft music"
       }
     ],
@@ -160,7 +160,7 @@
         "color": "#8B5CF6",
         "icon": "fitness-center",
         "thumbnail": "https://picsum.photos/300/200?random=15",
-        "audioUrl": "https://example.com/audio/muscle-relaxation.mp3",
+        "audioUrl": "https://public-persistent-us-west-2.s3.us-west-2.amazonaws.com/temp/normal_en.mp3",
         "description": "Step-by-step muscle relaxation guide"
       },
       {
@@ -170,7 +170,7 @@
         "color": "#F59E0B",
         "icon": "psychology",
         "thumbnail": "https://picsum.photos/300/200?random=16",
-        "audioUrl": "https://example.com/audio/mindfulness.mp3",
+        "audioUrl": "https://public-persistent-us-west-2.s3.us-west-2.amazonaws.com/temp/normal_en.mp3",
         "description": "Mindful awareness for stress relief"
       }
     ]
@@ -184,7 +184,7 @@
         "color": "#6366F1",
         "icon": "headphones",
         "thumbnail": "https://picsum.photos/300/200?random=17",
-        "audioUrl": "https://example.com/audio/lofi-study.mp3",
+        "audioUrl": "https://public-persistent-us-west-2.s3.us-west-2.amazonaws.com/temp/normal_en.mp3",
         "description": "Chill lo-fi beats for studying and work"
       },
       {
@@ -194,7 +194,7 @@
         "color": "#8B5CF6",
         "icon": "piano",
         "thumbnail": "https://picsum.photos/300/200?random=18",
-        "audioUrl": "https://example.com/audio/classical-focus.mp3",
+        "audioUrl": "https://public-persistent-us-west-2.s3.us-west-2.amazonaws.com/temp/normal_en.mp3",
         "description": "Classical music to enhance concentration"
       },
       {
@@ -204,7 +204,7 @@
         "color": "#EC4899",
         "icon": "work",
         "thumbnail": "https://picsum.photos/300/200?random=19",
-        "audioUrl": "https://example.com/audio/ambient-workspace.mp3",
+        "audioUrl": "https://public-persistent-us-west-2.s3.us-west-2.amazonaws.com/temp/normal_en.mp3",
         "description": "Ambient sounds for productive work sessions"
       },
       {
@@ -214,7 +214,7 @@
         "color": "#06B6D4",
         "icon": "equalizer",
         "thumbnail": "https://picsum.photos/300/200?random=20",
-        "audioUrl": "https://example.com/audio/electronic-focus.mp3",
+        "audioUrl": "https://public-persistent-us-west-2.s3.us-west-2.amazonaws.com/temp/normal_en.mp3",
         "description": "Upbeat electronic music for energy and focus"
       }
     ],
@@ -226,7 +226,7 @@
         "color": "#10B981",
         "icon": "center-focus-strong",
         "thumbnail": "https://picsum.photos/300/200?random=21",
-        "audioUrl": "https://example.com/audio/focus-meditation.mp3",
+        "audioUrl": "https://public-persistent-us-west-2.s3.us-west-2.amazonaws.com/temp/normal_en.mp3",
         "description": "Quick meditation to sharpen focus"
       },
       {
@@ -236,7 +236,7 @@
         "color": "#F59E0B",
         "icon": "lightbulb",
         "thumbnail": "https://picsum.photos/300/200?random=22",
-        "audioUrl": "https://example.com/audio/clarity-boost.mp3",
+        "audioUrl": "https://public-persistent-us-west-2.s3.us-west-2.amazonaws.com/temp/normal_en.mp3",
         "description": "Short session to clear your mind"
       },
       {
@@ -246,7 +246,7 @@
         "color": "#EF4444",
         "icon": "refresh",
         "thumbnail": "https://picsum.photos/300/200?random=23",
-        "audioUrl": "https://example.com/audio/mind-reset.mp3",
+        "audioUrl": "https://public-persistent-us-west-2.s3.us-west-2.amazonaws.com/temp/normal_en.mp3",
         "description": "Reset your mental state for better focus"
       },
       {
@@ -256,7 +256,7 @@
         "color": "#8B5CF6",
         "icon": "psychology",
         "thumbnail": "https://picsum.photos/300/200?random=24",
-        "audioUrl": "https://example.com/audio/concentration.mp3",
+        "audioUrl": "https://public-persistent-us-west-2.s3.us-west-2.amazonaws.com/temp/normal_en.mp3",
         "description": "Deep concentration practice"
       }
     ]

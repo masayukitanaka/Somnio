@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Audio } from 'expo-av';
+import { audioAssetManager } from '@/services/AudioAssetManager';
 
 interface AudioContextType {
   currentSound: Audio.Sound | null;
@@ -29,6 +30,11 @@ interface AudioContextType {
   pauseAudio: () => Promise<void>;
   setSleepTimer: (minutes: number | null) => void;
   cancelSleepTimer: () => void;
+  downloadAudio: (audioId: string, audioUrl: string, onProgress?: (progress: number) => void) => Promise<void>;
+  deleteDownload: (audioId: string) => Promise<void>;
+  isAudioDownloaded: (audioId: string) => Promise<boolean>;
+  getAudioPath: (audioId: string, originalUrl: string, allowStreaming?: boolean) => Promise<string>;
+  getAudioPathWithAutoDownload: (audioId: string, originalUrl: string) => Promise<string>;
 }
 
 const AudioContext = createContext<AudioContextType | undefined>(undefined);
@@ -58,6 +64,9 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
   const [sleepTimerMinutes, setSleepTimerMinutes] = useState<number | null>(null);
 
   useEffect(() => {
+    // Initialize audio asset manager
+    audioAssetManager.initialize().catch(console.error);
+    
     return () => {
       if (currentSound) {
         currentSound.unloadAsync();
@@ -159,6 +168,59 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
     console.log('Sleep timer cancelled');
   };
 
+  const downloadAudio = async (
+    audioId: string, 
+    audioUrl: string, 
+    onProgress?: (progress: number) => void
+  ): Promise<void> => {
+    try {
+      await audioAssetManager.downloadAudio(audioId, audioUrl, onProgress);
+    } catch (error) {
+      console.error('Error downloading audio:', error);
+      throw error;
+    }
+  };
+
+  const deleteDownload = async (audioId: string): Promise<void> => {
+    try {
+      await audioAssetManager.deleteDownload(audioId);
+    } catch (error) {
+      console.error('Error deleting download:', error);
+      throw error;
+    }
+  };
+
+  const isAudioDownloaded = async (audioId: string): Promise<boolean> => {
+    try {
+      return await audioAssetManager.isDownloaded(audioId);
+    } catch (error) {
+      console.error('Error checking download status:', error);
+      return false;
+    }
+  };
+
+  const getAudioPath = async (audioId: string, originalUrl: string, allowStreaming: boolean = true): Promise<string> => {
+    try {
+      return await audioAssetManager.getAudioPath(audioId, originalUrl, allowStreaming);
+    } catch (error) {
+      console.error('Error getting audio path:', error);
+      // Only return original URL if streaming is allowed
+      if (allowStreaming) {
+        return originalUrl;
+      }
+      throw error;
+    }
+  };
+
+  const getAudioPathWithAutoDownload = async (audioId: string, originalUrl: string): Promise<string> => {
+    try {
+      return await audioAssetManager.getAudioPathWithAutoDownload(audioId, originalUrl);
+    } catch (error) {
+      console.error('Error getting audio path with auto download:', error);
+      return originalUrl;
+    }
+  };
+
   return (
     <AudioContext.Provider
       value={{
@@ -189,6 +251,11 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
         pauseAudio,
         setSleepTimer,
         cancelSleepTimer,
+        downloadAudio,
+        deleteDownload,
+        isAudioDownloaded,
+        getAudioPath,
+        getAudioPathWithAutoDownload,
       }}
     >
       {children}
