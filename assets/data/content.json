@@ -98,34 +98,404 @@
     ],
     "whiteNoise": [
       {
-        "id": "wn1",
+        "id": "wn-00001",
+        "title": "Waterfall Sound",
+        "duration": "∞",
+        "color": "#3D74B6",
+        "icon": "trending-down",
+        "thumbnail": "waterfall-68094.png",
+        "audioUrl": "waterfall-68094.mp3",
+        "description": "Immerse yourself in the relaxing sound of a waterfall."
+      },
+      {
+        "id": "wn-00002",
+        "title": "Fan Ventilation Sound",
+        "duration": "∞",
+        "color": "#FAF7F3",
+        "icon": "toys",
+        "thumbnail": "fan_ventilation_stereo-5-32885.png",
+        "audioUrl": "fan_ventilation_stereo-5-32885.mp3",
+        "description": "The soothing spin of silence."
+      },
+      {
+        "id": "wn-00003",
+        "title": "Radio Static",
+        "duration": "∞",
+        "color": "#B3B3B3",
+        "icon": "radio",
+        "thumbnail": "radio-static-6382.png",
+        "audioUrl": "radio-static-6382.mp3",
+        "description": "Old airwaves flicker in timeless static."
+      },
+      {
+        "id": "wn-00004",
+        "title": "Street Noise",
+        "duration": "∞",
+        "color": "#6E7F80",
+        "icon": "directions-car",
+        "thumbnail": "street-noise-76420.png",
+        "audioUrl": "street-noise-76420.mp3",
+        "description": "The pulse of city life at your ears."
+      },
+      {
+        "id": "wn-00005",
+        "title": "Cafe Ambience",
+        "duration": "∞",
+        "color": "#D8CAB8",
+        "icon": "coffee",
+        "thumbnail": "cafe-noise-32940.png",
+        "audioUrl": "cafe-noise-32940.mp3",
+        "description": "The soft murmur of a cozy cafe."
+      },
+      {
+        "id": "wn-00006",
+        "title": "Chicken Sounds",
+        "duration": "∞",
+        "color": "#F4C95D",
+        "icon": "egg",
+        "thumbnail": "chicken-noises-223056.png",
+        "audioUrl": "chicken-noises-223056.mp3",
+        "description": "Clucks and chirps from the countryside."
+      },
+      {
+        "id": "wn-00007",
+        "title": "Sea Wind",
+        "duration": "∞",
+        "color": "#97C8EB",
+        "icon": "cloud",
+        "thumbnail": "sea-wind-noise-26809.png",
+        "audioUrl": "sea-wind-noise-26809.mp3",
+        "description": "The gentle sea breeze on your skin."
+      },
+      {
+        "id": "wn-00008",
+        "title": "Synth Crescendo",
+        "duration": "∞",
+        "color": "#C8A2C8",
+        "icon": "graphic-eq",
+        "thumbnail": "synthesizer-crescendo-97267.png",
+        "audioUrl": "synthesizer-crescendo-97267.mp3",
+        "description": "A swell of electronic harmony."
+      },
+      {
+        "id": "wn-00009",
+        "title": "Dolphin Sounds",
+        "duration": "∞",
+        "color": "#A3D9D3",
+        "icon": "pool",
+        "thumbnail": "dolphin-noise-6968.png",
+        "audioUrl": "dolphin-noise-6968.mp3",
+        "description": "Playful clicks echo through the blue."
+      },
+      {
+        "id": "wn-00010",
+        "title": "Radio Static",
+        "duration": "∞",
+        "color": "#B3B3B3",
+        "icon": "radio",
+        "thumbnail": "radio-static-323621.png",
+        "audioUrl": "radio-static-323621.mp3",
+        "description": "Old airwaves flicker in timeless static."
+      },
+      {
+        "id": "wn-00011",
+        "title": "Desk Fan",
+        "duration": "∞",
+        "color": "#EDEDED",
+        "icon": "toys",
+        "thumbnail": "desk-fan-66784.png",
+        "audioUrl": "desk-fan-66784.mp3",
+        "description": "Cool currents in a quiet room."
+      },
+      {
+        "id": "wn-00012",
+        "title": "City Noise",
+        "duration": "∞",
+        "color": "#778899",
+        "icon": "location-city",
+        "thumbnail": "city-noise-30537.png",
+        "audioUrl": "city-noise-30537.mp3",
+        "description": "The ever-present hum of urban life."
+      },
+      {
+        "id": "wn-00013",
+        "title": "City Traffic",
+        "duration": "∞",
+        "color": "#A0A0A0",
+        "icon": "directions-car",
+        "thumbnail": "city-traffic-outdoor-6414.png",
+        "audioUrl": "city-traffic-outdoor-6414.mp3",
+        "description": "Engines and horns in motion."
+      },
+      {
+        "id": "wn-00014",
+        "title": "Grey Noise",
+        "duration": "∞",
+        "color": "#CCCCCC",
+        "icon": "lens",
+        "thumbnail": "grey-noise-170338.png",
+        "audioUrl": "grey-noise-170338.mp3",
+        "description": "Balanced noise, soft and steady."
+      },
+      {
+        "id": "wn-00015",
+        "title": "White Noise Wah Wah",
+        "duration": "∞",
+        "color": "#F0F0F0",
+        "icon": "equalizer",
+        "thumbnail": "whitenoise_wah_wah-75249.png",
+        "audioUrl": "whitenoise_wah_wah-75249.mp3",
+        "description": "Neutral hum with gentle waves."
+      },
+      {
+        "id": "wn-00016",
         "title": "White Noise",
         "duration": "∞",
-        "color": "#6B7280",
-        "icon": "graphic-eq",
-        "thumbnail": "https://picsum.photos/300/200?random=10",
-        "audioUrl": "https://public-persistent-us-west-2.s3.us-west-2.amazonaws.com/temp/normal_en.mp3",
-        "description": "Classic white noise for masking sounds"
+        "color": "#FFFFFF",
+        "icon": "ac-unit",
+        "thumbnail": "white-noise-98969.png",
+        "audioUrl": "white-noise-98969.mp3",
+        "description": "A blanketing hush for peace of mind."
       },
       {
-        "id": "wn2",
-        "title": "Pink Noise",
+        "id": "wn-00017",
+        "title": "Jungle Ambience",
         "duration": "∞",
-        "color": "#EC4899",
-        "icon": "equalizer",
-        "thumbnail": "https://picsum.photos/300/200?random=11",
-        "audioUrl": "https://public-persistent-us-west-2.s3.us-west-2.amazonaws.com/temp/normal_en.mp3",
-        "description": "Softer pink noise for gentle background"
+        "color": "#4CAF50",
+        "icon": "eco",
+        "thumbnail": "jungle-ambience-339096.png",
+        "audioUrl": "jungle-ambience-339096.mp3",
+        "description": "A lush soundscape of tropical life."
       },
       {
-        "id": "wn3",
+        "id": "wn-00018",
+        "title": "Water Bubbles",
+        "duration": "∞",
+        "color": "#79D9D9",
+        "icon": "science",
+        "thumbnail": "water-bubbles-257594.png",
+        "audioUrl": "water-bubbles-257594.mp3",
+        "description": "Soft popping from beneath the surface."
+      },
+      {
+        "id": "wn-00019",
+        "title": "Underwater Ambience",
+        "duration": "∞",
+        "color": "#4682B4",
+        "icon": "waves",
+        "thumbnail": "underwater-ambience-376890.png",
+        "audioUrl": "underwater-ambience-376890.mp3",
+        "description": "The deep quiet of the ocean floor."
+      },
+      {
+        "id": "wn-00020",
+        "title": "Wind",
+        "duration": "∞",
+        "color": "#B0E0E6",
+        "icon": "air",
+        "thumbnail": "wind-363672.png",
+        "audioUrl": "wind-363672.mp3",
+        "description": "A whisper across open fields."
+      },
+      {
+        "id": "wn-00021",
+        "title": "Firewood Burning",
+        "duration": "∞",
+        "color": "#C1440E",
+        "icon": "whatshot",
+        "thumbnail": "firewood-burning-sound-179862.png",
+        "audioUrl": "firewood-burning-sound-179862.mp3",
+        "description": "Crackles and pops of cozy warmth."
+      },
+      {
+        "id": "wn-00022",
+        "title": "Water Dripping",
+        "duration": "∞",
+        "color": "#A9C4E4",
+        "icon": "water-drop",
+        "thumbnail": "water-dripping-364450.png",
+        "audioUrl": "water-dripping-364450.mp3",
+        "description": "Each drop rings in quiet solitude."
+      },
+      {
+        "id": "wn-00023",
+        "title": "River Stream",
+        "duration": "∞",
+        "color": "#4ABDAC",
+        "icon": "water",
+        "thumbnail": "water-stream-river-360596.png",
+        "audioUrl": "water-stream-river-360596.mp3",
+        "description": "Flowing rhythm of a clear stream."
+      },
+      {
+        "id": "wn-00024",
+        "title": "Fireplace Crackle",
+        "duration": "∞",
+        "color": "#FF6F61",
+        "icon": "local-fire-department",
+        "thumbnail": "fireplace-with-crackling-sounds-2-178392.png",
+        "audioUrl": "fireplace-with-crackling-sounds-2-178392.mp3",
+        "description": "Warmth wrapped in every spark."
+      },
+      {
+        "id": "wn-00025",
+        "title": "Forest Night Wind",
+        "duration": "∞",
+        "color": "#228B22",
+        "icon": "nature",
+        "thumbnail": "forest-wind-with-crickets-and-cuckoo-355613.png",
+        "audioUrl": "forest-wind-with-crickets-and-cuckoo-355613.mp3",
+        "description": "Night murmurs of the deep woods."
+      },
+      {
+        "id": "wn-00026",
+        "title": "Running Stream",
+        "duration": "∞",
+        "color": "#40E0D0",
+        "icon": "water",
+        "thumbnail": "running-stream-water-sound-239612.png",
+        "audioUrl": "running-stream-water-sound-239612.mp3",
+        "description": "Nature's endless, flowing motion."
+      },
+      {
+        "id": "wn-00027",
+        "title": "Heavy Thunder",
+        "duration": "∞",
+        "color": "#464646",
+        "icon": "flash-on",
+        "thumbnail": "heavy-thunder-sound-effect-no-copyright-338980.png",
+        "audioUrl": "heavy-thunder-sound-effect-no-copyright-338980.mp3",
+        "description": "Skies growl with electric force."
+      },
+      {
+        "id": "wn-00028",
+        "title": "Soft Wind",
+        "duration": "∞",
+        "color": "#DDEEFF",
+        "icon": "air",
+        "thumbnail": "soft-wind-318856.png",
+        "audioUrl": "soft-wind-318856.mp3",
+        "description": "A gentle breeze to ease the mind."
+      },
+      {
+        "id": "wn-00029",
+        "title": "Nature Ambience",
+        "duration": "∞",
+        "color": "#98FB98",
+        "icon": "park",
+        "thumbnail": "nature-ambience-323729.png",
+        "audioUrl": "nature-ambience-323729.mp3",
+        "description": "A tapestry of the great outdoors."
+      },
+      {
+        "id": "wn-00030",
+        "title": "Ocean Waves",
+        "duration": "∞",
+        "color": "#1E90FF",
+        "icon": "waves",
+        "thumbnail": "soothing-ocean-waves-372489.png",
+        "audioUrl": "soothing-ocean-waves-372489.mp3",
+        "description": "Rhythmic tides calm the soul."
+      },
+      {
+        "id": "wn-00031",
+        "title": "Thunder Sound",
+        "duration": "∞",
+        "color": "#5B5B5B",
+        "icon": "cloud",
+        "thumbnail": "thunder-sound-375727.png",
+        "audioUrl": "thunder-sound-375727.mp3",
+        "description": "Distant rumbles in heavy skies."
+      },
+      {
+        "id": "wn-00032",
+        "title": "Spring Forest",
+        "duration": "∞",
+        "color": "#9CCC65",
+        "icon": "eco",
+        "thumbnail": "spring-forest-nature-332842.png",
+        "audioUrl": "spring-forest-nature-332842.mp3",
+        "description": "Fresh bloom and birdsong surround you."
+      },
+      {
+        "id": "wn-00033",
+        "title": "Midnight Sounds",
+        "duration": "∞",
+        "color": "#191970",
+        "icon": "bedtime",
+        "thumbnail": "mid-nights-sound-291477.png",
+        "audioUrl": "mid-nights-sound-291477.mp3",
+        "description": "Quiet echoes of the sleeping world."
+      },
+      {
+        "id": "wn-00034",
+        "title": "Calming Rain",
+        "duration": "∞",
+        "color": "#8AAAE5",
+        "icon": "cloud",
+        "thumbnail": "calming-rain-257596.png",
+        "audioUrl": "calming-rain-257596.mp3",
+        "description": "Raindrops patter like whispered thoughts."
+      },
+      {
+        "id": "wn-00035",
         "title": "Brown Noise",
         "duration": "∞",
-        "color": "#92400E",
-        "icon": "tune",
-        "thumbnail": "https://picsum.photos/300/200?random=12",
-        "audioUrl": "https://public-persistent-us-west-2.s3.us-west-2.amazonaws.com/temp/normal_en.mp3",
-        "description": "Deep brown noise for ultimate relaxation"
+        "color": "#8B5E3C",
+        "icon": "stop",
+        "thumbnail": "brown-noise-170337.png",
+        "audioUrl": "brown-noise-170337.mp3",
+        "description": "A deep and grounding sonic blanket."
+      },
+      {
+        "id": "wn-00036",
+        "title": "Arctic Wind",
+        "duration": "∞",
+        "color": "#D1E8FF",
+        "icon": "ac-unit",
+        "thumbnail": "wind__artic__cold-6195.png",
+        "audioUrl": "wind__artic__cold-6195.mp3",
+        "description": "Cold gusts sweeping across frozen land."
+      },
+      {
+        "id": "wn-00037",
+        "title": "Soft Brown Noise",
+        "duration": "∞",
+        "color": "#A67B5B",
+        "icon": "volume-up",
+        "thumbnail": "soft-brown-noise-299934.png",
+        "audioUrl": "soft-brown-noise-299934.mp3",
+        "description": "Low tones to anchor the mind."
+      },
+      {
+        "id": "wn-00038",
+        "title": "Ambient Noise",
+        "duration": "∞",
+        "color": "#D3D3D3",
+        "icon": "lens",
+        "thumbnail": "ambient-noise-236388.png",
+        "audioUrl": "ambient-noise-236388.mp3",
+        "description": "A neutral layer of quiet energy."
+      },
+      {
+        "id": "wn-00039",
+        "title": "Heavy Rain White Noise",
+        "duration": "∞",
+        "color": "#5F9EA0",
+        "icon": "cloud",
+        "thumbnail": "heavy-rain-white-noise-159772.png",
+        "audioUrl": "heavy-rain-white-noise-159772.mp3",
+        "description": "A stormy wall of calm."
+      },
+      {
+        "id": "wn-00040",
+        "title": "Underwater White Noise",
+        "duration": "∞",
+        "color": "#7FBFFF",
+        "icon": "water",
+        "thumbnail": "underwater-white-noise-46423.png",
+        "audioUrl": "underwater-white-noise-46423.mp3",
+        "description": "Deep hush of submerged stillness."
       }
     ]
   },
