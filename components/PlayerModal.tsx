@@ -132,13 +132,22 @@ export function PlayerModal({ visible, onClose, item }: PlayerModalProps) {
         { shouldPlay: false }
       );
       
-      newSound.setOnPlaybackStatusUpdate((status) => {
+      newSound.setOnPlaybackStatusUpdate(async (status) => {
         if (status.isLoaded) {
           setDuration(status.durationMillis || 0);
           setPosition(status.positionMillis || 0);
           setProgress((status.positionMillis / (status.durationMillis || 1)) * 100);
           setIsPlaying(status.isPlaying);
           setIsLoaded(true);
+          
+          // Auto-loop for infinite duration items
+          if (item.duration === '∞' && status.didJustFinish) {
+            try {
+              await newSound.replayAsync();
+            } catch (error) {
+              console.error('Error looping audio:', error);
+            }
+          }
         } else {
           setIsLoaded(false);
         }
@@ -158,7 +167,7 @@ export function PlayerModal({ visible, onClose, item }: PlayerModalProps) {
 
 
   const seekBackward = async () => {
-    if (!currentSound || !isLoaded) return;
+    if (!currentSound || !isLoaded || item?.duration === '∞') return;
     try {
       const newPosition = Math.max(0, position - 10000);
       await seekTo(newPosition);
@@ -168,7 +177,7 @@ export function PlayerModal({ visible, onClose, item }: PlayerModalProps) {
   };
 
   const seekForward = async () => {
-    if (!currentSound || !isLoaded) return;
+    if (!currentSound || !isLoaded || item?.duration === '∞') return;
     try {
       const newPosition = Math.min(duration, position + 10000);
       await seekTo(newPosition);
@@ -185,6 +194,8 @@ export function PlayerModal({ visible, onClose, item }: PlayerModalProps) {
   };
 
   const handleProgressBarPress = (event: any) => {
+    if (item?.duration === '∞') return;
+    
     const { locationX } = event.nativeEvent;
     const barWidth = event.currentTarget.offsetWidth || 300; // fallback width
     const percentage = locationX / barWidth;
@@ -289,29 +300,33 @@ export function PlayerModal({ visible, onClose, item }: PlayerModalProps) {
               <Text style={styles.duration}>{item.duration}</Text>
             </View>
 
-            <View style={styles.progressContainer}>
-              <TouchableOpacity 
-                style={styles.progressBar}
-                onPress={handleProgressBarPress}
-                activeOpacity={1}
-              >
-                <View 
-                  style={[styles.progressFill, { width: `${progress}%` }]} 
-                />
-              </TouchableOpacity>
-              <View style={styles.timeContainer}>
-                <Text style={styles.timeText}>{formatTime(position)}</Text>
-                <Text style={styles.timeText}>{formatTime(duration)}</Text>
+            {item.duration !== '∞' && (
+              <View style={styles.progressContainer}>
+                <TouchableOpacity 
+                  style={styles.progressBar}
+                  onPress={handleProgressBarPress}
+                  activeOpacity={1}
+                >
+                  <View 
+                    style={[styles.progressFill, { width: `${progress}%` }]} 
+                  />
+                </TouchableOpacity>
+                <View style={styles.timeContainer}>
+                  <Text style={styles.timeText}>{formatTime(position)}</Text>
+                  <Text style={styles.timeText}>{formatTime(duration)}</Text>
+                </View>
               </View>
-            </View>
+            )}
 
             <View style={styles.controls}>
-              <TouchableOpacity style={styles.controlButton} onPress={seekBackward}>
-                <MaterialIcons name="replay-10" size={32} color="#ffffff" />
-              </TouchableOpacity>
+              {item.duration !== '∞' && (
+                <TouchableOpacity style={styles.controlButton} onPress={seekBackward}>
+                  <MaterialIcons name="replay-10" size={32} color="#ffffff" />
+                </TouchableOpacity>
+              )}
               
               <TouchableOpacity 
-                style={styles.playButton}
+                style={[styles.playButton, item.duration === '∞' && styles.infinitePlayButton]}
                 onPress={togglePlayPause}
               >
                 <MaterialIcons
@@ -321,9 +336,11 @@ export function PlayerModal({ visible, onClose, item }: PlayerModalProps) {
                 />
               </TouchableOpacity>
               
-              <TouchableOpacity style={styles.controlButton} onPress={seekForward}>
-                <MaterialIcons name="forward-10" size={32} color="#ffffff" />
-              </TouchableOpacity>
+              {item.duration !== '∞' && (
+                <TouchableOpacity style={styles.controlButton} onPress={seekForward}>
+                  <MaterialIcons name="forward-10" size={32} color="#ffffff" />
+                </TouchableOpacity>
+              )}
             </View>
 
             <View style={styles.bottomControls}>
@@ -511,6 +528,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginHorizontal: 30,
+  },
+  infinitePlayButton: {
+    marginHorizontal: 0,
   },
   bottomControls: {
     flexDirection: 'row',
