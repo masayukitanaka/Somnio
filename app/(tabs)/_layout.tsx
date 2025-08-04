@@ -48,7 +48,7 @@ export default function TabLayout() {
         name="relax"
         options={{
           title: 'Relax',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="eco" color={color} />,
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="leaf.fill" color={color} />,
         }}
       />
       <Tabs.Screen
