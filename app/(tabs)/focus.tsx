@@ -27,11 +27,12 @@ const ContentCard = ({ item, onPress }: { item: ContentItem; onPress: () => void
     onPress={onPress}
   >
     {item.thumbnail ? (
-      <ImageBackground 
-        source={{ uri: item.thumbnail }}
-        style={styles.cardBackground}
-        imageStyle={styles.cardBackgroundImage}
-      >
+      <View style={styles.cardBackground}>
+        <Image 
+          source={{ uri: item.thumbnail }}
+          style={styles.cardImage}
+          resizeMode="cover"
+        />
         <View style={styles.cardOverlay} />
         <MaterialIcons 
           name={item.icon as any} 
@@ -43,7 +44,7 @@ const ContentCard = ({ item, onPress }: { item: ContentItem; onPress: () => void
           <Text style={styles.cardTitle}>{item.title}</Text>
           <Text style={styles.cardDuration}>{item.duration}</Text>
         </View>
-      </ImageBackground>
+      </View>
     ) : (
       <View style={[styles.cardBackground, { backgroundColor: item.color }]}>
         <MaterialIcons 
@@ -351,8 +352,16 @@ const styles = StyleSheet.create({
     padding: 20,
     justifyContent: 'flex-end',
   },
-  cardBackgroundImage: {
+  cardImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: CARD_WIDTH,
+    height: 140,
     borderRadius: 20,
+    backgroundColor: 'transparent',
   },
   cardOverlay: {
     position: 'absolute',
