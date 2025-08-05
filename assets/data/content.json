@@ -65,34 +65,44 @@
     ],
     "stories": [
       {
-        "id": "st1",
-        "title": "The Sleepy Village",
-        "duration": "20 min",
+        "id": "story_cotswolds_en",
+        "title": "Brothers in Cotswolds",
+        "duration": "26 min",
         "color": "#10B981",
         "icon": "menu-book",
-        "thumbnail": "https://picsum.photos/300/200?random=5",
-        "audioUrl": "https://public-persistent-us-west-2.s3.us-west-2.amazonaws.com/temp/normal_en.mp3",
-        "description": "A gentle bedtime story about a peaceful village"
+        "thumbnail": "https://storage.googleapis.com/audio-467217/story-thumbnail/cotswolds.png",
+        "audioUrl": "https://storage.googleapis.com/audio-467217/story/cotswolds/cotswolds_en.mp3",
+        "description": "In the Cotswolds, a rural town in England, two brothers who had become estranged after their father's death meet at their family home for the first time in a long time."
       },
       {
-        "id": "st2",
-        "title": "Journey to Dreamland",
-        "duration": "15 min",
-        "color": "#F59E0B",
-        "icon": "bedtime",
-        "thumbnail": "https://picsum.photos/300/200?random=6",
-        "audioUrl": "https://public-persistent-us-west-2.s3.us-west-2.amazonaws.com/temp/normal_en.mp3",
-        "description": "A magical journey to help you fall asleep"
+        "id": "story_cotswolds_ja",
+        "title": "コッツウォルズの兄弟",
+        "duration": "23 min",
+        "color": "#10B981",
+        "icon": "menu-book",
+        "thumbnail": "https://storage.googleapis.com/audio-467217/story-thumbnail/cotswolds.png",
+        "audioUrl": "https://storage.googleapis.com/audio-467217/story/cotswolds/cotswolds_ja.mp3",
+        "description": "イングランドの田舎町コッツウォルズで、父の死後疎遠になっていた二人の兄弟が、久しぶりに実家で再会する物語。"
       },
       {
-        "id": "st3",
-        "title": "The Calm Lake",
-        "duration": "25 min",
-        "color": "#EF4444",
-        "icon": "water",
-        "thumbnail": "https://picsum.photos/300/200?random=7",
-        "audioUrl": "https://public-persistent-us-west-2.s3.us-west-2.amazonaws.com/temp/normal_en.mp3",
-        "description": "A soothing story by a tranquil lake"
+        "id": "story_cotswolds_es",
+        "title": "Hermanos en Cotswolds",
+        "duration": "28 min",
+        "color": "#10B981",
+        "icon": "menu-book",
+        "thumbnail": "https://storage.googleapis.com/audio-467217/story-thumbnail/cotswolds.png",
+        "audioUrl": "https://storage.googleapis.com/audio-467217/story/cotswolds/cotswolds_es.mp3",
+        "description": "En Cotswolds, un pueblo rural de Inglaterra, dos hermanos que se habían distanciado tras la muerte de su padre se reencuentran en su hogar familiar después de mucho tiempo."
+      },
+      {
+        "id": "story_cotswolds_zh",
+        "title": "科茨沃尔德的兄弟",
+        "duration": "29 min",
+        "color": "#10B981",
+        "icon": "menu-book",
+        "thumbnail": "https://storage.googleapis.com/audio-467217/story-thumbnail/cotswolds.png",
+        "audioUrl": "https://storage.googleapis.com/audio-467217/story/cotswolds/cotswolds_zh.mp3",
+        "description": "在英格兰乡村小镇科茨沃尔德，因父亲去世而疏远的两兄弟时隔多年在家族住宅重逢的故事。"
       }
     ],
     "meditation": [
