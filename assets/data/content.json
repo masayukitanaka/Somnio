@@ -661,44 +661,34 @@
     ],
     "quickMeditation": [
       {
-        "id": "qm1",
-        "title": "Focus Meditation",
-        "duration": "5 min",
+        "id": "meditation_motivation1_en",
+        "title": "Guided Meditation for Energy & Focus",
+        "duration": "8 min",
         "color": "#10B981",
-        "icon": "center-focus-strong",
-        "thumbnail": "https://picsum.photos/300/200?random=21",
-        "audioUrl": "https://public-persistent-us-west-2.s3.us-west-2.amazonaws.com/temp/normal_en.mp3",
-        "description": "Quick meditation to sharpen focus"
+        "icon": "psychology",
+        "thumbnail": "https://storage.googleapis.com/audio-467217/meditation-thumbnail/motivation1/motivation1_en.png",
+        "audioUrl": "https://storage.googleapis.com/audio-467217/meditation/motivation1/motivation1_en.mp3",
+        "description": "Transform your morning routine with this powerful 10-minute guided meditation designed to awaken your inner energy and sharpen your mental focus. Perfect for anyone looking to boost productivity, enhance concentration, and cultivate a positive mindset throughout the day."
       },
       {
-        "id": "qm2",
-        "title": "Clarity Boost",
-        "duration": "3 min",
-        "color": "#F59E0B",
-        "icon": "lightbulb",
-        "thumbnail": "https://picsum.photos/300/200?random=22",
-        "audioUrl": "https://public-persistent-us-west-2.s3.us-west-2.amazonaws.com/temp/normal_en.mp3",
-        "description": "Short session to clear your mind"
-      },
-      {
-        "id": "qm3",
-        "title": "Mind Reset",
-        "duration": "7 min",
-        "color": "#EF4444",
-        "icon": "refresh",
-        "thumbnail": "https://picsum.photos/300/200?random=23",
-        "audioUrl": "https://public-persistent-us-west-2.s3.us-west-2.amazonaws.com/temp/normal_en.mp3",
-        "description": "Reset your mental state for better focus"
-      },
-      {
-        "id": "qm4",
-        "title": "Concentration",
+        "id": "meditation_motivation1_es",
+        "title": "Aumenta tu Energía y Concentración",
         "duration": "10 min",
+        "color": "#F59E0B",
+        "icon": "psychology",
+        "thumbnail": "https://storage.googleapis.com/audio-467217/meditation-thumbnail/motivation1/motivation1_es.png",
+        "audioUrl": "https://storage.googleapis.com/audio-467217/meditation/motivation1/motivation1_es.mp3",
+        "description": "Transforma tu rutina matutina con esta poderosa meditación guiada diseñada para despertar tu energía interior y agudizar tu concentración mental."
+      },
+      {
+        "id": "meditation_motivation1_zh",
+        "title": "晨间激励与心智清明",
+        "duration": "11 min",
         "color": "#8B5CF6",
         "icon": "psychology",
-        "thumbnail": "https://picsum.photos/300/200?random=24",
-        "audioUrl": "https://public-persistent-us-west-2.s3.us-west-2.amazonaws.com/temp/normal_en.mp3",
-        "description": "Deep concentration practice"
+        "thumbnail": "https://storage.googleapis.com/audio-467217/meditation-thumbnail/motivation1/motivation1_zh.png",
+        "audioUrl": "https://storage.googleapis.com/audio-467217/meditation/motivation1/motivation1_zh.mp3",
+        "description": "用这个强效的10分钟引导冥想改变你的晨间例行公事，专为唤醒你的内在能量和提升心智专注力而设计。非常适合想要提高生产力、增强专注力并在一整天中培养积极心态的任何人"
       }
     ]
   }
