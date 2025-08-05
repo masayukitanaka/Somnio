@@ -1,45 +1,66 @@
 {
   "sleep": {
-    "sleepyMusic": [
+    "sleepyMusic": 
+    [
       {
-        "id": "sm1",
-        "title": "Deep Sleep Ambient",
-        "duration": "60 min",
-        "color": "#6366F1",
-        "icon": "music-note",
-        "thumbnail": "https://lazyvlog.beezynx.dev/assets/images/iOS_4.png",
-        "audioUrl": "https://public-persistent-us-west-2.s3.us-west-2.amazonaws.com/temp/normal_en.mp3",
-        "description": "Guided Meditation for relaxing"
+        "id": "music_meditations2_whispers",
+        "title": "Whispering Nature", 
+        "duration": "17 min", 
+        "color": "#6366F1",         
+        "icon": "music-note",   
+        "thumbnail": "https://storage.googleapis.com/audio-467217/music-thumbnail/meditations2_whispers.jpg", 
+        "audioUrl": "https://storage.googleapis.com/audio-467217/music/meditations2_whispers.mp3",         
+        "description": "Relaxing Music like whispering light, winds, and horizon"       
       },
       {
-        "id": "sm2",
-        "title": "Rain Sounds",
-        "duration": "45 min",
-        "color": "#8B5CF6",
-        "icon": "cloud",
-        "thumbnail": "https://picsum.photos/300/200?random=2",
-        "audioUrl": "https://public-persistent-us-west-2.s3.us-west-2.amazonaws.com/temp/normal_en.mp3",
-        "description": "Gentle rain sounds for relaxation"
+        "id": "music_meditations2_whispering",
+        "title": "Whispering Winds", 
+        "duration": "49 min", 
+        "color": "#8B5CF6",         
+        "icon": "music-note",   
+        "thumbnail": "https://storage.googleapis.com/audio-467217/music-thumbnail/meditations2_whispering.jpg", 
+        "audioUrl": "https://storage.googleapis.com/audio-467217/music/meditations2_whispering.mp3",         
+        "description": "Extended whispering sounds for deep meditation and relaxation"       
       },
       {
-        "id": "sm3",
-        "title": "Ocean Waves",
-        "duration": "90 min",
-        "color": "#EC4899",
-        "icon": "waves",
-        "thumbnail": "https://picsum.photos/300/200?random=3",
-        "audioUrl": "https://public-persistent-us-west-2.s3.us-west-2.amazonaws.com/temp/normal_en.mp3",
-        "description": "Calming ocean waves for peaceful sleep"
+        "id": "music_meditations2_whisper",
+        "title": "Gentle Whisper", 
+        "duration": "36 min", 
+        "color": "#06B6D4",         
+        "icon": "music-note",   
+        "thumbnail": "https://storage.googleapis.com/audio-467217/music-thumbnail/meditations2_whisper.jpg", 
+        "audioUrl": "https://storage.googleapis.com/audio-467217/music/meditations2_whisper.mp3",         
+        "description": "Soft whisper sounds for peaceful meditation"       
       },
       {
-        "id": "sm4",
-        "title": "Forest Night",
-        "duration": "120 min",
-        "color": "#06B6D4",
-        "icon": "nature",
-        "thumbnail": "https://picsum.photos/300/200?random=4",
-        "audioUrl": "https://public-persistent-us-west-2.s3.us-west-2.amazonaws.com/temp/normal_en.mp3",
-        "description": "Night sounds from a peaceful forest"
+        "id": "music_meditations2_serene",
+        "title": "Serene Moments", 
+        "duration": "33 min", 
+        "color": "#10B981",         
+        "icon": "music-note",   
+        "thumbnail": "https://storage.googleapis.com/audio-467217/music-thumbnail/meditations2_serene.jpg", 
+        "audioUrl": "https://storage.googleapis.com/audio-467217/music/meditations2_serene.mp3",         
+        "description": "Serene and calming sounds for tranquil meditation"       
+      },
+      {
+        "id": "music_meditations2_inners",
+        "title": "Inner Journey", 
+        "duration": "43 min", 
+        "color": "#F59E0B",         
+        "icon": "music-note",   
+        "thumbnail": "https://storage.googleapis.com/audio-467217/music-thumbnail/meditations2_inners.jpg", 
+        "audioUrl": "https://storage.googleapis.com/audio-467217/music/meditations2_inners.mp3",         
+        "description": "Deep inner exploration through meditative soundscapes"       
+      },
+      {
+        "id": "music_meditation2_echoes",
+        "title": "Peaceful Echoes", 
+        "duration": "43 min", 
+        "color": "#EF4444",         
+        "icon": "music-note",   
+        "thumbnail": "https://storage.googleapis.com/audio-467217/music-thumbnail/meditation2_echoes.jpg", 
+        "audioUrl": "https://storage.googleapis.com/audio-467217/music/meditation2_echoes.mp3",         
+        "description": "Echoing sounds that resonate with peaceful meditation"       
       }
     ],
     "stories": [
