@@ -52,6 +52,12 @@ export default function RootLayout() {
           headerShown: false 
         }} 
       />
+      <Stack.Screen 
+        name="stretching" 
+        options={{ 
+          headerShown: false 
+        }} 
+      />
     </Stack>
     </AudioProvider>
   );

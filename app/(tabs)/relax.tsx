@@ -150,8 +150,7 @@ export default function RelaxScreen() {
   };
 
   const handleStretch = () => {
-    // TODO: Navigate to stretch exercise screen
-    console.log('Navigate to stretch exercise');
+    router.push('/stretching');
   };
 
   return (
