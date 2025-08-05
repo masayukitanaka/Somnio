@@ -75,16 +75,31 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
   }, [currentSound]);
 
   const togglePlayPause = async () => {
-    if (!currentSound || !isLoaded) return;
+    if (!currentSound || !isLoaded) {
+      console.log('Cannot toggle playback: sound not loaded or not available');
+      return;
+    }
 
     try {
+      const status = await currentSound.getStatusAsync();
+      if (!status.isLoaded) {
+        console.log('Sound is not loaded, cannot toggle playback');
+        setIsLoaded(false);
+        return;
+      }
+
       if (isPlaying) {
         await currentSound.pauseAsync();
+        console.log('Audio paused');
       } else {
         await currentSound.playAsync();
+        console.log('Audio playing');
       }
     } catch (error) {
       console.error('Error toggling playback:', error);
+      // Reset state on error
+      setIsPlaying(false);
+      setIsLoaded(false);
     }
   };
 

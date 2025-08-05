@@ -27,6 +27,7 @@ interface PlayerModalProps {
   visible: boolean;
   onClose: () => void;
   item: {
+    id: string;
     title: string;
     duration: string;
     color: string;
@@ -109,17 +110,25 @@ export function PlayerModal({ visible, onClose, item }: PlayerModalProps) {
         playThroughEarpieceAndroid: false,
       });
 
-      // Stop current audio if playing different track
-      if (currentSound && (currentItem as any)?.id !== (item as any).id) {
+      // Always stop and unload current audio when loading different track
+      if (currentSound) {
         try {
+          console.log('Stopping and unloading previous audio');
           await currentSound.stopAsync();
           await currentSound.unloadAsync();
+          setCurrentSound(null);
+          setCurrentItem(null);
+          setIsPlaying(false);
+          setIsLoaded(false);
+          setProgress(0);
+          setPosition(0);
+          setDuration(0);
         } catch (error) {
           console.error('Error stopping previous audio:', error);
         }
       }
 
-      // Reset loading state only when loading new track
+      // Reset loading state
       setIsLoaded(false);
 
       // Get audio path with automatic background download
@@ -162,6 +171,15 @@ export function PlayerModal({ visible, onClose, item }: PlayerModalProps) {
   };
 
   const togglePlayPause = async () => {
+    if (!currentSound || !isLoaded) {
+      console.log('Cannot toggle playback in PlayerModal: sound not loaded');
+      // Try to reload audio if needed
+      if (item && item.id !== currentItem?.id) {
+        await loadAudio();
+      }
+      return;
+    }
+    
     await globalTogglePlayPause();
   };
 
