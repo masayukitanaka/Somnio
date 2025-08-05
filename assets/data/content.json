@@ -543,24 +543,44 @@
   "relax": {
     "calmingSounds": [
       {
-        "id": "cs1",
-        "title": "Gentle Piano",
-        "duration": "45 min",
+        "id": "music_jazzypiano1",
+        "title": "Cafe Piano",
+        "duration": "28 min",
         "color": "#6366F1",
         "icon": "piano",
-        "thumbnail": "https://picsum.photos/300/200?random=13",
-        "audioUrl": "https://public-persistent-us-west-2.s3.us-west-2.amazonaws.com/temp/normal_en.mp3",
+        "thumbnail": "https://storage.googleapis.com/audio-467217/music-thumbnail/jazzypiano1.png",
+        "audioUrl": "https://storage.googleapis.com/audio-467217/music/jazzypiano1.mp3",
         "description": "Soft piano melodies for relaxation"
       },
       {
-        "id": "cs2",
-        "title": "Nature Harmony",
-        "duration": "60 min",
+        "id": "music_chopin1",
+        "title": "Gentle Piano",
+        "duration": "27 min",
         "color": "#10B981",
         "icon": "eco",
-        "thumbnail": "https://picsum.photos/300/200?random=14",
-        "audioUrl": "https://public-persistent-us-west-2.s3.us-west-2.amazonaws.com/temp/normal_en.mp3",
+        "thumbnail": "https://storage.googleapis.com/audio-467217/music-thumbnail/chopin1.png",
+        "audioUrl": "https://storage.googleapis.com/audio-467217/music/chopin1.mp3",
         "description": "Natural sounds blended with soft music"
+      },
+      {
+        "id": "wn-00032",
+        "title": "Spring Forest",
+        "duration": "∞",
+        "color": "#9CCC65",
+        "icon": "eco",
+        "thumbnail": "https://storage.googleapis.com/audio-467217/wn-thumbnail/spring-forest-nature-332842.png",
+        "audioUrl": "https://storage.googleapis.com/audio-467217/wn/spring-forest-nature-332842.mp3",
+        "description": "Fresh bloom and birdsong surround you."
+      },
+      {
+        "id": "wn-00030",
+        "title": "Ocean Waves",
+        "duration": "∞",
+        "color": "#1E90FF",
+        "icon": "waves",
+        "thumbnail": "https://storage.googleapis.com/audio-467217/wn-thumbnail/soothing-ocean-waves-372489.png",
+        "audioUrl": "https://storage.googleapis.com/audio-467217/wn/soothing-ocean-waves-372489.mp3",
+        "description": "Rhythmic tides calm the soul."
       }
     ],
     "guidedRelaxation": [
@@ -599,44 +619,44 @@
   "focus": {
     "workMusic": [
       {
-        "id": "wm1",
+        "id": "music_lofi1",
         "title": "Lo-fi Study Beats",
-        "duration": "60 min",
+        "duration": "25 min",
         "color": "#6366F1",
         "icon": "headphones",
-        "thumbnail": "https://picsum.photos/300/200?random=17",
-        "audioUrl": "https://public-persistent-us-west-2.s3.us-west-2.amazonaws.com/temp/normal_en.mp3",
+        "thumbnail": "https://storage.googleapis.com/audio-467217/music-thumbnail/lofi1.png",
+        "audioUrl": "https://storage.googleapis.com/audio-467217/music/lofi1.mp3",
         "description": "Chill lo-fi beats for studying and work"
       },
       {
-        "id": "wm2",
-        "title": "Classical Focus",
-        "duration": "45 min",
+        "id": "music_electrolofi1",
+        "title": "Electro Lo-fi",
+        "duration": "27 min",
+        "color": "#8B5CF6",
+        "icon": "equalizer",
+        "thumbnail": "https://storage.googleapis.com/audio-467217/music-thumbnail/electrolofi1.png",
+        "audioUrl": "https://storage.googleapis.com/audio-467217/music/electrolofi1.mp3",
+        "description": "Cyberpunk lo-fi for deep focus"
+      },
+      {
+        "id": "music_mozart_pianosolo1",
+        "title": "Mozart Piano Solo",
+        "duration": "54 min",
         "color": "#8B5CF6",
         "icon": "piano",
-        "thumbnail": "https://picsum.photos/300/200?random=18",
-        "audioUrl": "https://public-persistent-us-west-2.s3.us-west-2.amazonaws.com/temp/normal_en.mp3",
-        "description": "Classical music to enhance concentration"
+        "thumbnail": "https://storage.googleapis.com/audio-467217/music-thumbnail/mozart_pianosolo1.png",
+        "audioUrl": "https://storage.googleapis.com/audio-467217/music/mozart_pianosolo1.mp3",
+        "description": "Classical piano pieces by Mozart for concentration"
       },
       {
-        "id": "wm3",
-        "title": "Ambient Workspace",
-        "duration": "90 min",
-        "color": "#EC4899",
-        "icon": "work",
-        "thumbnail": "https://picsum.photos/300/200?random=19",
-        "audioUrl": "https://public-persistent-us-west-2.s3.us-west-2.amazonaws.com/temp/normal_en.mp3",
-        "description": "Ambient sounds for productive work sessions"
-      },
-      {
-        "id": "wm4",
-        "title": "Electronic Focus",
-        "duration": "30 min",
-        "color": "#06B6D4",
-        "icon": "equalizer",
-        "thumbnail": "https://picsum.photos/300/200?random=20",
-        "audioUrl": "https://public-persistent-us-west-2.s3.us-west-2.amazonaws.com/temp/normal_en.mp3",
-        "description": "Upbeat electronic music for energy and focus"
+        "id": "music_mozart_orchestra1",
+        "title": "Mozart Orchestra",
+        "duration": "41 min",
+        "color": "#8B5CF6",
+        "icon": "piano",
+        "thumbnail": "https://storage.googleapis.com/audio-467217/music-thumbnail/mozart_orchestra1.png",
+        "audioUrl": "https://storage.googleapis.com/audio-467217/music/mozart_orchestra1.mp3",
+        "description": "Orchestral masterpieces by Mozart for a focused atmosphere"
       }
     ],
     "quickMeditation": [
