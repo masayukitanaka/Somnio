@@ -157,10 +157,6 @@ export default function FocusScreen() {
     router.push('/journal');
   };
 
-  const handleGoalSetting = () => {
-    // TODO: Navigate to goal setting screen
-    console.log('Navigate to goal setting');
-  };
 
   return (
     <>
@@ -209,12 +205,6 @@ export default function FocusScreen() {
                   icon="book"
                   onPress={handleJournal}
                   color="rgba(99, 102, 241, 0.8)"
-                />
-                <ToolButton
-                  title="Goal Setting"
-                  icon="flag"
-                  onPress={handleGoalSetting}
-                  color="rgba(245, 158, 11, 0.8)"
                 />
               </View>
             </View>
