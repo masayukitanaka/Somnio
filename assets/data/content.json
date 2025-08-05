@@ -107,24 +107,34 @@
     ],
     "meditation": [
       {
-        "id": "med1",
-        "title": "Body Scan Meditation",
-        "duration": "30 min",
+        "id": "meditation_sleep1_en",
+        "title": "Yoga Nidra for Sleep & Relaxation",
+        "duration": "35 min",
         "color": "#8B5CF6",
         "icon": "self-improvement",
-        "thumbnail": "https://picsum.photos/300/200?random=8",
-        "audioUrl": "https://public-persistent-us-west-2.s3.us-west-2.amazonaws.com/temp/normal_en.mp3",
-        "description": "Progressive body relaxation for sleep"
+        "thumbnail": "https://storage.googleapis.com/audio-467217/meditation-thumbnail/sleep1/sleep1_f.png",
+        "audioUrl": "https://storage.googleapis.com/audio-467217/meditation/sleep1/sleep_med1_en.mp3",
+        "description": "Experience the future of guided meditation with this Yoga Nidra session designed for deep relaxation, stress relief, and better sleep."
       },
       {
-        "id": "med2",
-        "title": "Breathing for Sleep",
-        "duration": "15 min",
-        "color": "#06B6D4",
-        "icon": "air",
-        "thumbnail": "https://picsum.photos/300/200?random=9",
-        "audioUrl": "https://public-persistent-us-west-2.s3.us-west-2.amazonaws.com/temp/normal_en.mp3",
-        "description": "Guided breathing exercises for better sleep"
+        "id": "meditation_sleep1_es",
+        "title": "Yoga Nidra para Dormir",
+        "duration": "46 min",
+        "color": "#8B5CF6",
+        "icon": "self-improvement",
+        "thumbnail": "https://storage.googleapis.com/audio-467217/meditation-thumbnail/sleep1/sleep1_m.png",
+        "audioUrl": "https://storage.googleapis.com/audio-467217/meditation/sleep1/sleep_med1_es.mp3",
+        "description": "Experimenta el futuro de la meditación guiada con esta sesión de Yoga Nidra generada por IA, diseñada para la relajación profunda, alivio del estrés y mejor sueño."
+      },
+      {
+        "id": "meditation_sleep1_zh",
+        "title": "深度放松瑜伽休息术 | 助眠冥想",
+        "duration": "46 min",
+        "color": "#8B5CF6",
+        "icon": "self-improvement",
+        "thumbnail": "https://storage.googleapis.com/audio-467217/meditation-thumbnail/sleep1/sleep1_m_zh.png",
+        "audioUrl": "https://storage.googleapis.com/audio-467217/meditation/sleep1/sleep_med1_zh.mp3",
+        "description": "体验冥想引导的未来——这个瑜伽休息术课程专为深度放松、缓解压力和改善睡眠而设计"
       }
     ],
     "whiteNoise": [
@@ -555,24 +565,34 @@
     ],
     "guidedRelaxation": [
       {
-        "id": "gr1",
-        "title": "Progressive Muscle Relaxation",
-        "duration": "20 min",
+        "id": "meditation_normal1_en",
+        "title": "Deep Relaxation Guided Meditation",
+        "duration": "8 min",
         "color": "#8B5CF6",
         "icon": "fitness-center",
-        "thumbnail": "https://picsum.photos/300/200?random=15",
-        "audioUrl": "https://public-persistent-us-west-2.s3.us-west-2.amazonaws.com/temp/normal_en.mp3",
-        "description": "Step-by-step muscle relaxation guide"
+        "thumbnail": "https://storage.googleapis.com/audio-467217/meditation-thumbnail/normal1/normal_1_f.png",
+        "audioUrl": "https://storage.googleapis.com/audio-467217/meditation/normal1/normal1_en.mp3",
+        "description": "Find instant calm with this soothing guided meditation. Perfect for stress relief, better sleep, and daily mindfulness practice."
       },
       {
-        "id": "gr2",
-        "title": "Mindfulness Relaxation",
-        "duration": "15 min",
+        "id": "meditation_normal1_es",
+        "title": "Relajación Profunda y Paz Interior",
+        "duration": "10 min",
         "color": "#F59E0B",
         "icon": "psychology",
-        "thumbnail": "https://picsum.photos/300/200?random=16",
-        "audioUrl": "https://public-persistent-us-west-2.s3.us-west-2.amazonaws.com/temp/normal_en.mp3",
-        "description": "Mindful awareness for stress relief"
+        "thumbnail": "https://storage.googleapis.com/audio-467217/meditation-thumbnail/normal1/normal_1_f.png",
+        "audioUrl": "https://storage.googleapis.com/audio-467217/meditation/sleep1/normal1_es.mp3",
+        "description": "Encuentra la calma instantánea con esta meditación guiada relajante. Perfecta para aliviar el estrés, dormir mejor y practicar mindfulness diario."
+      },
+      {
+        "id": "meditation_normal1_zh",
+        "title": "深度放松冥想 | 减压静心引导练习",
+        "duration": "11 min",
+        "color": "#8B5CF6",
+        "icon": "fitness-center",
+        "thumbnail": "https://storage.googleapis.com/audio-467217/meditation-thumbnail/normal1/normal_1_f_zh.png",
+        "audioUrl": "https://storage.googleapis.com/audio-467217/meditation/normal1/normal1_zh.mp3",
+        "description": "M通过这个舒缓的冥想引导，瞬间找到内心平静。适合减压放松、改善睡眠和日常正念练习。"
       }
     ]
   },
