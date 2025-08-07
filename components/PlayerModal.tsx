@@ -12,6 +12,7 @@ import {
   Image,
   ImageBackground,
 } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { BlurView } from 'expo-blur';
@@ -42,6 +43,9 @@ export function PlayerModal({ visible, onClose, item }: PlayerModalProps) {
   const translateY = useRef(new Animated.Value(screenHeight)).current;
   const [volumeSliderVisible, setVolumeSliderVisible] = React.useState(false);
   const [sleepTimerVisible, setSleepTimerVisible] = React.useState(false);
+  const [seekIndicatorPosition, setSeekIndicatorPosition] = React.useState<number | null>(null);
+  const [isSeeking, setIsSeeking] = React.useState(false);
+  const progressBarRef = useRef<View>(null);
   const {
     currentSound,
     currentItem,
@@ -228,15 +232,64 @@ export function PlayerModal({ visible, onClose, item }: PlayerModalProps) {
     return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
   };
 
+  const progressBarWidth = useRef(0);
+
+  const handleProgressBarLayout = (event: any) => {
+    progressBarWidth.current = event.nativeEvent.layout.width;
+  };
+
   const handleProgressBarPress = (event: any) => {
-    if (item?.duration === '∞') return;
+    if (item?.duration === '∞' || isSeeking) return;
     
     const { locationX } = event.nativeEvent;
-    const barWidth = event.currentTarget.offsetWidth || 300; // fallback width
-    const percentage = locationX / barWidth;
+    const percentage = Math.max(0, Math.min(1, locationX / progressBarWidth.current));
     const newPosition = duration * percentage;
-    
     seekTo(newPosition);
+  };
+
+  const handleProgressBarTouchStart = (event: any) => {
+    if (item?.duration === '∞') return;
+    
+    // Provide haptic feedback when starting to seek
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    
+    const { locationX } = event.nativeEvent;
+    const percentage = Math.max(0, Math.min(1, locationX / progressBarWidth.current));
+    setSeekIndicatorPosition(percentage * 100);
+    setIsSeeking(true);
+  };
+
+  const handleProgressBarTouchMove = (event: any) => {
+    if (item?.duration === '∞' || !isSeeking) return;
+    
+    const { locationX } = event.nativeEvent;
+    const percentage = Math.max(0, Math.min(1, locationX / progressBarWidth.current));
+    const prevPosition = seekIndicatorPosition || 0;
+    const newPosition = percentage * 100;
+    
+    // Provide light haptic feedback when crossing 10% boundaries
+    if (Math.floor(prevPosition / 10) !== Math.floor(newPosition / 10)) {
+      Haptics.selectionAsync();
+    }
+    
+    setSeekIndicatorPosition(newPosition);
+  };
+
+  const handleProgressBarTouchEnd = () => {
+    if (!isSeeking || seekIndicatorPosition === null) {
+      setSeekIndicatorPosition(null);
+      setIsSeeking(false);
+      return;
+    }
+    
+    // Provide haptic feedback when applying the seek
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    
+    // Apply the seek position when touch ends
+    const newPosition = duration * (seekIndicatorPosition / 100);
+    seekTo(newPosition);
+    setSeekIndicatorPosition(null);
+    setIsSeeking(false);
   };
 
   const getVolumeIcon = () => {
@@ -337,17 +390,44 @@ export function PlayerModal({ visible, onClose, item }: PlayerModalProps) {
 
             {item.duration !== '∞' && (
               <View style={styles.progressContainer}>
-                <TouchableOpacity 
-                  style={styles.progressBar}
-                  onPress={handleProgressBarPress}
-                  activeOpacity={1}
+                <View 
+                  style={styles.progressTouchArea}
+                  onLayout={handleProgressBarLayout}
+                  ref={progressBarRef}
+                  onStartShouldSetResponder={() => true}
+                  onMoveShouldSetResponder={() => true}
+                  onResponderGrant={handleProgressBarTouchStart}
+                  onResponderMove={handleProgressBarTouchMove}
+                  onResponderRelease={(event) => {
+                    if (isSeeking) {
+                      handleProgressBarTouchEnd();
+                    } else {
+                      handleProgressBarPress(event);
+                    }
+                  }}
+                  onResponderTerminate={handleProgressBarTouchEnd}
                 >
-                  <View 
-                    style={[styles.progressFill, { width: `${progress}%` }]} 
-                  />
-                </TouchableOpacity>
+                  <View style={styles.progressBar}>
+                    <View 
+                      style={[styles.progressFill, { width: `${seekIndicatorPosition ?? progress}%` }]} 
+                    />
+                    {seekIndicatorPosition !== null && (
+                      <View 
+                        style={[
+                          styles.seekIndicator,
+                          { left: `${seekIndicatorPosition}%` }
+                        ]} 
+                      />
+                    )}
+                  </View>
+                </View>
                 <View style={styles.timeContainer}>
-                  <Text style={styles.timeText}>{formatTime(position)}</Text>
+                  <Text style={styles.timeText}>
+                    {isSeeking && seekIndicatorPosition !== null 
+                      ? formatTime(duration * (seekIndicatorPosition / 100))
+                      : formatTime(position)
+                    }
+                  </Text>
                   <Text style={styles.timeText}>{formatTime(duration)}</Text>
                 </View>
               </View>
@@ -543,21 +623,40 @@ const styles = StyleSheet.create({
   progressContainer: {
     marginBottom: 40,
   },
+  progressTouchArea: {
+    paddingVertical: 15,
+    marginHorizontal: 10,
+  },
   progressBar: {
-    height: 4,
+    height: 8,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: 2,
-    overflow: 'hidden',
+    borderRadius: 4,
+    overflow: 'visible',
+    position: 'relative',
   },
   progressFill: {
     height: '100%',
     backgroundColor: '#ffffff',
-    borderRadius: 2,
+    borderRadius: 4,
+  },
+  seekIndicator: {
+    position: 'absolute',
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#ffffff',
+    top: -6,
+    marginLeft: -10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
   },
   timeContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 8,
+    marginTop: 12,
   },
   timeText: {
     fontSize: 12,
