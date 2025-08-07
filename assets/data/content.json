@@ -669,6 +669,26 @@
         "description": "Chill lo-fi beats for studying and work"
       },
       {
+        "id": "music_chineselofi1",
+        "title": "Chinese Lo-fi",
+        "duration": "34 min",
+        "color": "#8B5CF6",
+        "icon": "equalizer",
+        "thumbnail": "https://storage.googleapis.com/audio-467217/music-thumbnail/chineselofi1.jpg",
+        "audioUrl": "https://storage.googleapis.com/audio-467217/music/chineselofi1.mp3",
+        "description": "Chinese Lo-fi"
+      },
+      {
+        "id": "music_mediterraneanlofi1",
+        "title": "Electro Lo-fi",
+        "duration": "35 min",
+        "color": "#8B5CF6",
+        "icon": "equalizer",
+        "thumbnail": "https://storage.googleapis.com/audio-467217/music-thumbnail/mediterranearnlofi1.png",
+        "audioUrl": "https://storage.googleapis.com/audio-467217/music/mediterranearnlofi1.mp3",
+        "description": "Lo-fi from South European vibe"
+      },
+      {
         "id": "music_electrolofi1",
         "title": "Electro Lo-fi",
         "duration": "27 min",
