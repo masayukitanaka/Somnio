@@ -8,8 +8,10 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { RemoveAdsButton } from '@/components/RemoveAdsButton';
 import { PlayerModal } from '@/components/PlayerModal';
+import { MiniPlayer } from '@/components/MiniPlayer';
 import PenAnimation from '@/components/PenAnimation';
 import { getFocusContent, ContentItem } from '@/services/contentService';
+import { useAudio } from '@/contexts/AudioContext';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.7;
@@ -118,6 +120,7 @@ export default function FocusScreen() {
     quickMeditation: [],
   });
   const [isLoading, setIsLoading] = useState(true);
+  const { currentItem } = useAudio();
 
   useEffect(() => {
     loadContent();
@@ -235,6 +238,12 @@ export default function FocusScreen() {
         onClose={handleCloseModal}
         item={selectedItem}
       />
+      <MiniPlayer onPress={() => {
+        if (currentItem) {
+          setSelectedItem(currentItem);
+          setModalVisible(true);
+        }
+      }} />
     </>
   );
 }
