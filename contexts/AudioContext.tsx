@@ -13,6 +13,7 @@ interface AudioContextType {
   volume: number;
   isMuted: boolean;
   sleepTimerMinutes: number | null;
+  isRepeatEnabled: boolean;
   setCurrentSound: (sound: Audio.Sound | null) => void;
   setCurrentItem: (item: any | null) => void;
   setIsPlaying: (playing: boolean) => void;
@@ -22,6 +23,7 @@ interface AudioContextType {
   setProgress: (progress: number) => void;
   setVolume: (volume: number) => void;
   setIsMuted: (muted: boolean) => void;
+  setIsRepeatEnabled: (enabled: boolean) => void;
   togglePlayPause: () => Promise<void>;
   stopAndUnloadAudio: (cancelTimer?: boolean) => Promise<void>;
   seekTo: (positionMillis: number) => Promise<void>;
@@ -62,6 +64,7 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
   const [volume, setVolume] = useState(1.0);
   const [isMuted, setIsMuted] = useState(false);
   const [sleepTimerMinutes, setSleepTimerMinutes] = useState<number | null>(null);
+  const [isRepeatEnabled, setIsRepeatEnabled] = useState(false);
 
   useEffect(() => {
     // Initialize audio asset manager
@@ -103,7 +106,7 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
     }
   };
 
-  const stopAndUnloadAudio = async (cancelTimer = true) => {
+  const stopAndUnloadAudio = async () => {
     if (currentSound) {
       try {
         await currentSound.stopAsync();
@@ -249,6 +252,7 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
         volume,
         isMuted,
         sleepTimerMinutes,
+        isRepeatEnabled,
         setCurrentSound,
         setCurrentItem,
         setIsPlaying,
@@ -258,6 +262,7 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
         setProgress,
         setVolume,
         setIsMuted,
+        setIsRepeatEnabled,
         togglePlayPause,
         stopAndUnloadAudio,
         seekTo,

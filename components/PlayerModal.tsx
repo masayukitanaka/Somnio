@@ -50,6 +50,7 @@ export function PlayerModal({ visible, onClose, item }: PlayerModalProps) {
     position,
     duration,
     progress,
+    isRepeatEnabled,
     setCurrentSound,
     setCurrentItem,
     setIsPlaying,
@@ -57,6 +58,7 @@ export function PlayerModal({ visible, onClose, item }: PlayerModalProps) {
     setPosition,
     setDuration,
     setProgress,
+    setIsRepeatEnabled,
     togglePlayPause: globalTogglePlayPause,
     stopAndUnloadAudio: globalStopAndUnloadAudio,
     seekTo,
@@ -89,6 +91,42 @@ export function PlayerModal({ visible, onClose, item }: PlayerModalProps) {
       // Don't stop audio when closing modal
     }
   }, [visible]);
+
+  // Handle playback status updates including repeat functionality
+  useEffect(() => {
+    if (!currentSound) return;
+
+    const statusUpdateCallback = async (status: any) => {
+      if (status.isLoaded) {
+        setDuration(status.durationMillis || 0);
+        setPosition(status.positionMillis || 0);
+        setProgress((status.positionMillis / (status.durationMillis || 1)) * 100);
+        setIsPlaying(status.isPlaying);
+        setIsLoaded(true);
+        
+        // Handle audio finish for repeat or infinite duration
+        if (status.didJustFinish) {
+          // Auto-loop for infinite duration items or when repeat is enabled
+          if (item?.duration === '∞' || isRepeatEnabled) {
+            try {
+              await currentSound.replayAsync();
+            } catch (error) {
+              console.error('Error looping audio:', error);
+            }
+          }
+        }
+      } else {
+        setIsLoaded(false);
+      }
+    };
+
+    currentSound.setOnPlaybackStatusUpdate(statusUpdateCallback);
+
+    return () => {
+      // Clean up the listener when component unmounts or currentSound changes
+      currentSound.setOnPlaybackStatusUpdate(null);
+    };
+  }, [currentSound, isRepeatEnabled, item?.duration]);
 
   // Removed cleanup effect as it's handled in context
 
@@ -141,27 +179,6 @@ export function PlayerModal({ visible, onClose, item }: PlayerModalProps) {
         { shouldPlay: false }
       );
       
-      newSound.setOnPlaybackStatusUpdate(async (status) => {
-        if (status.isLoaded) {
-          setDuration(status.durationMillis || 0);
-          setPosition(status.positionMillis || 0);
-          setProgress((status.positionMillis / (status.durationMillis || 1)) * 100);
-          setIsPlaying(status.isPlaying);
-          setIsLoaded(true);
-          
-          // Auto-loop for infinite duration items
-          if (item.duration === '∞' && status.didJustFinish) {
-            try {
-              await newSound.replayAsync();
-            } catch (error) {
-              console.error('Error looping audio:', error);
-            }
-          }
-        } else {
-          setIsLoaded(false);
-        }
-      });
-
       setCurrentSound(newSound);
       setCurrentItem(item);
     } catch (error) {
@@ -362,8 +379,21 @@ export function PlayerModal({ visible, onClose, item }: PlayerModalProps) {
             </View>
 
             <View style={styles.bottomControls}>
-              <TouchableOpacity style={styles.bottomButton}>
-                <MaterialIcons name="favorite-border" size={24} color="#ffffff" />
+              <TouchableOpacity 
+                style={styles.bottomButton}
+                onPress={() => setIsRepeatEnabled(!isRepeatEnabled)}
+              >
+                <MaterialIcons 
+                  name="repeat" 
+                  size={24} 
+                  color={isRepeatEnabled ? '#FFD700' : '#ffffff'} 
+                />
+                <Text style={[
+                  styles.bottomButtonText,
+                  isRepeatEnabled ? { color: '#FFD700' } : null
+                ]}>
+                  Repeat
+                </Text>
               </TouchableOpacity>
               
               <TouchableOpacity 
@@ -396,6 +426,10 @@ export function PlayerModal({ visible, onClose, item }: PlayerModalProps) {
                   size={24} 
                   color={isMuted ? '#FF6B6B' : '#ffffff'} 
                 />
+              </TouchableOpacity>
+              
+              <TouchableOpacity style={styles.bottomButton}>
+                <MaterialIcons name="favorite-border" size={24} color="#ffffff" />
               </TouchableOpacity>
             </View>
           </View>
