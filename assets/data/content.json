@@ -680,12 +680,12 @@
       },
       {
         "id": "music_mediterraneanlofi1",
-        "title": "Electro Lo-fi",
+        "title": "Mediterranean Lo-Fi",
         "duration": "35 min",
         "color": "#8B5CF6",
         "icon": "equalizer",
-        "thumbnail": "https://storage.googleapis.com/audio-467217/music-thumbnail/mediterranearnlofi1.png",
-        "audioUrl": "https://storage.googleapis.com/audio-467217/music/mediterranearnlofi1.mp3",
+        "thumbnail": "https://storage.googleapis.com/audio-467217/music-thumbnail/mediterraneanlofi1.png",
+        "audioUrl": "https://storage.googleapis.com/audio-467217/music/mediterraneanlofi1.mp3",
         "description": "Lo-fi from South European vibe"
       },
       {
