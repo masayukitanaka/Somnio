@@ -82,7 +82,7 @@
         "icon": "menu-book",
         "thumbnail": "https://storage.googleapis.com/audio-467217/story-thumbnail/cotswolds.png",
         "audioUrl": "https://storage.googleapis.com/audio-467217/story/cotswolds/cotswolds_ja.mp3",
-        "description": "イングランドの田舎町コッツウォルズで、父の死後疎遠になっていた二人の兄弟が、久しぶりに実家で再会する物語。"
+        "description": "イングランドの田舎町コッツウォルズで、父の死後疎遠になっていた二人の兄弟が、久しぶりに実家で再会する物語。(ボイス：にじボイス)"
       },
       {
         "id": "story_cotswolds_es",
@@ -103,6 +103,46 @@
         "thumbnail": "https://storage.googleapis.com/audio-467217/story-thumbnail/cotswolds.png",
         "audioUrl": "https://storage.googleapis.com/audio-467217/story/cotswolds/cotswolds_zh.mp3",
         "description": "在英格兰乡村小镇科茨沃尔德，因父亲去世而疏远的两兄弟时隔多年在家族住宅重逢的故事。"
+      },
+      {
+        "id": "story_trivia1_en",
+        "title": "Fun facts",
+        "duration": "29 min",
+        "color": "#10B981",
+        "icon": "menu-book",
+        "thumbnail": "https://storage.googleapis.com/audio-467217/story-thumbnail/trivia1.png",
+        "audioUrl": "https://storage.googleapis.com/audio-467217/story/trivia1/trivia1_en.mp3",
+        "description": "End your day with a fun fact — get smarter as you drift off to sleep."
+      },
+      {
+        "id": "story_trivia1_es",
+        "title": "Datos curiosos",
+        "duration": "42 min",
+        "color": "#10B981",
+        "icon": "menu-book",
+        "thumbnail": "https://storage.googleapis.com/audio-467217/story-thumbnail/trivia1.png",
+        "audioUrl": "https://storage.googleapis.com/audio-467217/story/trivia1/trivia1_es.mp3",
+        "description": "Termina tu día con un dato curioso — hazte más inteligente mientras te quedas dormido."
+      },
+      {
+        "id": "story_trivia1_zh",
+        "title": "趣味知识",
+        "duration": "29 min",
+        "color": "#10B981",
+        "icon": "menu-book",
+        "thumbnail": "https://storage.googleapis.com/audio-467217/story-thumbnail/trivia1.png",
+        "audioUrl": "https://storage.googleapis.com/audio-467217/story/trivia1/trivia1_zh.mp3",
+        "description": "用一个有趣的知识结束你的一天 — 在入睡时变得更聪明。"
+      },
+      {
+        "id": "story_trivia1_ja",
+        "title": "おもしろ豆知識",
+        "duration": "41 min",
+        "color": "#10B981",
+        "icon": "menu-book",
+        "thumbnail": "https://storage.googleapis.com/audio-467217/story-thumbnail/trivia1.png",
+        "audioUrl": "https://storage.googleapis.com/audio-467217/story/trivia1/trivia1_ja.mp3",
+        "description": "楽しい豆知識で一日を締めくくり — 眠りにつきながら賢くなろう。"
       }
     ],
     "meditation": [
