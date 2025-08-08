@@ -16,6 +16,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { additionalScreenTranslations, getCurrentLanguage, getTranslation } from '@/utils/i18n';
 
 interface JournalEntry {
   date: string; // YYYY-MM-DD format
@@ -38,11 +39,25 @@ export default function JournalScreen() {
   const [showCalendar, setShowCalendar] = useState(false);
   const [showEntryList, setShowEntryList] = useState(false);
   const [calendarDate, setCalendarDate] = useState(new Date());
+  const [currentLanguage, setCurrentLanguage] = useState('en');
 
   // Load journal entries from storage
   useEffect(() => {
     loadEntries();
+    loadCurrentLanguage();
   }, []);
+
+  const loadCurrentLanguage = async () => {
+    try {
+      const language = await getCurrentLanguage();
+      setCurrentLanguage(language);
+    } catch (error) {
+      console.error('Error loading current language:', error);
+    }
+  };
+
+  // Translation helper function
+  const t = (key: string) => getTranslation(additionalScreenTranslations, key, currentLanguage);
 
   // Load current entry when date changes
   useEffect(() => {
@@ -80,7 +95,7 @@ export default function JournalScreen() {
       }
     } catch (error) {
       console.error('Error loading journal entries:', error);
-      Alert.alert('Error', 'Failed to load journal entries');
+      Alert.alert(t('error'), 'Failed to load journal entries');
     } finally {
       setIsLoaded(true);
     }
@@ -91,7 +106,7 @@ export default function JournalScreen() {
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedEntries));
     } catch (error) {
       console.error('Error saving journal entries:', error);
-      Alert.alert('Error', 'Failed to save journal entry');
+      Alert.alert(t('error'), 'Failed to save journal entry');
     }
   };
 
@@ -130,12 +145,12 @@ export default function JournalScreen() {
 
   const deleteEntry = (date: string) => {
     Alert.alert(
-      'Delete Entry',
-      'Are you sure you want to delete this journal entry?',
+      t('delete_entry'),
+      t('are_you_sure_delete_journal'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('cancel'), style: 'cancel' },
         {
-          text: 'Delete',
+          text: t('delete'),
           style: 'destructive',
           onPress: async () => {
             const updatedEntries = { ...entries };
@@ -216,12 +231,12 @@ export default function JournalScreen() {
   
   const manualSave = () => {
     saveCurrentEntry();
-    Alert.alert('Saved', 'Your journal entry has been saved.');
+    Alert.alert(t('saved'), t('your_journal_saved'));
   };
   
   const manualDelete = () => {
     if (!hasEntry) {
-      Alert.alert('No Entry', 'There is no entry for this date to delete.');
+      Alert.alert(t('no_entry'), t('no_entry_to_delete'));
       return;
     }
     deleteEntry(selectedDate);
@@ -245,7 +260,7 @@ export default function JournalScreen() {
           >
             <MaterialIcons name="arrow-back" size={24} color="#ffffff" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Journal</Text>
+          <Text style={styles.headerTitle}>{t('journal')}</Text>
           <View style={styles.headerActions}>
             <TouchableOpacity
               style={styles.headerButton}
@@ -271,10 +286,10 @@ export default function JournalScreen() {
             <Text style={styles.dateText}>{formatDate(selectedDate)}</Text>
             <View style={styles.dateStats}>
               <Text style={styles.statText}>
-                {currentWordCount} words {hasEntry && '• Saved'}
+                {currentWordCount} {t('words')} {hasEntry && `• ${t('saved')}`}
               </Text>
               {isSaving && (
-                <Text style={styles.savingText}>Saving...</Text>
+                <Text style={styles.savingText}>{t('saving')}</Text>
               )}
             </View>
           </TouchableOpacity>
@@ -287,7 +302,7 @@ export default function JournalScreen() {
               style={styles.textEditor}
               value={currentEntry}
               onChangeText={setCurrentEntry}
-              placeholder="What's on your mind today?"
+              placeholder={t('whats_on_your_mind_today')}
               placeholderTextColor="rgba(255, 255, 255, 0.5)"
               multiline
               textAlignVertical="top"
@@ -302,7 +317,7 @@ export default function JournalScreen() {
               onPress={manualSave}
             >
               <MaterialIcons name="save" size={20} color="#ffffff" />
-              <Text style={styles.actionButtonText}>Save</Text>
+              <Text style={styles.actionButtonText}>{t('save')}</Text>
             </TouchableOpacity>
             
             <TouchableOpacity
@@ -311,7 +326,7 @@ export default function JournalScreen() {
               disabled={!hasEntry}
             >
               <MaterialIcons name="delete" size={20} color="#ffffff" />
-              <Text style={styles.actionButtonText}>Delete</Text>
+              <Text style={styles.actionButtonText}>{t('delete')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -401,7 +416,7 @@ export default function JournalScreen() {
           <View style={styles.modalBackdrop}>
             <View style={styles.entryListModal}>
               <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Recent Entries</Text>
+                <Text style={styles.modalTitle}>{t('recent_entries')}</Text>
                 <TouchableOpacity onPress={() => setShowEntryList(false)}>
                   <MaterialIcons name="close" size={24} color="#ffffff" />
                 </TouchableOpacity>
@@ -430,7 +445,7 @@ export default function JournalScreen() {
                       {item.content}
                     </Text>
                     <Text style={styles.entryItemStats}>
-                      {item.wordCount} words • {item.updatedAt.toLocaleDateString()}
+                      {item.wordCount} {t('words')} • {item.updatedAt.toLocaleDateString()}
                     </Text>
                   </TouchableOpacity>
                 )}
@@ -439,7 +454,7 @@ export default function JournalScreen() {
                 ListEmptyComponent={
                   <View style={styles.emptyEntries}>
                     <MaterialIcons name="book" size={48} color="rgba(255, 255, 255, 0.3)" />
-                    <Text style={styles.emptyText}>No journal entries yet</Text>
+                    <Text style={styles.emptyText}>{t('no_journal_entries_yet')}</Text>
                   </View>
                 }
               />

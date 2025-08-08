@@ -13,6 +13,7 @@ import { MiniPlayer } from '@/components/MiniPlayer';
 import { ContentCard } from '@/components/ContentCard';
 import { getSleepContent, ContentItem, clearApiCache } from '@/services/contentService';
 import { useAudio } from '@/contexts/AudioContext';
+import { contentTabTranslations, getCurrentLanguage, getTranslation } from '@/utils/i18n';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.7;
@@ -77,10 +78,24 @@ export default function SleepScreen() {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [currentLanguage, setCurrentLanguage] = useState('en');
 
   useEffect(() => {
     loadContent();
+    loadCurrentLanguage();
   }, []);
+
+  const loadCurrentLanguage = async () => {
+    try {
+      const language = await getCurrentLanguage();
+      setCurrentLanguage(language);
+    } catch (error) {
+      console.error('Error loading current language:', error);
+    }
+  };
+
+  // Translation helper function
+  const t = (key: string) => getTranslation(contentTabTranslations, key, currentLanguage);
 
   // Force refresh when screen gains focus
   useEffect(() => {
@@ -110,6 +125,9 @@ export default function SleepScreen() {
           
           // Always update refresh key when focused
           setRefreshKey(prev => prev + 1);
+          
+          // Reload current language when focused
+          await loadCurrentLanguage();
         } catch (error) {
           console.error('Error checking cache cleared flag:', error);
         }
@@ -152,12 +170,12 @@ export default function SleepScreen() {
           <RemoveAdsButton />
           <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
             <ThemedView style={[styles.header, { backgroundColor: 'transparent' }]}>
-              <ThemedText type="title">Sleep</ThemedText>
-              <ThemedText type="subtitle">Drift into peaceful dreams</ThemedText>
+              <ThemedText type="title">{t('sleep')}</ThemedText>
+              <ThemedText type="subtitle">{t('drift_into_peaceful_dreams')}</ThemedText>
             </ThemedView>
             
             <ContentSection 
-              title="Sleepy Music" 
+              title={t('sleepy_music')} 
               data={content.sleepyMusic} 
               icon="music-note" 
               onItemPress={handleItemPress}
@@ -165,7 +183,7 @@ export default function SleepScreen() {
               refreshKey={refreshKey}
             />
             <ContentSection 
-              title="Story" 
+              title={t('story')} 
               data={content.stories} 
               icon="menu-book" 
               onItemPress={handleItemPress}
@@ -173,7 +191,7 @@ export default function SleepScreen() {
               refreshKey={refreshKey}
             />
             <ContentSection 
-              title="Sleep Meditation" 
+              title={t('sleep_meditation')} 
               data={content.meditation} 
               icon="spa" 
               onItemPress={handleItemPress}
@@ -181,7 +199,7 @@ export default function SleepScreen() {
               refreshKey={refreshKey}
             />
             <ContentSection 
-              title="White Noise" 
+              title={t('white_noise')} 
               data={content.whiteNoise} 
               icon="hearing" 
               onItemPress={handleItemPress}

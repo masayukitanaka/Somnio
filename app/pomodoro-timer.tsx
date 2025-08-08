@@ -13,6 +13,8 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { additionalScreenTranslations, getCurrentLanguage, getTranslation } from '@/utils/i18n';
 
 type TimerMode = 'work' | 'break';
 
@@ -31,10 +33,27 @@ export default function PomodoroTimer() {
   
   // UI state
   const [showSettings, setShowSettings] = useState(false);
+  const [currentLanguage, setCurrentLanguage] = useState('en');
   
   // Animation
   const progressAnim = useRef(new Animated.Value(1)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    loadCurrentLanguage();
+  }, []);
+
+  const loadCurrentLanguage = async () => {
+    try {
+      const language = await getCurrentLanguage();
+      setCurrentLanguage(language);
+    } catch (error) {
+      console.error('Error loading current language:', error);
+    }
+  };
+
+  // Translation helper function
+  const t = (key: string) => getTranslation(additionalScreenTranslations, key, currentLanguage);
 
   // Timer effect
   useEffect(() => {
@@ -94,19 +113,19 @@ export default function PomodoroTimer() {
       setMode('break');
       setTimeLeft(breakDuration * 60);
       Alert.alert(
-        'Work Session Complete! 🎉',
-        'Time for a break. Take a moment to relax.',
-        [{ text: 'Start Break', onPress: () => setIsActive(true) }]
+        t('work_session_complete'),
+        t('time_for_break'),
+        [{ text: t('start_break'), onPress: () => setIsActive(true) }]
       );
     } else {
       setMode('work');
       setTimeLeft(workDuration * 60);
       Alert.alert(
-        'Break Time Over! 💪',
-        'Ready to focus on your next work session?',
+        t('break_time_over'),
+        t('ready_focus_next_session'),
         [
-          { text: 'Not Yet', style: 'cancel' },
-          { text: 'Start Work', onPress: () => setIsActive(true) }
+          { text: t('not_yet'), style: 'cancel' },
+          { text: t('start_work'), onPress: () => setIsActive(true) }
         ]
       );
     }
@@ -161,7 +180,7 @@ export default function PomodoroTimer() {
           >
             <MaterialIcons name="arrow-back" size={24} color="#ffffff" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Pomodoro Timer</Text>
+          <Text style={styles.headerTitle}>{t('pomodoro_timer')}</Text>
           <TouchableOpacity
             style={styles.settingsButton}
             onPress={() => setShowSettings(true)}
@@ -173,12 +192,12 @@ export default function PomodoroTimer() {
         {/* Mode Indicator */}
         <View style={styles.modeSection}>
           <Text style={styles.modeText}>
-            {mode === 'work' ? '🍅 Work Time' : '☕ Break Time'}
+            {mode === 'work' ? t('work_time_emoji') : t('break_time_emoji')}
           </Text>
           <Text style={styles.modeDescription}>
             {mode === 'work' 
-              ? 'Focus on your current task' 
-              : 'Relax and recharge yourself'
+              ? t('focus_current_task') 
+              : t('relax_recharge')
             }
           </Text>
         </View>
@@ -207,7 +226,7 @@ export default function PomodoroTimer() {
             >
               <Text style={styles.timerText}>{formatTime(timeLeft)}</Text>
               <Text style={styles.timerLabel}>
-                {mode === 'work' ? 'Focus' : 'Break'}
+                {mode === 'work' ? t('focus') : t('break')}
               </Text>
             </Animated.View>
           </View>
@@ -245,15 +264,15 @@ export default function PomodoroTimer() {
         <View style={styles.statsSection}>
           <View style={styles.statCard}>
             <Text style={styles.statNumber}>{completedPomodoros}</Text>
-            <Text style={styles.statLabel}>Completed</Text>
+            <Text style={styles.statLabel}>{t('completed')}</Text>
           </View>
           <View style={styles.statCard}>
             <Text style={styles.statNumber}>{workDuration}m</Text>
-            <Text style={styles.statLabel}>Work</Text>
+            <Text style={styles.statLabel}>{t('work')}</Text>
           </View>
           <View style={styles.statCard}>
             <Text style={styles.statNumber}>{breakDuration}m</Text>
-            <Text style={styles.statLabel}>Break</Text>
+            <Text style={styles.statLabel}>{t('break')}</Text>
           </View>
         </View>
 
@@ -267,7 +286,7 @@ export default function PomodoroTimer() {
           <View style={styles.modalBackdrop}>
             <View style={styles.settingsModal}>
               <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Timer Settings</Text>
+                <Text style={styles.modalTitle}>{t('timer_settings')}</Text>
                 <TouchableOpacity onPress={() => setShowSettings(false)}>
                   <MaterialIcons name="close" size={24} color="#ffffff" />
                 </TouchableOpacity>
@@ -275,7 +294,7 @@ export default function PomodoroTimer() {
 
               {/* Work Duration */}
               <View style={styles.settingSection}>
-                <Text style={styles.settingTitle}>Work Duration</Text>
+                <Text style={styles.settingTitle}>{t('work_duration')}</Text>
                 <View style={styles.optionGrid}>
                   {workDurationOptions.map((minutes) => (
                     <TouchableOpacity
@@ -294,7 +313,7 @@ export default function PomodoroTimer() {
 
               {/* Break Duration */}
               <View style={styles.settingSection}>
-                <Text style={styles.settingTitle}>Break Duration</Text>
+                <Text style={styles.settingTitle}>{t('break_duration')}</Text>
                 <View style={styles.optionGrid}>
                   {breakDurationOptions.map((minutes) => (
                     <TouchableOpacity

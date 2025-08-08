@@ -15,6 +15,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { additionalScreenTranslations, getCurrentLanguage, getTranslation } from '@/utils/i18n';
 
 interface Task {
   id: string;
@@ -39,11 +40,25 @@ export default function TasksScreen() {
   const [newTaskDescription, setNewTaskDescription] = useState('');
   const [newTaskPriority, setNewTaskPriority] = useState<'low' | 'medium' | 'high'>('medium');
   const [filter, setFilter] = useState<'all' | 'active' | 'completed'>('all');
+  const [currentLanguage, setCurrentLanguage] = useState('en');
 
   // Load tasks from storage on component mount
   useEffect(() => {
     loadTasks();
+    loadCurrentLanguage();
   }, []);
+
+  const loadCurrentLanguage = async () => {
+    try {
+      const language = await getCurrentLanguage();
+      setCurrentLanguage(language);
+    } catch (error) {
+      console.error('Error loading current language:', error);
+    }
+  };
+
+  // Translation helper function
+  const t = (key: string) => getTranslation(additionalScreenTranslations, key, currentLanguage);
 
   // Save tasks to storage whenever tasks change
   useEffect(() => {
@@ -93,7 +108,7 @@ export default function TasksScreen() {
       }
     } catch (error) {
       console.error('Error loading tasks:', error);
-      Alert.alert('Error', 'Failed to load tasks from storage');
+      Alert.alert(t('error'), t('failed_to_load_tasks'));
     } finally {
       setIsLoaded(true);
     }
@@ -104,7 +119,7 @@ export default function TasksScreen() {
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
     } catch (error) {
       console.error('Error saving tasks:', error);
-      Alert.alert('Error', 'Failed to save tasks to storage');
+      Alert.alert(t('error'), t('failed_to_save_tasks'));
     }
   };
 
@@ -121,7 +136,7 @@ export default function TasksScreen() {
 
   const addTask = () => {
     if (newTaskTitle.trim() === '') {
-      Alert.alert('Error', 'Please enter a task title');
+      Alert.alert(t('error'), t('please_enter_task_title'));
       return;
     }
 
@@ -141,7 +156,7 @@ export default function TasksScreen() {
 
   const updateTask = () => {
     if (!editingTask || newTaskTitle.trim() === '') {
-      Alert.alert('Error', 'Please enter a task title');
+      Alert.alert(t('error'), t('please_enter_task_title'));
       return;
     }
 
@@ -163,12 +178,12 @@ export default function TasksScreen() {
 
   const deleteTask = (taskId: string) => {
     Alert.alert(
-      'Delete Task',
-      'Are you sure you want to delete this task?',
+      t('delete_task'),
+      t('are_you_sure_delete_task'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('cancel'), style: 'cancel' },
         { 
-          text: 'Delete', 
+          text: t('delete'), 
           style: 'destructive',
           onPress: () => setTasks(prev => prev.filter(task => task.id !== taskId))
         }
@@ -279,7 +294,7 @@ export default function TasksScreen() {
           >
             <MaterialIcons name="arrow-back" size={24} color="#ffffff" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Tasks</Text>
+          <Text style={styles.headerTitle}>{t('tasks')}</Text>
           <TouchableOpacity
             style={styles.addButton}
             onPress={() => setShowAddModal(true)}
@@ -292,15 +307,15 @@ export default function TasksScreen() {
         <View style={styles.statsSection}>
           <View style={styles.statCard}>
             <Text style={styles.statNumber}>{totalCount}</Text>
-            <Text style={styles.statLabel}>Total</Text>
+            <Text style={styles.statLabel}>{t('total')}</Text>
           </View>
           <View style={styles.statCard}>
             <Text style={styles.statNumber}>{totalCount - completedCount}</Text>
-            <Text style={styles.statLabel}>Active</Text>
+            <Text style={styles.statLabel}>{t('active')}</Text>
           </View>
           <View style={styles.statCard}>
             <Text style={styles.statNumber}>{completedCount}</Text>
-            <Text style={styles.statLabel}>Completed</Text>
+            <Text style={styles.statLabel}>{t('completed')}</Text>
           </View>
         </View>
 
@@ -311,7 +326,7 @@ export default function TasksScreen() {
             onPress={() => setFilter('all')}
           >
             <Text style={[styles.filterText, filter === 'all' && styles.activeFilterText]}>
-              All
+              {t('all')}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -319,7 +334,7 @@ export default function TasksScreen() {
             onPress={() => setFilter('active')}
           >
             <Text style={[styles.filterText, filter === 'active' && styles.activeFilterText]}>
-              Active
+              {t('active')}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -327,7 +342,7 @@ export default function TasksScreen() {
             onPress={() => setFilter('completed')}
           >
             <Text style={[styles.filterText, filter === 'completed' && styles.activeFilterText]}>
-              Completed
+              {t('completed')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -343,15 +358,15 @@ export default function TasksScreen() {
             ListEmptyComponent={
               <View style={styles.emptyState}>
                 <MaterialIcons name="assignment" size={64} color="rgba(255, 255, 255, 0.3)" />
-                <Text style={styles.emptyText}>No tasks found</Text>
-                <Text style={styles.emptySubtext}>Tap + to add your first task</Text>
+                <Text style={styles.emptyText}>{t('no_tasks_found')}</Text>
+                <Text style={styles.emptySubtext}>{t('tap_plus_add_first_task')}</Text>
               </View>
             }
           />
         ) : (
           <View style={styles.loadingState}>
             <MaterialIcons name="hourglass-empty" size={48} color="rgba(255, 255, 255, 0.5)" />
-            <Text style={styles.loadingText}>Loading tasks...</Text>
+            <Text style={styles.loadingText}>{t('loading_tasks')}</Text>
           </View>
         )}
 
@@ -369,7 +384,7 @@ export default function TasksScreen() {
             <View style={styles.taskModal}>
               <View style={styles.modalHeader}>
                 <Text style={styles.modalTitle}>
-                  {editingTask ? 'Edit Task' : 'Add New Task'}
+                  {editingTask ? t('edit_task') : t('add_new_task')}
                 </Text>
                 <TouchableOpacity onPress={() => {
                   setShowAddModal(false);
@@ -380,23 +395,23 @@ export default function TasksScreen() {
               </View>
 
               <View style={styles.inputSection}>
-                <Text style={styles.inputLabel}>Title</Text>
+                <Text style={styles.inputLabel}>{t('title')}</Text>
                 <TextInput
                   style={styles.textInput}
                   value={newTaskTitle}
                   onChangeText={setNewTaskTitle}
-                  placeholder="Enter task title..."
+                  placeholder={t('enter_task_title')}
                   placeholderTextColor="rgba(255, 255, 255, 0.5)"
                 />
               </View>
 
               <View style={styles.inputSection}>
-                <Text style={styles.inputLabel}>Description (Optional)</Text>
+                <Text style={styles.inputLabel}>{t('description_optional')}</Text>
                 <TextInput
                   style={[styles.textInput, styles.multilineInput]}
                   value={newTaskDescription}
                   onChangeText={setNewTaskDescription}
-                  placeholder="Enter task description..."
+                  placeholder={t('enter_task_description')}
                   placeholderTextColor="rgba(255, 255, 255, 0.5)"
                   multiline
                   numberOfLines={3}
@@ -404,7 +419,7 @@ export default function TasksScreen() {
               </View>
 
               <View style={styles.inputSection}>
-                <Text style={styles.inputLabel}>Priority</Text>
+                <Text style={styles.inputLabel}>{t('priority')}</Text>
                 <View style={styles.priorityOptions}>
                   {(['low', 'medium', 'high'] as const).map((priority) => (
                     <TouchableOpacity
@@ -420,7 +435,7 @@ export default function TasksScreen() {
                         style={[styles.priorityDot, { backgroundColor: getPriorityColor(priority) }]} 
                       />
                       <Text style={styles.priorityText}>
-                        {priority.charAt(0).toUpperCase() + priority.slice(1)}
+                        {t(priority)}
                       </Text>
                     </TouchableOpacity>
                   ))}
@@ -435,14 +450,14 @@ export default function TasksScreen() {
                     resetForm();
                   }}
                 >
-                  <Text style={styles.cancelButtonText}>Cancel</Text>
+                  <Text style={styles.cancelButtonText}>{t('cancel')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.saveButton}
                   onPress={editingTask ? updateTask : addTask}
                 >
                   <Text style={styles.saveButtonText}>
-                    {editingTask ? 'Update' : 'Add Task'}
+                    {editingTask ? t('update_task') : t('add_task')}
                   </Text>
                 </TouchableOpacity>
               </View>

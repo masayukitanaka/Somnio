@@ -9,6 +9,7 @@ import { ThemedView } from '@/components/ThemedView';
 import { RemoveAdsButton } from '@/components/RemoveAdsButton';
 import { clearApiCache, clearThumbnailCache, clearApiCacheForLanguageChange } from '@/services/contentService';
 import { AudioAssetManager } from '@/services/AudioAssetManager';
+import { profileTranslations, getCurrentLanguage, getTranslation } from '@/utils/i18n';
 
 const termsUrl = 'https://example.com/terms'; // Replace with actual URL
 const supportUrl = 'https://example.com/support'; // Replace with actual URL
@@ -22,16 +23,16 @@ const SETTINGS_KEYS = {
 
 const AVAILABLE_UI_LANGUAGES = [
   { code: 'en', name: 'English' },
-  { code: 'ja', name: '日本語' },
   { code: 'es', name: 'Español' },
   { code: 'zh', name: '中文' },
+  { code: 'ja', name: '日本語' },
 ];
 
 const AVAILABLE_AUDIO_LANGUAGES = [
   { code: 'en', name: 'English', flag: '🇺🇸' },
-  { code: 'ja', name: '日本語', flag: '🇯🇵' },
   { code: 'es', name: 'Español', flag: '🇪🇸' },
   { code: 'zh', name: '中文', flag: '🇨🇳' },
+  { code: 'ja', name: '日本語', flag: '🇯🇵' },
 ];
 
 export default function ProfileScreen() {
@@ -40,10 +41,21 @@ export default function ProfileScreen() {
   const [saveBattery, setSaveBattery] = useState(false);
   const [showUILanguageModal, setShowUILanguageModal] = useState(false);
   const [showAudioLanguageModal, setShowAudioLanguageModal] = useState(false);
+  const [currentLanguage, setCurrentLanguage] = useState('en');
 
   useEffect(() => {
     loadSettings();
+    loadCurrentLanguage();
   }, []);
+
+  const loadCurrentLanguage = async () => {
+    try {
+      const language = await getCurrentLanguage();
+      setCurrentLanguage(language);
+    } catch (error) {
+      console.error('Error loading current language:', error);
+    }
+  };
 
   const loadSettings = async () => {
     try {
@@ -63,6 +75,7 @@ export default function ProfileScreen() {
     try {
       await AsyncStorage.setItem(SETTINGS_KEYS.UI_LANGUAGE, language);
       setUILanguage(language);
+      setCurrentLanguage(language); // Update current language for translations
     } catch (error) {
       console.error('Error saving UI language:', error);
     }
@@ -91,12 +104,12 @@ export default function ProfileScreen() {
 
   const handleDeleteCache = () => {
     Alert.alert(
-      'Delete Cache',
-      'This will delete all cached data including downloaded audio files, thumbnails, and API responses. Are you sure?',
+      t('delete_cache_title'),
+      t('delete_cache_message'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('cancel'), style: 'cancel' },
         {
-          text: 'Delete',
+          text: t('delete'),
           style: 'destructive',
           onPress: async () => {
             try {
@@ -111,10 +124,10 @@ export default function ProfileScreen() {
               // Set a flag to indicate cache was cleared
               await AsyncStorage.setItem('cache_cleared', 'true');
               
-              Alert.alert('Success', 'All cached data has been deleted successfully');
+              Alert.alert(t('success'), t('cache_cleared_success'));
             } catch (error) {
               console.error('Error clearing cache:', error);
-              Alert.alert('Error', 'Failed to clear cache');
+              Alert.alert(t('error'), t('failed_to_clear_cache'));
             }
           },
         },
@@ -129,6 +142,9 @@ export default function ProfileScreen() {
   const handleContactSupport = () => {
     Linking.openURL(supportUrl); // Replace with actual URL
   };
+
+  // Translation helper function
+  const t = (key: string) => getTranslation(profileTranslations, key, currentLanguage);
 
   const toggleAudioLanguage = (languageCode: string) => {
     const newLanguages = audioLanguages.includes(languageCode)
@@ -150,9 +166,9 @@ export default function ProfileScreen() {
         <RemoveAdsButton />
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
           <ThemedView style={[styles.header, { backgroundColor: 'transparent' }]}>
-            <ThemedText type="title" style={styles.headerTitle}>Settings</ThemedText>
+            <ThemedText type="title" style={styles.headerTitle}>{t('settings')}</ThemedText>
             <ThemedText type="subtitle" style={styles.headerSubtitle}>
-              Customize your experience
+              {t('customize_experience')}
             </ThemedText>
           </ThemedView>
 
@@ -165,7 +181,7 @@ export default function ProfileScreen() {
               <View style={styles.settingLeft}>
                 <MaterialIcons name="language" size={24} color="#ffffff" />
                 <View style={styles.settingTextContainer}>
-                  <Text style={styles.settingTitle}>UI Language</Text>
+                  <Text style={styles.settingTitle}>{t('ui_language')}</Text>
                   <Text style={styles.settingSubtitle}>
                     {AVAILABLE_UI_LANGUAGES.find(lang => lang.code === uiLanguage)?.name}
                   </Text>
@@ -182,7 +198,7 @@ export default function ProfileScreen() {
               <View style={styles.settingLeft}>
                 <MaterialIcons name="record-voice-over" size={24} color="#ffffff" />
                 <View style={styles.settingTextContainer}>
-                  <Text style={styles.settingTitle}>Audio Language</Text>
+                  <Text style={styles.settingTitle}>{t('audio_language')}</Text>
                   <Text style={styles.settingSubtitle}>
                     {audioLanguages.map(lang => 
                       AVAILABLE_AUDIO_LANGUAGES.find(l => l.code === lang)?.name
@@ -198,9 +214,9 @@ export default function ProfileScreen() {
               <View style={styles.settingLeft}>
                 <MaterialIcons name="battery-saver" size={24} color="#ffffff" />
                 <View style={styles.settingTextContainer}>
-                  <Text style={styles.settingTitle}>Save Battery</Text>
+                  <Text style={styles.settingTitle}>{t('save_battery')}</Text>
                   <Text style={styles.settingSubtitle}>
-                    Reduce background activity
+                    {t('reduce_background_activity')}
                   </Text>
                 </View>
               </View>
@@ -217,9 +233,9 @@ export default function ProfileScreen() {
               <View style={styles.settingLeft}>
                 <MaterialIcons name="delete-sweep" size={24} color="#EF4444" />
                 <View style={styles.settingTextContainer}>
-                  <Text style={[styles.settingTitle, { color: '#EF4444' }]}>Delete Cache</Text>
+                  <Text style={[styles.settingTitle, { color: '#EF4444' }]}>{t('delete_cache')}</Text>
                   <Text style={styles.settingSubtitle}>
-                    Clear all cached data
+                    {t('clear_all_cached_data')}
                   </Text>
                 </View>
               </View>
@@ -231,9 +247,9 @@ export default function ProfileScreen() {
               <View style={styles.settingLeft}>
                 <MaterialIcons name="description" size={24} color="#ffffff" />
                 <View style={styles.settingTextContainer}>
-                  <Text style={styles.settingTitle}>Terms and Conditions</Text>
+                  <Text style={styles.settingTitle}>{t('terms_and_conditions')}</Text>
                   <Text style={styles.settingSubtitle}>
-                    View our terms of service
+                    {t('view_terms_of_service')}
                   </Text>
                 </View>
               </View>
@@ -245,9 +261,9 @@ export default function ProfileScreen() {
               <View style={styles.settingLeft}>
                 <MaterialIcons name="support" size={24} color="#ffffff" />
                 <View style={styles.settingTextContainer}>
-                  <Text style={styles.settingTitle}>Contact & Support</Text>
+                  <Text style={styles.settingTitle}>{t('contact_support')}</Text>
                   <Text style={styles.settingSubtitle}>
-                    Get help and send feedback
+                    {t('get_help_and_feedback')}
                   </Text>
                 </View>
               </View>
@@ -262,7 +278,7 @@ export default function ProfileScreen() {
         {showUILanguageModal && (
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>Select UI Language</Text>
+              <Text style={styles.modalTitle}>{t('select_ui_language')}</Text>
               {AVAILABLE_UI_LANGUAGES.map((language) => (
                 <TouchableOpacity
                   key={language.code}
@@ -290,7 +306,7 @@ export default function ProfileScreen() {
                 style={styles.modalCloseButton}
                 onPress={() => setShowUILanguageModal(false)}
               >
-                <Text style={styles.modalCloseButtonText}>Cancel</Text>
+                <Text style={styles.modalCloseButtonText}>{t('cancel')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -300,8 +316,8 @@ export default function ProfileScreen() {
         {showAudioLanguageModal && (
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>Select Audio Languages</Text>
-              <Text style={styles.modalSubtitle}>Choose one or more languages</Text>
+              <Text style={styles.modalTitle}>{t('select_audio_languages')}</Text>
+              <Text style={styles.modalSubtitle}>{t('choose_one_or_more')}</Text>
               {AVAILABLE_AUDIO_LANGUAGES.map((language) => (
                 <TouchableOpacity
                   key={language.code}
@@ -329,7 +345,7 @@ export default function ProfileScreen() {
                 style={styles.modalCloseButton}
                 onPress={() => setShowAudioLanguageModal(false)}
               >
-                <Text style={styles.modalCloseButtonText}>Done</Text>
+                <Text style={styles.modalCloseButtonText}>{t('done')}</Text>
               </TouchableOpacity>
             </View>
           </View>

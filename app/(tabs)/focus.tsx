@@ -15,6 +15,7 @@ import { ContentCard } from '@/components/ContentCard';
 import PenAnimation from '@/components/PenAnimation';
 import { getFocusContent, ContentItem, clearApiCache } from '@/services/contentService';
 import { useAudio } from '@/contexts/AudioContext';
+import { contentTabTranslations, getCurrentLanguage, getTranslation } from '@/utils/i18n';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.7;
@@ -87,11 +88,25 @@ export default function FocusScreen() {
   const isFocused = useIsFocused();
   const [refreshKey, setRefreshKey] = useState(0);
   const [saveBattery, setSaveBattery] = useState(false);
+  const [currentLanguage, setCurrentLanguage] = useState('en');
 
   useEffect(() => {
     loadContent();
     loadSaveBatterySetting();
+    loadCurrentLanguage();
   }, []);
+
+  const loadCurrentLanguage = async () => {
+    try {
+      const language = await getCurrentLanguage();
+      setCurrentLanguage(language);
+    } catch (error) {
+      console.error('Error loading current language:', error);
+    }
+  };
+
+  // Translation helper function
+  const t = (key: string) => getTranslation(contentTabTranslations, key, currentLanguage);
 
   const loadSaveBatterySetting = async () => {
     try {
@@ -135,6 +150,9 @@ export default function FocusScreen() {
           
           // Reload save battery setting when focused
           await loadSaveBatterySetting();
+          
+          // Reload current language when focused
+          await loadCurrentLanguage();
         } catch (error) {
           console.error('Error checking cache cleared flag:', error);
         }
@@ -193,9 +211,9 @@ export default function FocusScreen() {
             {/* Hero Image Section */}
             <View style={styles.heroSection}>
               <ThemedView style={[styles.heroContent, { backgroundColor: 'transparent' }]}>
-                <ThemedText type="title" style={styles.heroTitle}>Focus</ThemedText>
+                <ThemedText type="title" style={styles.heroTitle}>{t('focus')}</ThemedText>
                 <ThemedText type="subtitle" style={styles.heroSubtitle}>
-                  Enhance your concentration and productivity
+                  {t('enhance_concentration')}
                 </ThemedText>
               </ThemedView>
               {!saveBattery && (
@@ -208,23 +226,23 @@ export default function FocusScreen() {
             {/* Tool Buttons */}
             <View style={styles.toolsSection}>
               <ThemedText type="defaultSemiBold" style={styles.toolsSectionTitle}>
-                Productivity Tools
+                {t('productivity_tools')}
               </ThemedText>
               <View style={styles.toolsGrid}>
                 <ToolButton
-                  title="Pomodoro Timer"
+                  title={t('pomodoro_timer')}
                   icon="timer"
                   onPress={handlePomodoroTimer}
                   color="rgba(239, 68, 68, 0.8)"
                 />
                 <ToolButton
-                  title="Tasks"
+                  title={t('tasks')}
                   icon="assignment"
                   onPress={handleTasks}
                   color="rgba(34, 197, 94, 0.8)"
                 />
                 <ToolButton
-                  title="Journal"
+                  title={t('journal')}
                   icon="book"
                   onPress={handleJournal}
                   color="rgba(99, 102, 241, 0.8)"
@@ -234,7 +252,7 @@ export default function FocusScreen() {
 
             {/* Content Sections */}
             <ContentSection 
-              title="Work Music" 
+              title={t('work_music')} 
               data={content.workMusic} 
               icon="music-note" 
               onItemPress={handleItemPress}
@@ -242,7 +260,7 @@ export default function FocusScreen() {
               refreshKey={refreshKey}
             />
             <ContentSection 
-              title="Quick Meditation" 
+              title={t('quick_meditation')} 
               data={content.quickMeditation} 
               icon="self-improvement" 
               onItemPress={handleItemPress}

@@ -13,6 +13,8 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { additionalScreenTranslations, getCurrentLanguage, getTranslation } from '@/utils/i18n';
 
 const { width, height } = Dimensions.get('window');
 
@@ -35,9 +37,26 @@ export default function BreathingExercise() {
   const [bps, setBps] = useState(1); // Breaths per second
   const [showSettings, setShowSettings] = useState(false);
   const [cycles, setCycles] = useState(0);
+  const [currentLanguage, setCurrentLanguage] = useState('en');
 
   const scaleAnim = useRef(new Animated.Value(0.5)).current;
   const opacityAnim = useRef(new Animated.Value(0.3)).current;
+
+  useEffect(() => {
+    loadCurrentLanguage();
+  }, []);
+
+  const loadCurrentLanguage = async () => {
+    try {
+      const language = await getCurrentLanguage();
+      setCurrentLanguage(language);
+    } catch (error) {
+      console.error('Error loading current language:', error);
+    }
+  };
+
+  // Translation helper function
+  const t = (key: string) => getTranslation(additionalScreenTranslations, key, currentLanguage);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -119,22 +138,22 @@ export default function BreathingExercise() {
   const getPhaseText = () => {
     switch (phase) {
       case 'inhale':
-        return 'Inhale';
+        return t('inhale');
       case 'hold':
-        return 'Hold';
+        return t('hold');
       case 'exhale':
-        return 'Exhale';
+        return t('exhale');
     }
   };
 
   const getPhaseInstruction = () => {
     switch (phase) {
       case 'inhale':
-        return 'Breathe in slowly';
+        return t('breathe_in_slowly');
       case 'hold':
-        return 'Hold your breath';
+        return t('hold_your_breath');
       case 'exhale':
-        return 'Breathe out slowly';
+        return t('breathe_out_slowly');
     }
   };
 
@@ -154,7 +173,7 @@ export default function BreathingExercise() {
           >
             <MaterialIcons name="arrow-back" size={24} color="#ffffff" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Breathing Exercise</Text>
+          <Text style={styles.headerTitle}>{t('breathing_exercise')}</Text>
           <TouchableOpacity
             style={styles.settingsButton}
             onPress={() => setShowSettings(true)}
@@ -167,15 +186,15 @@ export default function BreathingExercise() {
         <View style={styles.stats}>
           <View style={styles.statItem}>
             <Text style={styles.statValue}>{cycles}</Text>
-            <Text style={styles.statLabel}>Cycles</Text>
+            <Text style={styles.statLabel}>{t('cycles')}</Text>
           </View>
           <View style={styles.statItem}>
             <Text style={styles.statValue}>{selectedPattern.name}</Text>
-            <Text style={styles.statLabel}>Pattern</Text>
+            <Text style={styles.statLabel}>{t('pattern')}</Text>
           </View>
           <View style={styles.statItem}>
             <Text style={styles.statValue}>{bps}x</Text>
-            <Text style={styles.statLabel}>Speed</Text>
+            <Text style={styles.statLabel}>{t('speed')}</Text>
           </View>
         </View>
 
@@ -203,7 +222,7 @@ export default function BreathingExercise() {
         <View style={styles.instructions}>
           <Text style={styles.instructionText}>{getPhaseInstruction()}</Text>
           <Text style={styles.timerText}>
-            {selectedPattern[phase as keyof typeof selectedPattern] - counter}s remaining
+            {selectedPattern[phase as keyof typeof selectedPattern] - counter}{t('s_remaining')}
           </Text>
         </View>
 
@@ -219,7 +238,7 @@ export default function BreathingExercise() {
             color="#ffffff"
           />
           <Text style={styles.controlButtonText}>
-            {isActive ? 'Pause' : 'Start'}
+            {isActive ? t('pause') : t('start')}
           </Text>
         </TouchableOpacity>
 
@@ -233,7 +252,7 @@ export default function BreathingExercise() {
           <View style={styles.modalBackdrop}>
             <View style={styles.settingsModal}>
               <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Settings</Text>
+                <Text style={styles.modalTitle}>{t('settings')}</Text>
                 <TouchableOpacity onPress={() => setShowSettings(false)}>
                   <MaterialIcons name="close" size={24} color="#ffffff" />
                 </TouchableOpacity>
@@ -241,7 +260,7 @@ export default function BreathingExercise() {
 
               {/* Breathing Pattern */}
               <View style={styles.settingSection}>
-                <Text style={styles.settingTitle}>Breathing Pattern</Text>
+                <Text style={styles.settingTitle}>{t('breathing_pattern')}</Text>
                 <View style={styles.optionGrid}>
                   {breathingPatterns.map((pattern) => (
                     <TouchableOpacity
@@ -260,7 +279,7 @@ export default function BreathingExercise() {
 
               {/* Speed */}
               <View style={styles.settingSection}>
-                <Text style={styles.settingTitle}>Speed (BPS)</Text>
+                <Text style={styles.settingTitle}>{t('speed_bps')}</Text>
                 <View style={styles.optionGrid}>
                   {bpsOptions.map((speed) => (
                     <TouchableOpacity

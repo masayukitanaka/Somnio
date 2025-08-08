@@ -15,6 +15,7 @@ import { ContentCard } from '@/components/ContentCard';
 import CoffeeSteamAnimation from '@/components/CoffeeSteamAnimation';
 import { getRelaxContent, ContentItem, clearApiCache } from '@/services/contentService';
 import { useAudio } from '@/contexts/AudioContext';
+import { contentTabTranslations, getCurrentLanguage, getTranslation } from '@/utils/i18n';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.7;
@@ -87,11 +88,25 @@ export default function RelaxScreen() {
   const isFocused = useIsFocused();
   const [refreshKey, setRefreshKey] = useState(0);
   const [saveBattery, setSaveBattery] = useState(false);
+  const [currentLanguage, setCurrentLanguage] = useState('en');
 
   useEffect(() => {
     loadContent();
     loadSaveBatterySetting();
+    loadCurrentLanguage();
   }, []);
+
+  const loadCurrentLanguage = async () => {
+    try {
+      const language = await getCurrentLanguage();
+      setCurrentLanguage(language);
+    } catch (error) {
+      console.error('Error loading current language:', error);
+    }
+  };
+
+  // Translation helper function
+  const t = (key: string) => getTranslation(contentTabTranslations, key, currentLanguage);
 
   const loadSaveBatterySetting = async () => {
     try {
@@ -135,6 +150,9 @@ export default function RelaxScreen() {
           
           // Reload save battery setting when focused
           await loadSaveBatterySetting();
+          
+          // Reload current language when focused
+          await loadCurrentLanguage();
         } catch (error) {
           console.error('Error checking cache cleared flag:', error);
         }
@@ -188,9 +206,9 @@ export default function RelaxScreen() {
             {/* Hero Image Section */}
             <View style={styles.heroSection}>
               <ThemedView style={[styles.heroContent, { backgroundColor: 'transparent' }]}>
-                <ThemedText type="title" style={styles.heroTitle}>Relax</ThemedText>
+                <ThemedText type="title" style={styles.heroTitle}>{t('relax')}</ThemedText>
                 <ThemedText type="subtitle" style={styles.heroSubtitle}>
-                  Unwind and let go of stress
+                  {t('unwind_and_let_go')}
                 </ThemedText>
               </ThemedView>
               {!saveBattery && <CoffeeSteamAnimation />}
@@ -199,17 +217,17 @@ export default function RelaxScreen() {
             {/* Action Buttons */}
             <View style={styles.actionSection}>
               <ThemedText type="defaultSemiBold" style={styles.actionSectionTitle}>
-                Quick Activities
+                {t('quick_activities')}
               </ThemedText>
               <View style={styles.actionButtons}>
                 <ActionButton
-                  title="Breathing"
+                  title={t('breathing')}
                   icon="air"
                   onPress={handleBreathingExercise}
                   color="rgba(99, 102, 241, 0.8)"
                 />
                 <ActionButton
-                  title="Streching"
+                  title={t('stretching')}
                   icon="accessibility"
                   onPress={handleStretch}
                   color="rgba(16, 185, 129, 0.8)"
@@ -219,7 +237,7 @@ export default function RelaxScreen() {
 
             {/* Content Sections */}
             <ContentSection 
-              title="Calming Sounds" 
+              title={t('calming_sounds')} 
               data={content.calmingSounds} 
               icon="volume-up" 
               onItemPress={handleItemPress}
@@ -227,7 +245,7 @@ export default function RelaxScreen() {
               refreshKey={refreshKey}
             />
             <ContentSection 
-              title="Guided Relaxation" 
+              title={t('guided_relaxation')} 
               data={content.guidedRelaxation} 
               icon="self-improvement" 
               onItemPress={handleItemPress}
