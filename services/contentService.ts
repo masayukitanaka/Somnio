@@ -1,3 +1,6 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as FileSystem from 'expo-file-system';
+
 export interface ContentItem {
   id: string;
   title: string;
@@ -29,6 +32,9 @@ export interface ContentData {
 // API configuration
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 const API_TIMEOUT = 10000; // 10 seconds
+const API_CACHE_EXPIRE_SECONDS = parseInt(process.env.EXPO_PUBLIC_API_EXPIRE || '60', 10);
+const CACHE_KEY_PREFIX = 'api_cache_';
+const THUMBNAIL_CACHE_DIR = `${FileSystem.documentDirectory}thumbnails/`;
 
 // API error handling
 class ApiError extends Error {
@@ -38,8 +44,67 @@ class ApiError extends Error {
   }
 }
 
-// Generic API fetch function
+// Cache utilities
+interface CacheEntry {
+  data: any;
+  timestamp: number;
+}
+
+const getCacheKey = (endpoint: string): string => {
+  return `${CACHE_KEY_PREFIX}${endpoint.replace(/\//g, '_')}`;
+};
+
+const getCachedData = async (endpoint: string): Promise<any | null> => {
+  try {
+    const cacheKey = getCacheKey(endpoint);
+    const cachedEntry = await AsyncStorage.getItem(cacheKey);
+    
+    if (!cachedEntry) {
+      return null;
+    }
+
+    const parsedEntry: CacheEntry = JSON.parse(cachedEntry);
+    const currentTime = Math.floor(Date.now() / 1000);
+    const cacheAge = currentTime - parsedEntry.timestamp;
+
+    if (cacheAge > API_CACHE_EXPIRE_SECONDS) {
+      // Cache expired, remove it
+      await AsyncStorage.removeItem(cacheKey);
+      console.log(`Cache expired for ${endpoint}, age: ${cacheAge}s, max: ${API_CACHE_EXPIRE_SECONDS}s`);
+      return null;
+    }
+
+    console.log(`Cache hit for ${endpoint}, age: ${cacheAge}s`);
+    return parsedEntry.data;
+  } catch (error) {
+    console.error(`Error reading cache for ${endpoint}:`, error);
+    return null;
+  }
+};
+
+const setCachedData = async (endpoint: string, data: any): Promise<void> => {
+  try {
+    const cacheKey = getCacheKey(endpoint);
+    const cacheEntry: CacheEntry = {
+      data: data,
+      timestamp: Math.floor(Date.now() / 1000),
+    };
+    
+    await AsyncStorage.setItem(cacheKey, JSON.stringify(cacheEntry));
+    console.log(`Cached data for ${endpoint}`);
+  } catch (error) {
+    console.error(`Error caching data for ${endpoint}:`, error);
+  }
+};
+
+// Generic API fetch function with caching
 const fetchApi = async (endpoint: string): Promise<any> => {
+  // Check cache first
+  const cachedData = await getCachedData(endpoint);
+  if (cachedData) {
+    return cachedData;
+  }
+
   if (!API_URL) {
     throw new ApiError('API URL not configured');
   }
@@ -65,6 +130,10 @@ const fetchApi = async (endpoint: string): Promise<any> => {
 
     const data = await response.json();
     console.log('API Response:', data);
+    
+    // Cache the successful response
+    await setCachedData(endpoint, data);
+    
     return data;
   } catch (error: any) {
     clearTimeout(timeoutId);
@@ -82,9 +151,7 @@ const fetchApi = async (endpoint: string): Promise<any> => {
 };
 
 // Transform API data to match the expected format
-const transformApiData = (apiData: any): ContentData => {
-  console.log('Transform API Data received:', apiData, typeof apiData);
-  
+const transformApiData = async (apiData: any): Promise<ContentData> => {
   // The API now returns a structured object instead of a flat array
   if (apiData && typeof apiData === 'object' && !Array.isArray(apiData)) {
     // API returns {sleep: {sleepyMusic: [...], stories: [...], ...}, relax: {...}, focus: {...}}
@@ -106,21 +173,35 @@ const transformApiData = (apiData: any): ContentData => {
     };
 
     // Transform the structured API response
-    Object.keys(apiData).forEach(tab => {
+    for (const tab of Object.keys(apiData)) {
       if (tab === 'sleep' || tab === 'relax' || tab === 'focus') {
         const tabData = apiData[tab];
-        Object.keys(tabData).forEach(category => {
+        for (const category of Object.keys(tabData)) {
           const items = tabData[category];
           if (Array.isArray(items)) {
-            const transformedItems = items.map((item: any) => ({
-              id: item.id.toString(),
-              title: item.title,
-              duration: item.duration,
-              color: item.color,
-              icon: item.icon,
-              thumbnail: item.thumbnail,
-              audioUrl: item.audioUrl, // API already uses 'audioUrl' field
-              description: item.description,
+            const transformedItems = await Promise.all(items.map(async (item: any) => {
+              let cachedThumbnail = item.thumbnail;
+              
+              // Cache thumbnail if it exists
+              if (item.thumbnail) {
+                try {
+                  cachedThumbnail = await getCachedThumbnailPath(item.thumbnail);
+                } catch (error) {
+                  console.error('Error caching thumbnail for item:', item.id, error);
+                  cachedThumbnail = item.thumbnail; // fallback to original URL
+                }
+              }
+              
+              return {
+                id: item.id.toString(),
+                title: item.title,
+                duration: item.duration,
+                color: item.color,
+                icon: item.icon,
+                thumbnail: cachedThumbnail,
+                audioUrl: item.audioUrl, // API already uses 'audioUrl' field
+                description: item.description,
+              };
             }));
 
             // Map API categories to our expected categories
@@ -137,9 +218,9 @@ const transformApiData = (apiData: any): ContentData => {
               if (category === 'quickMeditation') result.focus.quickMeditation = transformedItems;
             }
           }
-        });
+        }
       }
-    });
+    }
 
     return result;
   }
@@ -168,7 +249,6 @@ const transformApiData = (apiData: any): ContentData => {
 export const getAllContent = async (): Promise<ContentData> => {
   try {
     const apiData = await fetchApi('/api/content/audio');
-    console.log('getAllContent received apiData:', apiData);
     
     if (!apiData) {
       console.warn('API returned null/undefined data');
@@ -190,7 +270,7 @@ export const getAllContent = async (): Promise<ContentData> => {
       };
     }
     
-    return transformApiData(apiData);
+    return await transformApiData(apiData);
   } catch (error) {
     console.error('Failed to fetch all content:', error);
     throw error;
@@ -259,14 +339,26 @@ export const getContentById = async (id: string): Promise<ContentItem | null> =>
       return null;
     }
 
+    let cachedThumbnail = apiData.thumbnail;
+    
+    // Cache thumbnail if it exists
+    if (apiData.thumbnail) {
+      try {
+        cachedThumbnail = await getCachedThumbnailPath(apiData.thumbnail);
+      } catch (error) {
+        console.error('Error caching thumbnail for item:', apiData.id, error);
+        cachedThumbnail = apiData.thumbnail; // fallback to original URL
+      }
+    }
+
     return {
       id: apiData.id.toString(),
       title: apiData.title,
       duration: apiData.duration,
       color: apiData.color,
       icon: apiData.icon,
-      thumbnail: apiData.thumbnail,
-      audioUrl: apiData.source,
+      thumbnail: cachedThumbnail,
+      audioUrl: apiData.audioUrl,
       description: apiData.description,
     };
   } catch (error) {
@@ -280,18 +372,143 @@ export const searchContent = async (query: string): Promise<ContentItem[]> => {
   try {
     const apiData = await fetchApi(`/api/content/audio/search?q=${encodeURIComponent(query)}`);
     
-    return apiData.map((item: any) => ({
-      id: item.id.toString(),
-      title: item.title,
-      duration: item.duration,
-      color: item.color,
-      icon: item.icon,
-      thumbnail: item.thumbnail,
-      audioUrl: item.source,
-      description: item.description,
+    return await Promise.all(apiData.map(async (item: any) => {
+      let cachedThumbnail = item.thumbnail;
+      
+      // Cache thumbnail if it exists
+      if (item.thumbnail) {
+        try {
+          cachedThumbnail = await getCachedThumbnailPath(item.thumbnail);
+        } catch (error) {
+          console.error('Error caching thumbnail for item:', item.id, error);
+          cachedThumbnail = item.thumbnail; // fallback to original URL
+        }
+      }
+      
+      return {
+        id: item.id.toString(),
+        title: item.title,
+        duration: item.duration,
+        color: item.color,
+        icon: item.icon,
+        thumbnail: cachedThumbnail,
+        audioUrl: item.audioUrl,
+        description: item.description,
+      };
     }));
   } catch (error) {
     console.error(`Failed to search content with query "${query}":`, error);
     throw error;
+  }
+};
+
+// Clear all cached data
+export const clearApiCache = async (): Promise<void> => {
+  try {
+    const keys = await AsyncStorage.getAllKeys();
+    const cacheKeys = keys.filter(key => key.startsWith(CACHE_KEY_PREFIX));
+    
+    if (cacheKeys.length > 0) {
+      await AsyncStorage.multiRemove(cacheKeys);
+      console.log(`Cleared ${cacheKeys.length} cache entries`);
+    }
+  } catch (error) {
+    console.error('Error clearing cache:', error);
+  }
+};
+
+// Clear thumbnail cache
+export const clearThumbnailCache = async (): Promise<void> => {
+  try {
+    const dirInfo = await FileSystem.getInfoAsync(THUMBNAIL_CACHE_DIR);
+    if (dirInfo.exists) {
+      await FileSystem.deleteAsync(THUMBNAIL_CACHE_DIR, { idempotent: true });
+      console.log('Cleared thumbnail cache directory');
+    }
+  } catch (error) {
+    console.error('Error clearing thumbnail cache:', error);
+  }
+};
+
+// Thumbnail caching utilities
+const getFileNameFromUrl = (url: string): string => {
+  return url.split('/').pop() || 'unknown';
+};
+
+const getThumbnailLocalPath = (url: string): string => {
+  const fileName = getFileNameFromUrl(url);
+  return `${THUMBNAIL_CACHE_DIR}${fileName}`;
+};
+
+const ensureThumbnailDirectoryExists = async (): Promise<void> => {
+  try {
+    const dirInfo = await FileSystem.getInfoAsync(THUMBNAIL_CACHE_DIR);
+    if (!dirInfo.exists) {
+      await FileSystem.makeDirectoryAsync(THUMBNAIL_CACHE_DIR, { intermediates: true });
+      console.log('Created thumbnail cache directory');
+    }
+  } catch (error) {
+    console.error('Error creating thumbnail directory:', error);
+  }
+};
+
+const isThumbnailCached = async (url: string): Promise<boolean> => {
+  try {
+    const localPath = getThumbnailLocalPath(url);
+    const fileInfo = await FileSystem.getInfoAsync(localPath);
+    return fileInfo.exists;
+  } catch (error) {
+    console.error('Error checking thumbnail cache:', error);
+    return false;
+  }
+};
+
+const downloadThumbnail = async (url: string): Promise<string | null> => {
+  try {
+    await ensureThumbnailDirectoryExists();
+    
+    const localPath = getThumbnailLocalPath(url);
+    
+    // Check if already cached
+    if (await isThumbnailCached(url)) {
+      console.log(`Thumbnail already cached: ${getFileNameFromUrl(url)}`);
+      return localPath;
+    }
+    
+    console.log(`Downloading thumbnail: ${getFileNameFromUrl(url)}`);
+    const downloadResult = await FileSystem.downloadAsync(url, localPath);
+    
+    if (downloadResult.status === 200) {
+      console.log(`Thumbnail cached successfully: ${getFileNameFromUrl(url)}`);
+      return localPath;
+    } else {
+      console.error(`Failed to download thumbnail, status: ${downloadResult.status}`);
+      return null;
+    }
+  } catch (error) {
+    console.error('Error downloading thumbnail:', error);
+    return null;
+  }
+};
+
+const getCachedThumbnailPath = async (url: string): Promise<string> => {
+  try {
+    // Check if thumbnail is already cached
+    if (await isThumbnailCached(url)) {
+      return getThumbnailLocalPath(url);
+    }
+    
+    // Try to download and cache the thumbnail
+    const cachedPath = await downloadThumbnail(url);
+    if (cachedPath) {
+      return cachedPath;
+    }
+    
+    // Fallback to original URL if caching fails
+    console.warn(`Failed to cache thumbnail, using original URL: ${url}`);
+    return url;
+  } catch (error) {
+    console.error('Error getting cached thumbnail:', error);
+    return url;
   }
 };
