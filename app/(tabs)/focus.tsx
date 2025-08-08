@@ -3,14 +3,17 @@ import { StyleSheet, ScrollView, SafeAreaView, StatusBar, View, Text, FlatList, 
 import { LinearGradient } from 'expo-linear-gradient';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useRouter } from 'expo-router';
+import { useIsFocused } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { RemoveAdsButton } from '@/components/RemoveAdsButton';
 import { PlayerModal } from '@/components/PlayerModal';
 import { MiniPlayer } from '@/components/MiniPlayer';
+import { ContentCard } from '@/components/ContentCard';
 import PenAnimation from '@/components/PenAnimation';
-import { getFocusContent, ContentItem } from '@/services/contentService';
+import { getFocusContent, ContentItem, clearApiCache } from '@/services/contentService';
 import { useAudio } from '@/contexts/AudioContext';
 
 const { width } = Dimensions.get('window');
@@ -22,54 +25,13 @@ interface FocusContent {
   quickMeditation: ContentItem[];
 }
 
-const ContentCard = ({ item, onPress }: { item: ContentItem; onPress: () => void }) => (
-  <TouchableOpacity 
-    style={styles.card}
-    activeOpacity={0.8}
-    onPress={onPress}
-  >
-    {item.thumbnail ? (
-      <View style={styles.cardBackground}>
-        <Image 
-          source={{ uri: item.thumbnail }}
-          style={styles.cardImage}
-          resizeMode="cover"
-        />
-        <View style={styles.cardOverlay} />
-        <MaterialIcons 
-          name={item.icon as any} 
-          size={36} 
-          color="rgba(255, 255, 255, 0.8)" 
-          style={styles.cardIcon}
-        />
-        <View style={styles.cardContent}>
-          <Text style={styles.cardTitle}>{item.title}</Text>
-          <Text style={styles.cardDuration}>{item.duration}</Text>
-        </View>
-      </View>
-    ) : (
-      <View style={[styles.cardBackground, { backgroundColor: item.color }]}>
-        <MaterialIcons 
-          name={item.icon as any} 
-          size={36} 
-          color="rgba(255, 255, 255, 0.6)" 
-          style={styles.cardIcon}
-        />
-        <View style={styles.cardContent}>
-          <Text style={styles.cardTitle}>{item.title}</Text>
-          <Text style={styles.cardDuration}>{item.duration}</Text>
-        </View>
-      </View>
-    )}
-  </TouchableOpacity>
-);
-
-const ContentSection = ({ title, data, icon, onItemPress, isLoading }: { 
+const ContentSection = ({ title, data, icon, onItemPress, isLoading, refreshKey }: { 
   title: string; 
   data: ContentItem[]; 
   icon?: string; 
   onItemPress: (item: ContentItem) => void;
   isLoading?: boolean;
+  refreshKey?: number;
 }) => (
   <View style={styles.section}>
     <View style={styles.sectionHeader}>
@@ -87,11 +49,12 @@ const ContentSection = ({ title, data, icon, onItemPress, isLoading }: {
         data={data}
         renderItem={({ item }) => (
           <ContentCard 
+            key={`${item.id}-${refreshKey}`}
             item={item} 
             onPress={() => onItemPress(item)}
           />
         )}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => `${item.id}-${refreshKey}`}
         contentContainerStyle={styles.listContainer}
         snapToInterval={CARD_WIDTH + CARD_MARGIN * 2}
         decelerationRate="fast"
@@ -121,10 +84,58 @@ export default function FocusScreen() {
   });
   const [isLoading, setIsLoading] = useState(true);
   const { currentItem } = useAudio();
+  const isFocused = useIsFocused();
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [saveBattery, setSaveBattery] = useState(false);
 
   useEffect(() => {
     loadContent();
+    loadSaveBatterySetting();
   }, []);
+
+  const loadSaveBatterySetting = async () => {
+    try {
+      const stored = await AsyncStorage.getItem('save_battery');
+      if (stored) {
+        setSaveBattery(JSON.parse(stored));
+      }
+    } catch (error) {
+      console.error('Error loading save battery setting:', error);
+    }
+  };
+
+  // Force refresh when screen gains focus
+  useEffect(() => {
+    const checkCacheCleared = async () => {
+      if (isFocused) {
+        try {
+          // Check if cache was cleared
+          const cacheCleared = await AsyncStorage.getItem('cache_cleared');
+          
+          if (cacheCleared === 'true') {
+            // Clear the API cache to force fresh data
+            await clearApiCache();
+            
+            // Remove the flag
+            await AsyncStorage.removeItem('cache_cleared');
+            
+            // Reload content from API
+            await loadContent();
+          }
+          
+          // Always update refresh key when focused
+          setRefreshKey(prev => prev + 1);
+          
+          // Reload save battery setting when focused
+          await loadSaveBatterySetting();
+        } catch (error) {
+          console.error('Error checking cache cleared flag:', error);
+        }
+      }
+    };
+    
+    checkCacheCleared();
+  }, [isFocused]);
 
   const loadContent = async () => {
     try {
@@ -180,9 +191,11 @@ export default function FocusScreen() {
                   Enhance your concentration and productivity
                 </ThemedText>
               </ThemedView>
-              <View style={styles.heroImageContainer}>
-                <PenAnimation />
-              </View>
+              {!saveBattery && (
+                <View style={styles.heroImageContainer}>
+                  <PenAnimation />
+                </View>
+              )}
             </View>
 
             {/* Tool Buttons */}
@@ -219,6 +232,7 @@ export default function FocusScreen() {
               icon="music-note" 
               onItemPress={handleItemPress}
               isLoading={isLoading}
+              refreshKey={refreshKey}
             />
             <ContentSection 
               title="Quick Meditation" 
@@ -226,6 +240,7 @@ export default function FocusScreen() {
               icon="self-improvement" 
               onItemPress={handleItemPress}
               isLoading={isLoading}
+              refreshKey={refreshKey}
             />
 
             <View style={styles.bottomPadding} />

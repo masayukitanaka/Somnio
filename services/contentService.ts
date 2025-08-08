@@ -129,7 +129,6 @@ const fetchApi = async (endpoint: string): Promise<any> => {
     }
 
     const data = await response.json();
-    console.log('API Response:', data);
     
     // Cache the successful response
     await setCachedData(endpoint, data);

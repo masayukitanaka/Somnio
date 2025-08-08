@@ -240,6 +240,32 @@ export class AudioAssetManager {
       console.error('Error cleaning up orphaned files:', error);
     }
   }
+
+  async clearAllAudioAssets(): Promise<void> {
+    try {
+      console.log('Clearing all audio assets...');
+      
+      // Delete the entire audio directory
+      const dirInfo = await FileSystem.getInfoAsync(this.audioDirectory);
+      if (dirInfo.exists) {
+        await FileSystem.deleteAsync(this.audioDirectory, { idempotent: true });
+        console.log('Audio directory deleted');
+      }
+      
+      // Clear the AsyncStorage record
+      await AsyncStorage.removeItem(this.STORAGE_KEY);
+      console.log('Download records cleared');
+      
+      // Recreate the audio directory for future use
+      await FileSystem.makeDirectoryAsync(this.audioDirectory, { intermediates: true });
+      console.log('Audio directory recreated');
+      
+      console.log('All audio assets cleared successfully');
+    } catch (error) {
+      console.error('Error clearing all audio assets:', error);
+      throw error;
+    }
+  }
 }
 
 export const audioAssetManager = AudioAssetManager.getInstance();

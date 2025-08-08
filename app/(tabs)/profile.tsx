@@ -8,6 +8,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { RemoveAdsButton } from '@/components/RemoveAdsButton';
 import { clearApiCache, clearThumbnailCache } from '@/services/contentService';
+import { AudioAssetManager } from '@/services/AudioAssetManager';
 
 const termsUrl = 'https://example.com/terms'; // Replace with actual URL
 const supportUrl = 'https://example.com/support'; // Replace with actual URL
@@ -88,7 +89,7 @@ export default function ProfileScreen() {
   const handleDeleteCache = () => {
     Alert.alert(
       'Delete Cache',
-      'This will clear all cached data including API responses and thumbnails. Are you sure?',
+      'This will delete all cached data including downloaded audio files, thumbnails, and API responses. Are you sure?',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -96,9 +97,18 @@ export default function ProfileScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
+              // Get instance of AudioAssetManager
+              const audioAssetManager = AudioAssetManager.getInstance();
+              
+              // Clear all cached data
               await clearApiCache();
               await clearThumbnailCache();
-              Alert.alert('Success', 'Cache cleared successfully');
+              await audioAssetManager.clearAllAudioAssets();
+              
+              // Set a flag to indicate cache was cleared
+              await AsyncStorage.setItem('cache_cleared', 'true');
+              
+              Alert.alert('Success', 'All cached data has been deleted successfully');
             } catch (error) {
               console.error('Error clearing cache:', error);
               Alert.alert('Error', 'Failed to clear cache');

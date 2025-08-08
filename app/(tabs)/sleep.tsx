@@ -2,13 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { StyleSheet, ScrollView, SafeAreaView, StatusBar, View, Text, FlatList, TouchableOpacity, Dimensions, ActivityIndicator, Image, ImageBackground } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { useIsFocused } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { PlayerModal } from '@/components/PlayerModal';
 import { RemoveAdsButton } from '@/components/RemoveAdsButton';
 import { MiniPlayer } from '@/components/MiniPlayer';
-import { getSleepContent, ContentItem } from '@/services/contentService';
+import { ContentCard } from '@/components/ContentCard';
+import { getSleepContent, ContentItem, clearApiCache } from '@/services/contentService';
 import { useAudio } from '@/contexts/AudioContext';
 
 const { width } = Dimensions.get('window');
@@ -22,127 +25,14 @@ interface SleepContent {
   whiteNoise: ContentItem[];
 }
 
-const ContentCard = ({ item, onPress }: { 
-  item: ContentItem; 
-  onPress: () => void;
-}) => {
-  const [isDownloaded, setIsDownloaded] = React.useState(false);
-  const [isDownloading, setIsDownloading] = React.useState(false);
-  const { isAudioDownloaded, downloadAudio } = useAudio();
 
-  React.useEffect(() => {
-    checkDownloadStatus();
-  }, [item.id]);
-
-  const checkDownloadStatus = async () => {
-    try {
-      const downloaded = await isAudioDownloaded(item.id);
-      setIsDownloaded(downloaded);
-    } catch (error) {
-      console.error('Error checking download status:', error);
-    }
-  };
-
-  const handleDownloadClick = async (e: any) => {
-    e.stopPropagation();
-    
-    if (isDownloaded || isDownloading || !item.audioUrl) return;
-
-    setIsDownloading(true);
-    try {
-      await downloadAudio(item.id, item.audioUrl);
-      setIsDownloaded(true);
-    } catch (error) {
-      console.error('Download failed:', error);
-    } finally {
-      setIsDownloading(false);
-    }
-  };
-
-  const getDownloadIcon = () => {
-    if (isDownloading) return "hourglass-empty";
-    if (isDownloaded) return "check-circle";
-    return "download";
-  };
-
-  const getDownloadIconColor = () => {
-    if (isDownloaded) return "#4CAF50";
-    return "rgba(255, 255, 255, 0.9)";
-  };
-
-  return (
-    <TouchableOpacity 
-      style={styles.card}
-      activeOpacity={0.8}
-      onPress={onPress}
-    >
-      {item.thumbnail ? (
-        <View style={styles.cardBackground}>
-          <Image 
-            source={{ uri: item.thumbnail }}
-            style={styles.cardImage}
-            resizeMode="cover"
-            onError={(error) => console.log('Image error:', error)}
-            onLoad={() => console.log('Image loaded:', item.thumbnail)}
-          />
-          <View style={styles.cardOverlay} />
-          <MaterialIcons 
-            name={item.icon as any} 
-            size={36} 
-            color="rgba(255, 255, 255, 0.8)" 
-            style={styles.cardIcon}
-          />
-          <TouchableOpacity 
-            style={[styles.downloadButton, isDownloaded && styles.downloadedButton]}
-            onPress={handleDownloadClick}
-            disabled={isDownloaded || isDownloading}
-          >
-            <MaterialIcons 
-              name={getDownloadIcon() as any}
-              size={20} 
-              color={getDownloadIconColor()}
-            />
-          </TouchableOpacity>
-          <View style={styles.cardContent}>
-            <Text style={styles.cardTitle}>{item.title}</Text>
-            <Text style={styles.cardDuration}>{item.duration}</Text>
-          </View>
-        </View>
-      ) : (
-        <View style={[styles.cardBackground, { backgroundColor: item.color }]}>
-          <MaterialIcons 
-            name={item.icon as any} 
-            size={36} 
-            color="rgba(255, 255, 255, 0.6)" 
-            style={styles.cardIcon}
-          />
-          <TouchableOpacity 
-            style={[styles.downloadButton, isDownloaded && styles.downloadedButton]}
-            onPress={handleDownloadClick}
-            disabled={isDownloaded || isDownloading}
-          >
-            <MaterialIcons 
-              name={getDownloadIcon() as any}
-              size={20} 
-              color={getDownloadIconColor()}
-            />
-          </TouchableOpacity>
-          <View style={styles.cardContent}>
-            <Text style={styles.cardTitle}>{item.title}</Text>
-            <Text style={styles.cardDuration}>{item.duration}</Text>
-          </View>
-        </View>
-      )}
-    </TouchableOpacity>
-  );
-};
-
-const ContentSection = ({ title, data, icon, onItemPress, isLoading }: { 
+const ContentSection = ({ title, data, icon, onItemPress, isLoading, refreshKey }: { 
   title: string; 
   data: ContentItem[]; 
   icon?: string; 
   onItemPress: (item: ContentItem) => void;
   isLoading?: boolean;
+  refreshKey?: number;
 }) => (
   <View style={styles.section}>
     <View style={styles.sectionHeader}>
@@ -160,11 +50,12 @@ const ContentSection = ({ title, data, icon, onItemPress, isLoading }: {
         data={data}
         renderItem={({ item }) => (
           <ContentCard 
+            key={`${item.id}-${refreshKey}`}
             item={item}
             onPress={() => onItemPress(item)}
           />
         )}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => `${item.id}-${refreshKey}`}
         contentContainerStyle={styles.listContainer}
         snapToInterval={CARD_WIDTH + CARD_MARGIN * 2}
         decelerationRate="fast"
@@ -177,6 +68,7 @@ export default function SleepScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedItem, setSelectedItem] = useState<ContentItem | null>(null);
   const { currentItem } = useAudio();
+  const isFocused = useIsFocused();
   const [content, setContent] = useState<SleepContent>({
     sleepyMusic: [],
     stories: [],
@@ -184,10 +76,41 @@ export default function SleepScreen() {
     whiteNoise: [],
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     loadContent();
   }, []);
+
+  // Force refresh when screen gains focus
+  useEffect(() => {
+    const checkCacheCleared = async () => {
+      if (isFocused) {
+        try {
+          // Check if cache was cleared
+          const cacheCleared = await AsyncStorage.getItem('cache_cleared');
+          
+          if (cacheCleared === 'true') {
+            // Clear the API cache to force fresh data
+            await clearApiCache();
+            
+            // Remove the flag
+            await AsyncStorage.removeItem('cache_cleared');
+            
+            // Reload content from API
+            await loadContent();
+          }
+          
+          // Always update refresh key when focused
+          setRefreshKey(prev => prev + 1);
+        } catch (error) {
+          console.error('Error checking cache cleared flag:', error);
+        }
+      }
+    };
+    
+    checkCacheCleared();
+  }, [isFocused]);
 
   const loadContent = async () => {
     try {
@@ -232,6 +155,7 @@ export default function SleepScreen() {
               icon="music-note" 
               onItemPress={handleItemPress}
               isLoading={isLoading}
+              refreshKey={refreshKey}
             />
             <ContentSection 
               title="Story" 
@@ -239,6 +163,7 @@ export default function SleepScreen() {
               icon="menu-book" 
               onItemPress={handleItemPress}
               isLoading={isLoading}
+              refreshKey={refreshKey}
             />
             <ContentSection 
               title="Sleep Meditation" 
@@ -246,6 +171,7 @@ export default function SleepScreen() {
               icon="spa" 
               onItemPress={handleItemPress}
               isLoading={isLoading}
+              refreshKey={refreshKey}
             />
             <ContentSection 
               title="White Noise" 
@@ -253,6 +179,7 @@ export default function SleepScreen() {
               icon="hearing" 
               onItemPress={handleItemPress}
               isLoading={isLoading}
+              refreshKey={refreshKey}
             />
             
             <View style={styles.bottomPadding} />
