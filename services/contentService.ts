@@ -97,10 +97,34 @@ const setCachedData = async (endpoint: string, data: any): Promise<void> => {
   }
 };
 
+// Get selected audio languages from AsyncStorage
+const getSelectedAudioLanguages = async (): Promise<string[]> => {
+  try {
+    const stored = await AsyncStorage.getItem('audio_languages');
+    if (stored) {
+      return JSON.parse(stored);
+    }
+    return ['en']; // Default to English
+  } catch (error) {
+    console.error('Error getting audio languages:', error);
+    return ['en'];
+  }
+};
+
 // Generic API fetch function with caching
-const fetchApi = async (endpoint: string): Promise<any> => {
+const fetchApi = async (endpoint: string, includeLangParam: boolean = true): Promise<any> => {
+  let fullEndpoint = endpoint;
+  
+  // Add language parameter if requested
+  if (includeLangParam) {
+    const audioLanguages = await getSelectedAudioLanguages();
+    const langParam = audioLanguages.join(',');
+    const separator = endpoint.includes('?') ? '&' : '?';
+    fullEndpoint = `${endpoint}${separator}lang=${langParam}`;
+  }
+
   // Check cache first
-  const cachedData = await getCachedData(endpoint);
+  const cachedData = await getCachedData(fullEndpoint);
   if (cachedData) {
     return cachedData;
   }
@@ -113,8 +137,8 @@ const fetchApi = async (endpoint: string): Promise<any> => {
   const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT);
 
   try {
-    console.log(`Fetching API: ${API_URL}${endpoint}`);
-    const response = await fetch(`${API_URL}${endpoint}`, {
+    console.log(`Fetching API: ${API_URL}${fullEndpoint}`);
+    const response = await fetch(`${API_URL}${fullEndpoint}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -131,7 +155,7 @@ const fetchApi = async (endpoint: string): Promise<any> => {
     const data = await response.json();
     
     // Cache the successful response
-    await setCachedData(endpoint, data);
+    await setCachedData(fullEndpoint, data);
     
     return data;
   } catch (error: any) {
@@ -332,7 +356,7 @@ export const getContentByCategory = async (
 // Get single content item by ID
 export const getContentById = async (id: string): Promise<ContentItem | null> => {
   try {
-    const apiData = await fetchApi(`/api/content/audio/${id}`);
+    const apiData = await fetchApi(`/api/content/audio/${id}`, false); // Don't include lang param for specific ID
     
     if (!apiData) {
       return null;
@@ -369,7 +393,7 @@ export const getContentById = async (id: string): Promise<ContentItem | null> =>
 // Search content across all tabs
 export const searchContent = async (query: string): Promise<ContentItem[]> => {
   try {
-    const apiData = await fetchApi(`/api/content/audio/search?q=${encodeURIComponent(query)}`);
+    const apiData = await fetchApi(`/api/content/audio/search?q=${encodeURIComponent(query)}`, true); // Include lang param for search
     
     return await Promise.all(apiData.map(async (item: any) => {
       let cachedThumbnail = item.thumbnail;
@@ -426,6 +450,20 @@ export const clearThumbnailCache = async (): Promise<void> => {
     }
   } catch (error) {
     console.error('Error clearing thumbnail cache:', error);
+  }
+};
+
+// Clear API cache when audio languages change
+export const clearApiCacheForLanguageChange = async (): Promise<void> => {
+  try {
+    // Clear API cache to force fresh data with new language parameters
+    await clearApiCache();
+    console.log('Cleared API cache for language change');
+    
+    // Set flag to trigger content refresh
+    await AsyncStorage.setItem('languages_changed', 'true');
+  } catch (error) {
+    console.error('Error clearing cache for language change:', error);
   }
 };
 

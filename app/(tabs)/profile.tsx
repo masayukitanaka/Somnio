@@ -7,7 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { RemoveAdsButton } from '@/components/RemoveAdsButton';
-import { clearApiCache, clearThumbnailCache } from '@/services/contentService';
+import { clearApiCache, clearThumbnailCache, clearApiCacheForLanguageChange } from '@/services/contentService';
 import { AudioAssetManager } from '@/services/AudioAssetManager';
 
 const termsUrl = 'https://example.com/terms'; // Replace with actual URL
@@ -72,6 +72,9 @@ export default function ProfileScreen() {
     try {
       await AsyncStorage.setItem(SETTINGS_KEYS.AUDIO_LANGUAGES, JSON.stringify(languages));
       setAudioLanguages(languages);
+      
+      // Clear API cache to force refresh with new language filter
+      await clearApiCacheForLanguageChange();
     } catch (error) {
       console.error('Error saving audio languages:', error);
     }

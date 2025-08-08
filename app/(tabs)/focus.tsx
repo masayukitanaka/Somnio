@@ -109,8 +109,9 @@ export default function FocusScreen() {
     const checkCacheCleared = async () => {
       if (isFocused) {
         try {
-          // Check if cache was cleared
+          // Check if cache was cleared or languages changed
           const cacheCleared = await AsyncStorage.getItem('cache_cleared');
+          const languagesChanged = await AsyncStorage.getItem('languages_changed');
           
           if (cacheCleared === 'true') {
             // Clear the API cache to force fresh data
@@ -120,6 +121,12 @@ export default function FocusScreen() {
             await AsyncStorage.removeItem('cache_cleared');
             
             // Reload content from API
+            await loadContent();
+          } else if (languagesChanged === 'true') {
+            // Remove the flag
+            await AsyncStorage.removeItem('languages_changed');
+            
+            // Reload content from API with new language filter
             await loadContent();
           }
           
