@@ -688,6 +688,34 @@ export const additionalScreenTranslations: Translations = {
   },
 };
 
+// Translation strings for home tab
+export const homeTabTranslations: Translations = {
+  'somnio': {
+    'en': 'Somnio',
+    'ja': 'Somnio',
+    'es': 'Somnio',
+    'zh': 'Somnio',
+  },
+  'journey_to_better_sleep': {
+    'en': 'Your Journey to Better Sleep & Relaxation',
+    'ja': 'より良い睡眠とリラクゼーションへの旅',
+    'es': 'Tu viaje hacia un mejor sueño y relajación',
+    'zh': '您的睡眠与放松之旅',
+  },
+  'track_your_wellness': {
+    'en': 'Track Your Wellness Journey',
+    'ja': 'ウェルネスジャーニーを記録',
+    'es': 'Rastrea tu viaje de bienestar',
+    'zh': '追踪您的健康之旅',
+  },
+  'daily_records': {
+    'en': 'Daily Records',
+    'ja': '毎日の記録',
+    'es': 'Registros diarios',
+    'zh': '每日记录',
+  },
+};
+
 // Translation strings for profile screen
 export const profileTranslations: Translations = {
   // Header
