@@ -64,6 +64,14 @@ const ToolsMenu = ({ currentLanguage }: { currentLanguage: string }) => {
       onPress: () => navigation.navigate('journal'),
     },
     {
+      id: 'sudoku',
+      title: 'Sudoku',
+      icon: 'grid-on',
+      color: '#EC407A',
+      gradient: ['#EC407A', '#E91E63'] as [string, string],
+      onPress: () => navigation.navigate('sudoku'),
+    },
+    {
       id: 'settings',
       title: 'Settings',
       icon: 'settings',

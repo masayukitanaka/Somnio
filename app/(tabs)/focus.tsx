@@ -196,6 +196,10 @@ export default function FocusScreen() {
     router.push('/journal');
   };
 
+  const handleSudoku = () => {
+    router.push('/sudoku');
+  };
+
 
   return (
     <>
@@ -246,6 +250,12 @@ export default function FocusScreen() {
                   icon="book"
                   onPress={handleJournal}
                   color="rgba(99, 102, 241, 0.8)"
+                />
+                <ToolButton
+                  title="Sudoku"
+                  icon="grid-on"
+                  onPress={handleSudoku}
+                  color="rgba(251, 146, 60, 0.8)"
                 />
               </View>
             </View>
