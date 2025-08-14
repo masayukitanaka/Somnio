@@ -690,7 +690,7 @@ const styles = StyleSheet.create({
   recommendationThumbnail: {
     width: 100,
     height: 100,
-    borderRadius: 12,
+    borderRadius: 0,
     overflow: 'hidden',
     marginBottom: 8,
   },
