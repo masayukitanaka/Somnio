@@ -726,11 +726,11 @@ export const homeTabTranslations: Translations = {
     'es': 'Relajar',
     'zh': '放松',
   },
-  'focus': {
-    'en': 'Focus',
-    'ja': 'フォーカス',
-    'es': 'Concentración',
-    'zh': '专注',
+  'mindfulness': {
+    'en': 'Mindfulness',
+    'ja': 'マインドフルネス',
+    'es': 'Atención plena',
+    'zh': '正念',
   },
   'sleep_achievement': {
     'en': 'Sleep Achievement',
@@ -756,23 +756,71 @@ export const homeTabTranslations: Translations = {
     'es': 'Monitorea tus sesiones de relajación y atención plena',
     'zh': '监控您的放松和正念课程',
   },
-  'focus_achievement': {
-    'en': 'Focus Achievement',
-    'ja': '集中力の達成度',
-    'es': 'Logro de concentración',
-    'zh': '专注成就',
+  'mindfulness_achievement': {
+    'en': 'Mindfulness Achievement',
+    'ja': 'マインドフルネスの達成度',
+    'es': 'Logro de atención plena',
+    'zh': '正念成就',
   },
-  'focus_achievement_desc': {
-    'en': 'Track your productive focus sessions',
-    'ja': '生産的なフォーカスセッションを追跡',
-    'es': 'Rastrea tus sesiones productivas de concentración',
-    'zh': '追踪您的高效专注时段',
+  'mindfulness_achievement_desc': {
+    'en': 'Track your mindfulness and meditation practice',
+    'ja': 'マインドフルネスと瞑想の練習を追跡',
+    'es': 'Rastrea tu práctica de atención plena y meditación',
+    'zh': '追踪您的正念和冥想练习',
   },
   'today_total': {
     'en': "Today's Total",
     'ja': '今日の合計',
     'es': 'Total de hoy',
     'zh': '今日总计',
+  },
+  'meditation_completed': {
+    'en': 'Meditation completed today!',
+    'ja': '今日瞑想を完了しました！',
+    'es': '¡Meditación completada hoy!',
+    'zh': '今天完成冥想！',
+  },
+  'no_meditation': {
+    'en': 'No meditation today',
+    'ja': '今日は瞑想していません',
+    'es': 'Sin meditación hoy',
+    'zh': '今天没有冥想',
+  },
+  'meditation_time': {
+    'en': 'Meditation Time',
+    'ja': '瞑想時間',
+    'es': 'Tiempo de meditación',
+    'zh': '冥想时间',
+  },
+  'edit': {
+    'en': 'Edit',
+    'ja': '編集',
+    'es': 'Editar',
+    'zh': '编辑',
+  },
+  'edit_meditation_time': {
+    'en': 'Edit Meditation Time',
+    'ja': '瞑想時間を編集',
+    'es': 'Editar tiempo de meditación',
+    'zh': '编辑冥想时间',
+  },
+  'enter_minutes': {
+    'en': 'Enter minutes',
+    'ja': '分を入力してください',
+    'es': 'Ingresa minutos',
+    'zh': '输入分钟',
+  },
+  'cancel': {
+    'en': 'Cancel',
+    'ja': 'キャンセル',
+    'es': 'Cancelar',
+    'zh': '取消',
+  },
+  'save': {
+    'en': 'Save',
+    'ja': '保存',
+    'es': 'Guardar',
+    'zh': '保存',
   },
 };
 

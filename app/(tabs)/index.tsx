@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, SafeAreaView, StatusBar, View, TouchableOpacity, Dimensions, Image, Modal, Text } from 'react-native';
+import { StyleSheet, ScrollView, SafeAreaView, StatusBar, View, TouchableOpacity, Dimensions, Image, Modal, Text, TextInput, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -8,6 +8,7 @@ import { useIsFocused } from '@react-navigation/native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { RemoveAdsButton } from '@/components/RemoveAdsButton';
+import { DayDetailModal } from '@/components/DayDetailModal';
 import { getCurrentLanguage, getTranslation, homeTabTranslations } from '@/utils/i18n';
 
 const { width } = Dimensions.get('window');
@@ -30,192 +31,11 @@ const starImages = {
   3: require('@/assets/images/star_3.png'),
 };
 
-// Day Detail Modal Component
-const DayDetailModal = ({ 
-  visible, 
-  onClose, 
-  date, 
-  currentLanguage,
-  onDateChange 
-}: { 
-  visible: boolean; 
-  onClose: () => void; 
-  date: string | null;
-  currentLanguage: string;
-  onDateChange: (newDate: string) => void;
-}) => {
-  const [activeTab, setActiveTab] = useState<'sleep' | 'relax' | 'focus'>('sleep');
-  const t = (key: string) => getTranslation(homeTabTranslations, key, currentLanguage);
-  
-  if (!date) return null;
-
-  const formatDate = (dateStr: string) => {
-    const [year, month, day] = dateStr.split('-');
-    const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-    return date.toLocaleDateString(currentLanguage === 'ja' ? 'ja-JP' : 'en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
-
-  const getStarLevelForDate = (dateStr: string): number => {
-    // This is a simplified version - in real app, you'd get from the actual records
-    const dayOfMonth = parseInt(dateStr.split('-')[2]);
-    return Math.floor(Math.random() * 4); // 0-3 (0 = no star)
-  };
-
-  const navigateDate = (direction: number) => {
-    const [year, month, day] = date.split('-');
-    const currentDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-    currentDate.setDate(currentDate.getDate() + direction);
-    
-    const newDateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(currentDate.getDate()).padStart(2, '0')}`;
-    onDateChange(newDateStr);
-  };
-
-  const TabButton = ({ 
-    tab, 
-    label, 
-    icon 
-  }: { 
-    tab: 'sleep' | 'relax' | 'focus'; 
-    label: string; 
-    icon: string;
-  }) => (
-    <TouchableOpacity 
-      style={[
-        styles.modalTab, 
-        activeTab === tab ? styles.modalTabActive : undefined
-      ]}
-      onPress={() => setActiveTab(tab)}
-    >
-      <MaterialIcons 
-        name={icon as any} 
-        size={20} 
-        color={activeTab === tab ? '#205295' : '#999999'} 
-      />
-      <ThemedText style={[
-        styles.modalTabText,
-        activeTab === tab ? styles.modalTabTextActive : undefined
-      ]}>
-        {label}
-      </ThemedText>
-    </TouchableOpacity>
-  );
-
-  const renderTabContent = () => {
-    const content = {
-      sleep: {
-        title: t('sleep_achievement'),
-        description: t('sleep_achievement_desc'),
-        stats: '8 hours',
-        icon: 'nights-stay'
-      },
-      relax: {
-        title: t('relax_achievement'),
-        description: t('relax_achievement_desc'),
-        stats: '30 min',
-        icon: 'spa'
-      },
-      focus: {
-        title: t('focus_achievement'),
-        description: t('focus_achievement_desc'),
-        stats: '2 hours',
-        icon: 'psychology'
-      }
-    };
-
-    const tabData = content[activeTab];
-
-    return (
-      <View style={styles.modalTabContent}>
-        <View style={styles.modalContentHeader}>
-          <MaterialIcons name={tabData.icon as any} size={40} color="#205295" />
-          <ThemedText type="defaultSemiBold" style={styles.modalContentTitle}>
-            {tabData.title}
-          </ThemedText>
-        </View>
-        <ThemedText style={styles.modalContentDescription}>
-          {tabData.description}
-        </ThemedText>
-        <View style={styles.modalStats}>
-          <ThemedText type="defaultSemiBold" style={styles.modalStatsValue}>
-            {tabData.stats}
-          </ThemedText>
-          <ThemedText style={styles.modalStatsLabel}>
-            {t('today_total')}
-          </ThemedText>
-        </View>
-      </View>
-    );
-  };
-
-  return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      transparent={true}
-      onRequestClose={onClose}
-    >
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              {/* Close button row */}
-              <View style={styles.modalCloseRow}>
-                <TouchableOpacity onPress={onClose} style={styles.modalCloseButton}>
-                  <MaterialIcons name="close" size={24} color="#333333" />
-                </TouchableOpacity>
-              </View>
-              
-              {/* Date navigation row */}
-              <View style={styles.modalDateRow}>
-                <TouchableOpacity onPress={() => navigateDate(-1)} style={styles.modalNavButton}>
-                  <MaterialIcons name="chevron-left" size={24} color="#333333" />
-                </TouchableOpacity>
-                
-                <View style={styles.modalTitleContainer}>
-                  <ThemedText type="defaultSemiBold" style={styles.modalTitle}>
-                    {formatDate(date)}
-                  </ThemedText>
-                  {getStarLevelForDate(date) > 0 && (
-                    <Image 
-                      source={starImages[getStarLevelForDate(date) as keyof typeof starImages]} 
-                      style={styles.modalStarIcon}
-                    />
-                  )}
-                </View>
-                
-                <TouchableOpacity onPress={() => navigateDate(1)} style={styles.modalNavButton}>
-                  <MaterialIcons name="chevron-right" size={24} color="#333333" />
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            <View style={styles.modalTabs}>
-              <TabButton tab="sleep" label={t('sleep')} icon="nights-stay" />
-              <View style={styles.modalTabDivider} />
-              <TabButton tab="relax" label={t('relax')} icon="spa" />
-              <View style={styles.modalTabDivider} />
-              <TabButton tab="focus" label={t('focus')} icon="psychology" />
-            </View>
-
-            {renderTabContent()}
-          </View>
-        </View>
-      </View>
-    </Modal>
-  );
-};
-
 const CalendarView = ({ currentLanguage }: { currentLanguage: string }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [monthRecords, setMonthRecords] = useState<DayRecord[]>([]);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
-  
-  const t = (key: string) => getTranslation(homeTabTranslations, key, currentLanguage);
   
   useEffect(() => {
     loadMonthRecords();
@@ -728,5 +548,88 @@ const styles = StyleSheet.create({
   modalStatsLabel: {
     fontSize: 14,
     color: '#999999',
+  },
+  // Meditation status styles
+  meditationStatusContainer: {
+    alignItems: 'center',
+    marginVertical: 20,
+  },
+  meditationStatusImage: {
+    width: 80,
+    height: 80,
+    resizeMode: 'contain',
+    marginBottom: 10,
+  },
+  meditationStatusText: {
+    fontSize: 16,
+    color: '#666666',
+    textAlign: 'center',
+  },
+  editButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 8,
+    gap: 4,
+  },
+  editButtonText: {
+    fontSize: 14,
+    color: '#205295',
+  },
+  // Edit modal styles
+  editModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  editModalContainer: {
+    backgroundColor: '#ffffff',
+    borderRadius: 15,
+    padding: 20,
+    width: '80%',
+    maxWidth: 300,
+  },
+  editModalTitle: {
+    fontSize: 18,
+    color: '#333333',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  editModalInput: {
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  editModalButtons: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  editModalButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  editModalCancelButton: {
+    backgroundColor: '#f5f5f5',
+  },
+  editModalSaveButton: {
+    backgroundColor: '#205295',
+  },
+  editModalCancelText: {
+    fontSize: 16,
+    color: '#666666',
+  },
+  editModalSaveText: {
+    fontSize: 16,
+    color: '#ffffff',
   },
 });
