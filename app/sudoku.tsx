@@ -6,13 +6,18 @@ import {
   ScrollView,
   SafeAreaView,
   Alert,
+  FlatList,
+  Dimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Stack } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ThemedText } from '@/components/ThemedText';
 import { getCurrentLanguage } from '@/utils/i18n';
 import sudokuData from '@/assets/data/sudokuPuzzles.json';
+
+const { width } = Dimensions.get('window');
 
 type SudokuDifficulty = 'easy' | 'medium' | 'hard';
 
@@ -31,6 +36,12 @@ type SudokuCell = {
 
 type SudokuBoard = SudokuCell[][];
 
+type CompletedPuzzle = {
+  id: string;
+  completedAt: string;
+  time: number;
+};
+
 // Helper functions
 const getRandomPuzzle = (difficulty: SudokuDifficulty): SudokuPuzzle => {
   const puzzlesOfDifficulty = sudokuData.puzzles.filter(
@@ -38,6 +49,11 @@ const getRandomPuzzle = (difficulty: SudokuDifficulty): SudokuPuzzle => {
   );
   const randomIndex = Math.floor(Math.random() * puzzlesOfDifficulty.length);
   return puzzlesOfDifficulty[randomIndex] as SudokuPuzzle;
+};
+
+const getPuzzleById = (id: string): SudokuPuzzle | null => {
+  const puzzle = sudokuData.puzzles.find((p: any) => p.id === id);
+  return puzzle as SudokuPuzzle || null;
 };
 
 const generateBoardFromPuzzle = (puzzle: number[][]): SudokuBoard => {
@@ -63,6 +79,16 @@ const checkSolution = (
   return true;
 };
 
+const getDifficultyStats = () => {
+  const stats = {
+    easy: sudokuData.puzzles.filter((p: any) => p.difficulty === 'easy').length,
+    medium: sudokuData.puzzles.filter((p: any) => p.difficulty === 'medium').length,
+    hard: sudokuData.puzzles.filter((p: any) => p.difficulty === 'hard').length,
+  };
+  const total = stats.easy + stats.medium + stats.hard;
+  return { ...stats, total };
+};
+
 export default function SudokuScreen() {
   const [currentLanguage, setCurrentLanguage] = useState('en');
   const [board, setBoard] = useState<SudokuBoard>([]);
@@ -71,10 +97,15 @@ export default function SudokuScreen() {
   const [difficulty, setDifficulty] = useState<SudokuDifficulty>('easy');
   const [timer, setTimer] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [showPuzzleList, setShowPuzzleList] = useState(false);
+  const [completedPuzzles, setCompletedPuzzles] = useState<CompletedPuzzle[]>([]);
 
   useEffect(() => {
     loadLanguage();
-    startNewGame();
+    loadCompletedPuzzles();
+    if (!showPuzzleList) {
+      startNewGame();
+    }
   }, []);
 
   useEffect(() => {
@@ -94,6 +125,55 @@ export default function SudokuScreen() {
     setCurrentLanguage(lang);
   };
 
+  const loadCompletedPuzzles = async () => {
+    try {
+      const stored = await AsyncStorage.getItem('sudoku_completed_puzzles');
+      if (stored) {
+        setCompletedPuzzles(JSON.parse(stored));
+      }
+    } catch (error) {
+      console.error('Error loading completed puzzles:', error);
+    }
+  };
+
+  const saveCompletedPuzzle = async (puzzleId: string, time: number) => {
+    try {
+      const newCompleted: CompletedPuzzle = {
+        id: puzzleId,
+        completedAt: new Date().toISOString(),
+        time: time
+      };
+      
+      const updated = [...completedPuzzles.filter(p => p.id !== puzzleId), newCompleted];
+      await AsyncStorage.setItem('sudoku_completed_puzzles', JSON.stringify(updated));
+      setCompletedPuzzles(updated);
+    } catch (error) {
+      console.error('Error saving completed puzzle:', error);
+    }
+  };
+
+  const resetProgress = async () => {
+    Alert.alert(
+      'Reset Progress',
+      'Are you sure you want to reset all puzzle progress? This cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Reset',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await AsyncStorage.removeItem('sudoku_completed_puzzles');
+              setCompletedPuzzles([]);
+            } catch (error) {
+              console.error('Error resetting progress:', error);
+            }
+          }
+        }
+      ]
+    );
+  };
+
   const startNewGame = () => {
     const puzzle = getRandomPuzzle(difficulty);
     setCurrentPuzzle(puzzle);
@@ -101,6 +181,28 @@ export default function SudokuScreen() {
     setTimer(0);
     setIsPlaying(true);
     setSelectedCell(null);
+    setShowPuzzleList(false);
+  };
+
+  const resetCurrentPuzzle = () => {
+    if (currentPuzzle) {
+      setBoard(generateBoardFromPuzzle(currentPuzzle.board));
+      setTimer(0);
+      setIsPlaying(true);
+      setSelectedCell(null);
+    }
+  };
+
+  const startSpecificPuzzle = (puzzleId: string) => {
+    const puzzle = getPuzzleById(puzzleId);
+    if (puzzle) {
+      setCurrentPuzzle(puzzle);
+      setBoard(generateBoardFromPuzzle(puzzle.board));
+      setTimer(0);
+      setIsPlaying(true);
+      setSelectedCell(null);
+      setShowPuzzleList(false);
+    }
   };
 
   const handleCellPress = (row: number, col: number) => {
@@ -144,10 +246,17 @@ export default function SudokuScreen() {
       
       if (isCorrect) {
         setIsPlaying(false);
+        if (currentPuzzle) {
+          saveCompletedPuzzle(currentPuzzle.id, timer);
+        }
         Alert.alert(
           'Congratulations!',
           `You completed the puzzle in ${formatTime(timer)}!`,
-          [{ text: 'New Game', onPress: startNewGame }]
+          [
+            { text: 'Puzzle List', onPress: () => setShowPuzzleList(true) },
+            { text: 'Try Again', onPress: resetCurrentPuzzle },
+            { text: 'Random Puzzle', onPress: startNewGame }
+          ]
         );
       }
     }
@@ -172,6 +281,158 @@ export default function SudokuScreen() {
       (row + 1) % 3 === 0 && row !== 8 && styles.bottomBorder,
     ];
   };
+
+  const isPuzzleCompleted = (puzzleId: string) => {
+    return completedPuzzles.some(p => p.id === puzzleId);
+  };
+
+  const getCompletedTime = (puzzleId: string) => {
+    const completed = completedPuzzles.find(p => p.id === puzzleId);
+    return completed ? completed.time : null;
+  };
+
+  const getDifficultyColor = (difficulty: SudokuDifficulty) => {
+    switch (difficulty) {
+      case 'easy': return '#4CAF50';
+      case 'medium': return '#FF9800';
+      case 'hard': return '#F44336';
+      default: return '#757575';
+    }
+  };
+
+  const stats = getDifficultyStats();
+
+  if (showPuzzleList) {
+    return (
+      <>
+        <Stack.Screen 
+          options={{ 
+            title: 'Sudoku Puzzles',
+            headerStyle: {
+              backgroundColor: '#0A2647',
+            },
+            headerTintColor: '#ffffff',
+            headerTitleStyle: {
+              fontWeight: 'bold',
+            },
+          }} 
+        />
+        <LinearGradient
+          colors={['#0A2647', '#144272', '#205295']}
+          style={styles.gradient}
+        >
+          <SafeAreaView style={styles.container}>
+            <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+              {/* Stats Section */}
+              <View style={styles.statsContainer}>
+                <ThemedText style={styles.statsTitle}>Total Puzzles: {stats.total}</ThemedText>
+                <View style={styles.statsRow}>
+                  <View style={styles.statItem}>
+                    <View style={[styles.statDot, { backgroundColor: getDifficultyColor('easy') }]} />
+                    <ThemedText style={styles.statText}>Easy: {stats.easy}</ThemedText>
+                  </View>
+                  <View style={styles.statItem}>
+                    <View style={[styles.statDot, { backgroundColor: getDifficultyColor('medium') }]} />
+                    <ThemedText style={styles.statText}>Medium: {stats.medium}</ThemedText>
+                  </View>
+                  <View style={styles.statItem}>
+                    <View style={[styles.statDot, { backgroundColor: getDifficultyColor('hard') }]} />
+                    <ThemedText style={styles.statText}>Hard: {stats.hard}</ThemedText>
+                  </View>
+                </View>
+              </View>
+
+              {/* Controls */}
+              <View style={styles.listControls}>
+                <TouchableOpacity
+                  style={styles.controlButton}
+                  onPress={() => setShowPuzzleList(false)}
+                >
+                  <MaterialIcons name="arrow-back" size={20} color="#ffffff" />
+                  <ThemedText style={styles.controlButtonText}>Back to Game</ThemedText>
+                </TouchableOpacity>
+                
+                <TouchableOpacity
+                  style={[styles.controlButton, styles.resetButton]}
+                  onPress={resetProgress}
+                >
+                  <MaterialIcons name="refresh" size={20} color="#ffffff" />
+                  <ThemedText style={styles.controlButtonText}>Reset Progress</ThemedText>
+                </TouchableOpacity>
+              </View>
+
+              {/* Puzzle List */}
+              {(['easy', 'medium', 'hard'] as SudokuDifficulty[]).map(diff => {
+                const puzzlesOfDifficulty = sudokuData.puzzles.filter(
+                  (p: any) => p.difficulty === diff
+                );
+                const completedCount = puzzlesOfDifficulty.filter(
+                  (p: any) => isPuzzleCompleted(p.id)
+                ).length;
+
+                return (
+                  <View key={diff} style={styles.difficultySection}>
+                    <View style={styles.difficultyHeader}>
+                      <View style={styles.difficultyTitleRow}>
+                        <View style={[styles.difficultyDot, { backgroundColor: getDifficultyColor(diff) }]} />
+                        <ThemedText style={styles.difficultyTitle}>
+                          {diff.charAt(0).toUpperCase() + diff.slice(1)}
+                        </ThemedText>
+                      </View>
+                      <ThemedText style={styles.difficultyProgress}>
+                        {completedCount}/{puzzlesOfDifficulty.length}
+                      </ThemedText>
+                    </View>
+                    
+                    <View style={styles.puzzleGrid}>
+                      {puzzlesOfDifficulty.map((puzzle: any, index: number) => {
+                        const isCompleted = isPuzzleCompleted(puzzle.id);
+                        const completedTime = getCompletedTime(puzzle.id);
+                        
+                        return (
+                          <TouchableOpacity
+                            key={puzzle.id}
+                            style={[
+                              styles.puzzleCard,
+                              isCompleted && styles.puzzleCardCompleted
+                            ]}
+                            onPress={() => startSpecificPuzzle(puzzle.id)}
+                          >
+                            <View style={styles.puzzleCardContent}>
+                              <ThemedText style={[
+                                styles.puzzleNumber,
+                                isCompleted && styles.puzzleNumberCompleted
+                              ]}>
+                                {index + 1}
+                              </ThemedText>
+                              {isCompleted && (
+                                <View style={styles.completedInfo}>
+                                  <MaterialIcons 
+                                    name="check-circle" 
+                                    size={16} 
+                                    color={getDifficultyColor(diff)} 
+                                  />
+                                  {completedTime && (
+                                    <ThemedText style={styles.completedTime}>
+                                      {formatTime(completedTime)}
+                                    </ThemedText>
+                                  )}
+                                </View>
+                              )}
+                            </View>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+                  </View>
+                );
+              })}
+            </ScrollView>
+          </SafeAreaView>
+        </LinearGradient>
+      </>
+    );
+  }
 
   return (
     <>
@@ -288,10 +549,18 @@ export default function SudokuScreen() {
           <View style={styles.controls}>
             <TouchableOpacity
               style={styles.controlButton}
-              onPress={startNewGame}
+              onPress={() => setShowPuzzleList(true)}
+            >
+              <MaterialIcons name="list" size={20} color="#ffffff" />
+              <ThemedText style={styles.controlButtonText}>Puzzle List</ThemedText>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={styles.controlButton}
+              onPress={resetCurrentPuzzle}
             >
               <MaterialIcons name="refresh" size={20} color="#ffffff" />
-              <ThemedText style={styles.controlButtonText}>New Game</ThemedText>
+              <ThemedText style={styles.controlButtonText}>Reset</ThemedText>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -460,5 +729,113 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 14,
     fontWeight: 'bold',
+  },
+  // Puzzle List Styles
+  statsContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 15,
+    padding: 20,
+    marginBottom: 20,
+  },
+  statsTitle: {
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 15,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  statItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  statDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+  },
+  statText: {
+    color: '#ffffff',
+    fontSize: 14,
+  },
+  listControls: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 30,
+    gap: 10,
+  },
+  resetButton: {
+    backgroundColor: 'rgba(244, 67, 54, 0.3)',
+  },
+  difficultySection: {
+    marginBottom: 30,
+  },
+  difficultyHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  difficultyTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  difficultyDot: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+  },
+  difficultyTitle: {
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  difficultyProgress: {
+    color: 'rgba(255, 255, 255, 0.7)',
+    fontSize: 14,
+  },
+  puzzleGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  puzzleCard: {
+    width: (width - 80) / 5,
+    aspectRatio: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  puzzleCardCompleted: {
+    backgroundColor: 'rgba(76, 175, 80, 0.2)',
+    borderColor: 'rgba(76, 175, 80, 0.5)',
+  },
+  puzzleCardContent: {
+    alignItems: 'center',
+    gap: 4,
+  },
+  puzzleNumber: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  puzzleNumberCompleted: {
+    color: '#4CAF50',
+  },
+  completedInfo: {
+    alignItems: 'center',
+    gap: 2,
+  },
+  completedTime: {
+    color: 'rgba(255, 255, 255, 0.7)',
+    fontSize: 10,
   },
 });
