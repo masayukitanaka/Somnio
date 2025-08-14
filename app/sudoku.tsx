@@ -315,6 +315,7 @@ export default function SudokuScreen() {
             headerTitleStyle: {
               fontWeight: 'bold',
             },
+            headerBackVisible: false,
           }} 
         />
         <LinearGradient
@@ -446,6 +447,7 @@ export default function SudokuScreen() {
           headerTitleStyle: {
             fontWeight: 'bold',
           },
+          headerBackVisible: false,
         }} 
       />
       <LinearGradient
