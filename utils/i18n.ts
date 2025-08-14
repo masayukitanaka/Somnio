@@ -714,6 +714,66 @@ export const homeTabTranslations: Translations = {
     'es': 'Registros diarios',
     'zh': '每日记录',
   },
+  'sleep': {
+    'en': 'Sleep',
+    'ja': 'スリープ',
+    'es': 'Dormir',
+    'zh': '睡眠',
+  },
+  'relax': {
+    'en': 'Relax',
+    'ja': 'リラックス',
+    'es': 'Relajar',
+    'zh': '放松',
+  },
+  'focus': {
+    'en': 'Focus',
+    'ja': 'フォーカス',
+    'es': 'Concentración',
+    'zh': '专注',
+  },
+  'sleep_achievement': {
+    'en': 'Sleep Achievement',
+    'ja': '睡眠の達成度',
+    'es': 'Logro de sueño',
+    'zh': '睡眠成就',
+  },
+  'sleep_achievement_desc': {
+    'en': 'Track your sleep patterns and quality',
+    'ja': '睡眠パターンと質を追跡',
+    'es': 'Rastrea tus patrones y calidad de sueño',
+    'zh': '追踪您的睡眠模式和质量',
+  },
+  'relax_achievement': {
+    'en': 'Relaxation Achievement',
+    'ja': 'リラクゼーションの達成度',
+    'es': 'Logro de relajación',
+    'zh': '放松成就',
+  },
+  'relax_achievement_desc': {
+    'en': 'Monitor your relaxation and mindfulness sessions',
+    'ja': 'リラクゼーションとマインドフルネスのセッションを監視',
+    'es': 'Monitorea tus sesiones de relajación y atención plena',
+    'zh': '监控您的放松和正念课程',
+  },
+  'focus_achievement': {
+    'en': 'Focus Achievement',
+    'ja': '集中力の達成度',
+    'es': 'Logro de concentración',
+    'zh': '专注成就',
+  },
+  'focus_achievement_desc': {
+    'en': 'Track your productive focus sessions',
+    'ja': '生産的なフォーカスセッションを追跡',
+    'es': 'Rastrea tus sesiones productivas de concentración',
+    'zh': '追踪您的高效专注时段',
+  },
+  'today_total': {
+    'en': "Today's Total",
+    'ja': '今日の合計',
+    'es': 'Total de hoy',
+    'zh': '今日总计',
+  },
 };
 
 // Translation strings for profile screen
