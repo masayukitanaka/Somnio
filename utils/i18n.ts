@@ -732,6 +732,12 @@ export const homeTabTranslations: Translations = {
     'es': 'Atención plena',
     'zh': '正念',
   },
+  'focus': {
+    'en': 'Focus',
+    'ja': 'フォーカス',
+    'es': 'Concentración',
+    'zh': '专注',
+  },
   'sleep_achievement': {
     'en': 'Sleep Achievement',
     'ja': '睡眠の達成度',
@@ -767,6 +773,18 @@ export const homeTabTranslations: Translations = {
     'ja': 'マインドフルネスと瞑想の練習を追跡',
     'es': 'Rastrea tu práctica de atención plena y meditación',
     'zh': '追踪您的正念和冥想练习',
+  },
+  'focus_achievement': {
+    'en': 'Focus Achievement',
+    'ja': '集中力の達成度',
+    'es': 'Logro de concentración',
+    'zh': '专注成就',
+  },
+  'focus_achievement_desc': {
+    'en': 'Track your productive focus sessions',
+    'ja': '生産的なフォーカスセッションを追跡',
+    'es': 'Rastrea tus sesiones productivas de concentración',
+    'zh': '追踪您的高效专注时段',
   },
   'today_total': {
     'en': "Today's Total",
@@ -821,6 +839,48 @@ export const homeTabTranslations: Translations = {
     'ja': '保存',
     'es': 'Guardar',
     'zh': '保存',
+  },
+  'laser_focus': {
+    'en': 'Laser Focus',
+    'ja': 'レーザーフォーカス',
+    'es': 'Enfoque láser',
+    'zh': '激光专注',
+  },
+  'all_over_the_place': {
+    'en': 'All over the place',
+    'ja': 'あちこちに散乱',
+    'es': 'Por todas partes',
+    'zh': '到处都是',
+  },
+  'tap_to_toggle': {
+    'en': 'Tap to toggle',
+    'ja': 'タップして切り替え',
+    'es': 'Toca para alternar',
+    'zh': '点击切换',
+  },
+  'focused': {
+    'en': 'Focused',
+    'ja': '集中',
+    'es': 'Concentrado',
+    'zh': '专注',
+  },
+  'unfocused': {
+    'en': 'Unfocused',
+    'ja': '散漫',
+    'es': 'Desconcentrado',
+    'zh': '分散',
+  },
+  'focus_status': {
+    'en': 'Focus Status',
+    'ja': '集中状态',
+    'es': 'Estado de concentración',
+    'zh': '专注状态',
+  },
+  'edit_focus_status': {
+    'en': 'Edit Focus Status',
+    'ja': '集中状態を編集',
+    'es': 'Editar estado de concentración',
+    'zh': '编辑专注状态',
   },
 };
 

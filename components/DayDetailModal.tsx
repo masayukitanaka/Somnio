@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, TouchableOpacity, Image, Modal, Text, TextInput } from 'react-native';
+import { StyleSheet, View, TouchableOpacity, Image, Modal, TextInput } from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { ThemedText } from '@/components/ThemedText';
-import { getCurrentLanguage, getTranslation, homeTabTranslations } from '@/utils/i18n';
+import { getTranslation, homeTabTranslations } from '@/utils/i18n';
 
 // Star images
 const starImages = {
@@ -17,6 +17,12 @@ const starImages = {
 const meditationImages = {
   guru: require('@/assets/images/guru.png'),
   knocked: require('@/assets/images/knocked.png'),
+};
+
+// Focus status images
+const focusImages = {
+  focused: require('@/assets/images/focus.png'),
+  unfocused: require('@/assets/images/unfocused.png'),
 };
 
 interface DayDetailModalProps {
@@ -34,16 +40,19 @@ export const DayDetailModal = ({
   currentLanguage,
   onDateChange 
 }: DayDetailModalProps) => {
-  const [activeTab, setActiveTab] = useState<'sleep' | 'mindfulness'>('sleep');
+  const [activeTab, setActiveTab] = useState<'sleep' | 'mindfulness' | 'focus'>('sleep');
   const [meditationMinutes, setMeditationMinutes] = useState(0);
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [editInputValue, setEditInputValue] = useState('');
+  const [isFocused, setIsFocused] = useState(false);
+  const [focusEditModalVisible, setFocusEditModalVisible] = useState(false);
   const t = (key: string) => getTranslation(homeTabTranslations, key, currentLanguage);
 
-  // Load meditation data for the selected date
+  // Load data for the selected date
   useEffect(() => {
     if (date) {
       loadMeditationData();
+      loadFocusData();
     }
   }, [date]);
 
@@ -75,6 +84,43 @@ export const DayDetailModal = ({
     }
   };
 
+  const loadFocusData = async () => {
+    if (!date) return;
+    
+    try {
+      const key = `focus_${date}`;
+      const stored = await AsyncStorage.getItem(key);
+      if (stored) {
+        setIsFocused(stored === 'true');
+      } else {
+        setIsFocused(false);
+      }
+    } catch (error) {
+      console.error('Error loading focus data:', error);
+    }
+  };
+
+  const saveFocusData = async (focused: boolean) => {
+    if (!date) return;
+    
+    try {
+      const key = `focus_${date}`;
+      await AsyncStorage.setItem(key, focused.toString());
+      setIsFocused(focused);
+    } catch (error) {
+      console.error('Error saving focus data:', error);
+    }
+  };
+
+  const handleEditFocus = () => {
+    setFocusEditModalVisible(true);
+  };
+
+  const handleSaveFocus = (focused: boolean) => {
+    saveFocusData(focused);
+    setFocusEditModalVisible(false);
+  };
+
   const handleEditMeditation = () => {
     setEditInputValue(meditationMinutes.toString());
     setEditModalVisible(true);
@@ -98,7 +144,7 @@ export const DayDetailModal = ({
 
   if (!date) return null;
 
-  const getStarLevelForDate = (dateStr: string): number => {
+  const getStarLevelForDate = (): number => {
     // This is a simplified version - in real app, you'd get from the actual records
     return Math.floor(Math.random() * 4); // 0-3 (0 = no star)
   };
@@ -117,7 +163,7 @@ export const DayDetailModal = ({
     label, 
     icon 
   }: { 
-    tab: 'sleep' | 'mindfulness'; 
+    tab: 'sleep' | 'mindfulness' | 'focus'; 
     label: string; 
     icon: string;
   }) => (
@@ -147,7 +193,7 @@ export const DayDetailModal = ({
       return (
         <View style={styles.modalTabContent}>
           <View style={styles.modalContentHeader}>
-            <MaterialIcons name="nights-stay" size={40} color="#205295" />
+            {/* <MaterialIcons name="nights-stay" size={40} color="#205295" /> */}
             <ThemedText type="defaultSemiBold" style={styles.modalContentTitle}>
               {t('sleep_achievement')}
             </ThemedText>
@@ -167,36 +213,77 @@ export const DayDetailModal = ({
       );
     }
 
-    // Mindfulness tab content
+    if (activeTab === 'mindfulness') {
+      return (
+        <View style={styles.modalTabContent}>
+          <View style={styles.modalContentHeader}>
+            {/* <MaterialIcons name="self-improvement" size={40} color="#205295" /> */}
+            <ThemedText type="defaultSemiBold" style={styles.modalContentTitle}>
+              {t('mindfulness_achievement')}
+            </ThemedText>
+          </View>
+          
+          <View style={styles.meditationStatusContainer}>
+            <Image 
+              source={meditationMinutes > 0 ? meditationImages.guru : meditationImages.knocked}
+              style={styles.meditationStatusImage}
+            />
+            <ThemedText style={styles.meditationStatusText}>
+              {meditationMinutes > 0 ? t('meditation_completed') : t('no_meditation')}
+            </ThemedText>
+          </View>
+
+          <View style={styles.modalStats}>
+            <ThemedText type="defaultSemiBold" style={styles.modalStatsValue}>
+              {meditationMinutes} {t('minutes')}
+            </ThemedText>
+            <ThemedText style={styles.modalStatsLabel}>
+              {t('meditation_time')}
+            </ThemedText>
+            <TouchableOpacity 
+              style={styles.editButton} 
+              onPress={handleEditMeditation}
+            >
+              <MaterialIcons name="edit" size={16} color="#205295" />
+              <ThemedText style={styles.editButtonText}>
+                {t('edit')}
+              </ThemedText>
+            </TouchableOpacity>
+          </View>
+        </View>
+      );
+    }
+
+    // Focus tab content
     return (
       <View style={styles.modalTabContent}>
         <View style={styles.modalContentHeader}>
-          <MaterialIcons name="self-improvement" size={40} color="#205295" />
+          {/* <MaterialIcons name="psychology" size={40} color="#205295" /> */}
           <ThemedText type="defaultSemiBold" style={styles.modalContentTitle}>
-            {t('mindfulness_achievement')}
+            {t('focus_achievement')}
           </ThemedText>
         </View>
         
-        <View style={styles.meditationStatusContainer}>
+        <View style={styles.focusStatusContainer}>
           <Image 
-            source={meditationMinutes > 0 ? meditationImages.guru : meditationImages.knocked}
-            style={styles.meditationStatusImage}
+            source={isFocused ? focusImages.focused : focusImages.unfocused}
+            style={isFocused ? styles.focusStatusImage : styles.focusStatusImageUnfocused}
           />
-          <ThemedText style={styles.meditationStatusText}>
-            {meditationMinutes > 0 ? t('meditation_completed') : t('no_meditation')}
+          <ThemedText style={styles.focusStatusText}>
+            {isFocused ? t('laser_focus') : t('all_over_the_place')}
           </ThemedText>
         </View>
 
         <View style={styles.modalStats}>
           <ThemedText type="defaultSemiBold" style={styles.modalStatsValue}>
-            {meditationMinutes} {t('minutes')}
+            {isFocused ? t('focused') : t('unfocused')}
           </ThemedText>
           <ThemedText style={styles.modalStatsLabel}>
-            {t('meditation_time')}
+            {t('focus_status')}
           </ThemedText>
           <TouchableOpacity 
             style={styles.editButton} 
-            onPress={handleEditMeditation}
+            onPress={handleEditFocus}
           >
             <MaterialIcons name="edit" size={16} color="#205295" />
             <ThemedText style={styles.editButtonText}>
@@ -236,9 +323,9 @@ export const DayDetailModal = ({
                   <ThemedText type="defaultSemiBold" style={styles.modalTitle}>
                     {formatDate(date)}
                   </ThemedText>
-                  {getStarLevelForDate(date) > 0 && (
+                  {getStarLevelForDate() > 0 && (
                     <Image 
-                      source={starImages[getStarLevelForDate(date) as keyof typeof starImages]} 
+                      source={starImages[getStarLevelForDate() as keyof typeof starImages]} 
                       style={styles.modalStarIcon}
                     />
                   )}
@@ -254,6 +341,8 @@ export const DayDetailModal = ({
               <TabButton tab="sleep" label={t('sleep')} icon="nights-stay" />
               <View style={styles.modalTabDivider} />
               <TabButton tab="mindfulness" label={t('mindfulness')} icon="self-improvement" />
+              <View style={styles.modalTabDivider} />
+              <TabButton tab="focus" label={t('focus')} icon="psychology" />
             </View>
 
             {renderTabContent()}
@@ -299,6 +388,73 @@ export const DayDetailModal = ({
               >
                 <ThemedText style={styles.editModalSaveText}>
                   {t('save')}
+                </ThemedText>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Edit Focus Status Modal */}
+      <Modal
+        visible={focusEditModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setFocusEditModalVisible(false)}
+      >
+        <View style={styles.editModalOverlay}>
+          <View style={styles.editModalContainer}>
+            <ThemedText type="defaultSemiBold" style={styles.editModalTitle}>
+              {t('edit_focus_status')}
+            </ThemedText>
+            
+            <View style={styles.focusOptionsContainer}>
+              <TouchableOpacity
+                style={[
+                  styles.focusOptionButton,
+                  isFocused && styles.focusOptionButtonSelected
+                ]}
+                onPress={() => handleSaveFocus(true)}
+              >
+                <Image 
+                  source={focusImages.focused}
+                  style={styles.focusOptionImage}
+                />
+                <ThemedText style={[
+                  styles.focusOptionText,
+                  isFocused && styles.focusOptionTextSelected
+                ]}>
+                  {t('laser_focus')}
+                </ThemedText>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={[
+                  styles.focusOptionButton,
+                  !isFocused && styles.focusOptionButtonSelected
+                ]}
+                onPress={() => handleSaveFocus(false)}
+              >
+                <Image 
+                  source={focusImages.unfocused}
+                  style={styles.focusOptionImageUnfocused}
+                />
+                <ThemedText style={[
+                  styles.focusOptionText,
+                  !isFocused && styles.focusOptionTextSelected
+                ]}>
+                  {t('all_over_the_place')}
+                </ThemedText>
+              </TouchableOpacity>
+            </View>
+            
+            <View style={styles.editModalButtons}>
+              <TouchableOpacity
+                style={[styles.editModalButton, styles.editModalCancelButton]}
+                onPress={() => setFocusEditModalVisible(false)}
+              >
+                <ThemedText style={styles.editModalCancelText}>
+                  {t('cancel')}
                 </ThemedText>
               </TouchableOpacity>
             </View>
@@ -435,9 +591,11 @@ const styles = StyleSheet.create({
     borderColor: '#e0e0e0',
   },
   modalStatsValue: {
-    fontSize: 32,
+    fontSize: 28,
     color: '#205295',
     marginBottom: 5,
+    lineHeight: 32,
+    textAlign: 'center',
   },
   modalStatsLabel: {
     fontSize: 14,
@@ -471,6 +629,70 @@ const styles = StyleSheet.create({
   },
   editButtonText: {
     fontSize: 14,
+    color: '#205295',
+  },
+  // Focus status styles
+  focusStatusContainer: {
+    alignItems: 'center',
+    marginVertical: 10,
+  },
+  focusStatusImage: {
+    width: 80,
+    height: 80,
+    resizeMode: 'contain',
+    marginBottom: 10,
+  },
+  focusStatusImageUnfocused: {
+    width: 160,
+    height: 160,
+    resizeMode: 'contain',
+    marginBottom: 5,
+  },
+  focusStatusText: {
+    fontSize: 16,
+    color: '#666666',
+    textAlign: 'center',
+    fontWeight: 'bold',
+  },
+  // Focus edit modal styles
+  focusOptionsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+    gap: 15,
+  },
+  focusOptionButton: {
+    flex: 1,
+    alignItems: 'center',
+    padding: 15,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: '#e0e0e0',
+    backgroundColor: '#f9f9f9',
+  },
+  focusOptionButtonSelected: {
+    borderColor: '#205295',
+    backgroundColor: '#f0f5ff',
+  },
+  focusOptionImage: {
+    width: 50,
+    height: 50,
+    resizeMode: 'contain',
+    marginBottom: 8,
+  },
+  focusOptionImageUnfocused: {
+    width: 100,
+    height: 100,
+    resizeMode: 'contain',
+    marginBottom: 8,
+  },
+  focusOptionText: {
+    fontSize: 12,
+    color: '#666666',
+    textAlign: 'center',
+    fontWeight: 'bold',
+  },
+  focusOptionTextSelected: {
     color: '#205295',
   },
   // Edit modal styles
