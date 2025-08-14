@@ -11,11 +11,10 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { Stack } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ThemedText } from '@/components/ThemedText';
-import { getCurrentLanguage } from '@/utils/i18n';
-import sudokuData from '@/assets/data/sudokuPuzzles.json';
+import sudokuService from '@/services/sudokuService';
 
 const { width } = Dimensions.get('window');
 
@@ -43,18 +42,6 @@ type CompletedPuzzle = {
 };
 
 // Helper functions
-const getRandomPuzzle = (difficulty: SudokuDifficulty): SudokuPuzzle => {
-  const puzzlesOfDifficulty = sudokuData.puzzles.filter(
-    (p: any) => p.difficulty === difficulty
-  );
-  const randomIndex = Math.floor(Math.random() * puzzlesOfDifficulty.length);
-  return puzzlesOfDifficulty[randomIndex] as SudokuPuzzle;
-};
-
-const getPuzzleById = (id: string): SudokuPuzzle | null => {
-  const puzzle = sudokuData.puzzles.find((p: any) => p.id === id);
-  return puzzle as SudokuPuzzle || null;
-};
 
 const generateBoardFromPuzzle = (puzzle: number[][]): SudokuBoard => {
   return puzzle.map(row => 
@@ -79,18 +66,9 @@ const checkSolution = (
   return true;
 };
 
-const getDifficultyStats = () => {
-  const stats = {
-    easy: sudokuData.puzzles.filter((p: any) => p.difficulty === 'easy').length,
-    medium: sudokuData.puzzles.filter((p: any) => p.difficulty === 'medium').length,
-    hard: sudokuData.puzzles.filter((p: any) => p.difficulty === 'hard').length,
-  };
-  const total = stats.easy + stats.medium + stats.hard;
-  return { ...stats, total };
-};
 
 export default function SudokuScreen() {
-  const [currentLanguage, setCurrentLanguage] = useState('en');
+  const router = useRouter();
   const [board, setBoard] = useState<SudokuBoard>([]);
   const [currentPuzzle, setCurrentPuzzle] = useState<SudokuPuzzle | null>(null);
   const [selectedCell, setSelectedCell] = useState<{ row: number; col: number } | null>(null);
@@ -99,14 +77,20 @@ export default function SudokuScreen() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [showPuzzleList, setShowPuzzleList] = useState(false);
   const [completedPuzzles, setCompletedPuzzles] = useState<CompletedPuzzle[]>([]);
+  const [puzzlesData, setPuzzlesData] = useState<SudokuPuzzle[]>([]);
+  const [stats, setStats] = useState({ easy: 0, medium: 0, hard: 0, total: 0 });
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    loadLanguage();
     loadCompletedPuzzles();
-    if (!showPuzzleList) {
+    loadPuzzlesData();
+  }, []);
+
+  useEffect(() => {
+    if (!isLoading && !showPuzzleList && puzzlesData.length > 0) {
       startNewGame();
     }
-  }, []);
+  }, [isLoading, puzzlesData]);
 
   useEffect(() => {
     let interval: ReturnType<typeof setInterval> | undefined;
@@ -120,11 +104,6 @@ export default function SudokuScreen() {
     };
   }, [isPlaying]);
 
-  const loadLanguage = async () => {
-    const lang = await getCurrentLanguage();
-    setCurrentLanguage(lang);
-  };
-
   const loadCompletedPuzzles = async () => {
     try {
       const stored = await AsyncStorage.getItem('sudoku_completed_puzzles');
@@ -133,6 +112,20 @@ export default function SudokuScreen() {
       }
     } catch (error) {
       console.error('Error loading completed puzzles:', error);
+    }
+  };
+
+  const loadPuzzlesData = async () => {
+    try {
+      setIsLoading(true);
+      const data = await sudokuService.getSudokuData();
+      setPuzzlesData(data.puzzles);
+      const statsData = await sudokuService.getDifficultyStats();
+      setStats(statsData);
+    } catch (error) {
+      console.error('Error loading puzzles data:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -174,14 +167,18 @@ export default function SudokuScreen() {
     );
   };
 
-  const startNewGame = () => {
-    const puzzle = getRandomPuzzle(difficulty);
-    setCurrentPuzzle(puzzle);
-    setBoard(generateBoardFromPuzzle(puzzle.board));
-    setTimer(0);
-    setIsPlaying(true);
-    setSelectedCell(null);
-    setShowPuzzleList(false);
+  const startNewGame = async () => {
+    try {
+      const puzzle = await sudokuService.getRandomPuzzle(difficulty);
+      setCurrentPuzzle(puzzle);
+      setBoard(generateBoardFromPuzzle(puzzle.board));
+      setTimer(0);
+      setIsPlaying(true);
+      setSelectedCell(null);
+      setShowPuzzleList(false);
+    } catch (error) {
+      console.error('Error starting new game:', error);
+    }
   };
 
   const resetCurrentPuzzle = () => {
@@ -193,15 +190,19 @@ export default function SudokuScreen() {
     }
   };
 
-  const startSpecificPuzzle = (puzzleId: string) => {
-    const puzzle = getPuzzleById(puzzleId);
-    if (puzzle) {
-      setCurrentPuzzle(puzzle);
-      setBoard(generateBoardFromPuzzle(puzzle.board));
-      setTimer(0);
-      setIsPlaying(true);
-      setSelectedCell(null);
-      setShowPuzzleList(false);
+  const startSpecificPuzzle = async (puzzleId: string) => {
+    try {
+      const puzzle = await sudokuService.getPuzzleById(puzzleId);
+      if (puzzle) {
+        setCurrentPuzzle(puzzle);
+        setBoard(generateBoardFromPuzzle(puzzle.board));
+        setTimer(0);
+        setIsPlaying(true);
+        setSelectedCell(null);
+        setShowPuzzleList(false);
+      }
+    } catch (error) {
+      console.error('Error starting specific puzzle:', error);
     }
   };
 
@@ -300,7 +301,6 @@ export default function SudokuScreen() {
     }
   };
 
-  const stats = getDifficultyStats();
 
   if (showPuzzleList) {
     return (
@@ -315,7 +315,14 @@ export default function SudokuScreen() {
             headerTitleStyle: {
               fontWeight: 'bold',
             },
-            headerBackVisible: false,
+            headerLeft: () => (
+              <TouchableOpacity
+                onPress={() => router.back()}
+                style={{ marginLeft: 10 }}
+              >
+                <MaterialIcons name="arrow-back" size={24} color="#ffffff" />
+              </TouchableOpacity>
+            ),
           }} 
         />
         <LinearGradient
@@ -364,8 +371,8 @@ export default function SudokuScreen() {
 
               {/* Puzzle List */}
               {(['easy', 'medium', 'hard'] as SudokuDifficulty[]).map(diff => {
-                const puzzlesOfDifficulty = sudokuData.puzzles.filter(
-                  (p: any) => p.difficulty === diff
+                const puzzlesOfDifficulty = puzzlesData.filter(
+                  (p) => p.difficulty === diff
                 );
                 const completedCount = puzzlesOfDifficulty.filter(
                   (p: any) => isPuzzleCompleted(p.id)
@@ -386,7 +393,7 @@ export default function SudokuScreen() {
                     </View>
                     
                     <View style={styles.puzzleGrid}>
-                      {puzzlesOfDifficulty.map((puzzle: any, index: number) => {
+                      {puzzlesOfDifficulty.map((puzzle, index: number) => {
                         const isCompleted = isPuzzleCompleted(puzzle.id);
                         const completedTime = getCompletedTime(puzzle.id);
                         
@@ -447,7 +454,14 @@ export default function SudokuScreen() {
           headerTitleStyle: {
             fontWeight: 'bold',
           },
-          headerBackVisible: false,
+          headerLeft: () => (
+            <TouchableOpacity
+              onPress={() => router.back()}
+              style={{ marginLeft: 10 }}
+            >
+              <MaterialIcons name="arrow-back" size={24} color="#ffffff" />
+            </TouchableOpacity>
+          ),
         }} 
       />
       <LinearGradient
