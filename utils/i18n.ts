@@ -888,6 +888,12 @@ export const homeTabTranslations: Translations = {
     'es': 'Recomendaciones',
     'zh': '推荐',
   },
+  'tools': {
+    'en': 'Tools',
+    'ja': 'ツール',
+    'es': 'Herramientas',
+    'zh': '工具',
+  },
 };
 
 // Translation strings for profile screen

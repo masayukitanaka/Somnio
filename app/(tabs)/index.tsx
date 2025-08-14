@@ -4,7 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Audio } from 'expo-av';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useIsFocused } from '@react-navigation/native';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -17,6 +17,94 @@ import { getRecommendations, ContentItem } from '@/services/contentService';
 import { useAudio } from '@/contexts/AudioContext';
 
 const { width } = Dimensions.get('window');
+
+// Tools Menu Component
+const ToolsMenu = ({ currentLanguage }: { currentLanguage: string }) => {
+  const navigation = useNavigation<any>();
+  
+  const menuItems = [
+    {
+      id: 'breathing',
+      title: 'Breathing',
+      icon: 'air',
+      color: '#4FC3F7',
+      gradient: ['#4FC3F7', '#29B6F6'] as [string, string],
+      onPress: () => navigation.navigate('breathing-exercise'),
+    },
+    {
+      id: 'stretching',
+      title: 'Stretching',
+      icon: 'accessibility',
+      color: '#66BB6A',
+      gradient: ['#66BB6A', '#4CAF50'] as [string, string],
+      onPress: () => navigation.navigate('stretching'),
+    },
+    {
+      id: 'pomodoro',
+      title: 'Pomodoro',
+      icon: 'timer',
+      color: '#FF7043',
+      gradient: ['#FF7043', '#FF5722'] as [string, string],
+      onPress: () => navigation.navigate('pomodoro-timer'),
+    },
+    {
+      id: 'tasks',
+      title: 'Tasks',
+      icon: 'checklist',
+      color: '#AB47BC',
+      gradient: ['#AB47BC', '#9C27B0'] as [string, string],
+      onPress: () => navigation.navigate('tasks'),
+    },
+    {
+      id: 'journal',
+      title: 'Journal',
+      icon: 'book',
+      color: '#FFB74D',
+      gradient: ['#FFB74D', '#FF9800'] as [string, string],
+      onPress: () => navigation.navigate('journal'),
+    },
+    {
+      id: 'settings',
+      title: 'Settings',
+      icon: 'settings',
+      color: '#78909C',
+      gradient: ['#78909C', '#607D8B'] as [string, string],
+      onPress: () => navigation.navigate('profile'),
+    },
+  ];
+  
+  return (
+    <View style={styles.toolsSection}>
+      <View style={styles.sectionHeader}>
+        <MaterialIcons name="build" size={24} color="#ffffff" style={styles.sectionIcon} />
+        <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
+          {getTranslation(homeTabTranslations, 'tools', currentLanguage)}
+        </ThemedText>
+      </View>
+      
+      <View style={styles.menuGrid}>
+        {menuItems.map((item) => (
+          <TouchableOpacity
+            key={item.id}
+            style={styles.menuButton}
+            onPress={item.onPress}
+            activeOpacity={0.8}
+          >
+            <LinearGradient
+              colors={item.gradient}
+              style={styles.menuButtonGradient}
+            >
+              <MaterialIcons name={item.icon as any} size={32} color="#ffffff" />
+              <ThemedText style={styles.menuButtonText}>
+                {item.title}
+              </ThemedText>
+            </LinearGradient>
+          </TouchableOpacity>
+        ))}
+      </View>
+    </View>
+  );
+};
 
 // Recommendations component
 const RecommendationsView = ({ 
@@ -427,6 +515,9 @@ export default function HomeScreen() {
             <CalendarView currentLanguage={currentLanguage} />
           </View>
 
+          {/* Tools Menu */}
+          <ToolsMenu currentLanguage={currentLanguage} />
+
           <View style={styles.bottomPadding} />
         </ScrollView>
         
@@ -627,5 +718,41 @@ const styles = StyleSheet.create({
   },
   recommendationSeparator: {
     width: 12,
+  },
+  // Tools Menu styles
+  toolsSection: {
+    marginTop: 30,
+    paddingHorizontal: 20,
+    marginBottom: 20,
+  },
+  menuGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginTop: 10,
+  },
+  menuButton: {
+    width: '48%',
+    marginBottom: 15,
+    borderRadius: 15,
+    overflow: 'hidden',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+  },
+  menuButtonGradient: {
+    paddingVertical: 20,
+    paddingHorizontal: 15,
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+  },
+  menuButtonText: {
+    fontSize: 14,
+    color: '#ffffff',
+    fontWeight: '600',
+    marginLeft: 10,
   },
 });
