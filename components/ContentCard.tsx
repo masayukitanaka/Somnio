@@ -19,6 +19,9 @@ export const ContentCard: React.FC<ContentCardProps> = ({ item, onPress }) => {
   const [isDownloading, setIsDownloading] = useState(false);
   const { isAudioDownloaded, downloadAudio } = useAudio();
 
+  // Convert underscore to hyphen in icon names for MaterialIcons compatibility
+  const iconName = item.icon?.replace(/_/g, '-') || 'music-note';
+
   useEffect(() => {
     checkDownloadStatus();
   }, [item.id]);
@@ -88,7 +91,7 @@ export const ContentCard: React.FC<ContentCardProps> = ({ item, onPress }) => {
           />
           <View style={styles.cardOverlay} />
           <MaterialIcons 
-            name={item.icon as any} 
+            name={iconName as any} 
             size={36} 
             color="rgba(255, 255, 255, 0.8)" 
             style={styles.cardIcon}
@@ -112,7 +115,7 @@ export const ContentCard: React.FC<ContentCardProps> = ({ item, onPress }) => {
       ) : (
         <View style={[styles.cardBackground, { backgroundColor: item.color }]}>
           <MaterialIcons 
-            name={item.icon as any} 
+            name={iconName as any} 
             size={36} 
             color="rgba(255, 255, 255, 0.6)" 
             style={styles.cardIcon}

@@ -46,6 +46,9 @@ export function PlayerModal({ visible, onClose, item }: PlayerModalProps) {
   const [seekIndicatorPosition, setSeekIndicatorPosition] = React.useState<number | null>(null);
   const [isSeeking, setIsSeeking] = React.useState(false);
   const progressBarRef = useRef<View>(null);
+
+  // Convert underscore to hyphen in icon names for MaterialIcons compatibility
+  const iconName = item?.icon?.replace(/_/g, '-') || 'music-note';
   const {
     currentSound,
     currentItem,
@@ -364,7 +367,7 @@ export function PlayerModal({ visible, onClose, item }: PlayerModalProps) {
                   >
                     <View style={styles.thumbnailOverlay} />
                     <MaterialIcons
-                      name={item.icon as any}
+                      name={iconName as any}
                       size={60}
                       color="rgba(255, 255, 255, 0.9)"
                       style={styles.thumbnailIcon}
@@ -373,7 +376,7 @@ export function PlayerModal({ visible, onClose, item }: PlayerModalProps) {
                 ) : (
                   <View style={[styles.thumbnailImage, { backgroundColor: 'rgba(255, 255, 255, 0.1)' }]}>
                     <MaterialIcons
-                      name={item.icon as any}
+                      name={iconName as any}
                       size={60}
                       color="rgba(255, 255, 255, 0.8)"
                     />
