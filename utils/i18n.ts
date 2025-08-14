@@ -882,6 +882,12 @@ export const homeTabTranslations: Translations = {
     'es': 'Editar estado de concentración',
     'zh': '编辑专注状态',
   },
+  'recommendations': {
+    'en': 'Recommendations',
+    'ja': 'おすすめ',
+    'es': 'Recomendaciones',
+    'zh': '推荐',
+  },
 };
 
 // Translation strings for profile screen

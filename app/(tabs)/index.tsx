@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, SafeAreaView, StatusBar, View, TouchableOpacity, Dimensions, Image, Text } from 'react-native';
+import { StyleSheet, ScrollView, SafeAreaView, StatusBar, View, TouchableOpacity, Dimensions, Image, Text, FlatList } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Audio } from 'expo-av';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useIsFocused } from '@react-navigation/native';
@@ -9,9 +10,99 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { RemoveAdsButton } from '@/components/RemoveAdsButton';
 import { DayDetailModal } from '@/components/DayDetailModal';
+import { PlayerModal } from '@/components/PlayerModal';
+import { MiniPlayer } from '@/components/MiniPlayer';
 import { getCurrentLanguage, getTranslation, homeTabTranslations } from '@/utils/i18n';
+import { getRecommendations, ContentItem } from '@/services/contentService';
+import { useAudio } from '@/contexts/AudioContext';
 
 const { width } = Dimensions.get('window');
+
+// Recommendations component
+const RecommendationsView = ({ 
+  currentLanguage, 
+  onItemPress,
+  isFocused
+}: { 
+  currentLanguage: string;
+  onItemPress: (item: ContentItem) => void;
+  isFocused: boolean;
+}) => {
+  const [recommendations, setRecommendations] = useState<ContentItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    loadRecommendations();
+  }, []);
+
+  // Reload recommendations when tab is focused
+  useEffect(() => {
+    if (isFocused) {
+      loadRecommendations();
+    }
+  }, [isFocused]);
+
+  const loadRecommendations = async () => {
+    try {
+      const items = await getRecommendations();
+      setRecommendations(items);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error loading recommendations:', error);
+      setLoading(false);
+    }
+  };
+
+  const renderRecommendationItem = ({ item }: { item: ContentItem }) => {
+    return (
+      <TouchableOpacity 
+        style={styles.recommendationItem}
+        onPress={() => onItemPress(item)}
+      >
+        <View style={styles.recommendationThumbnail}>
+          {item.thumbnail ? (
+            <Image source={{ uri: item.thumbnail }} style={styles.recommendationImage} />
+          ) : (
+            <LinearGradient
+              colors={[item.color, `${item.color}80`]}
+              style={styles.recommendationGradient}
+            />
+          )}
+        </View>
+        <ThemedText style={styles.recommendationTitle} numberOfLines={1}>
+          {item.title}
+        </ThemedText>
+        <ThemedText style={styles.recommendationDuration}>
+          {item.duration}
+        </ThemedText>
+      </TouchableOpacity>
+    );
+  };
+
+  if (loading) {
+    return null; // Skip rendering while loading
+  }
+
+  return (
+    <View style={styles.recommendationsSection}>
+      <View style={styles.sectionHeader}>
+        <MaterialIcons name="recommend" size={24} color="#ffffff" style={styles.sectionIcon} />
+        <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
+          {getTranslation(homeTabTranslations, 'recommendations', currentLanguage)}
+        </ThemedText>
+      </View>
+      <FlatList
+        data={recommendations}
+        renderItem={renderRecommendationItem}
+        keyExtractor={(item) => item.id}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.recommendationsContainer}
+        ItemSeparatorComponent={() => <View style={styles.recommendationSeparator} />}
+      />
+    </View>
+  );
+};
 
 interface DayRecord {
   date: string;
@@ -212,7 +303,21 @@ const CalendarView = ({ currentLanguage }: { currentLanguage: string }) => {
 
 export default function HomeScreen() {
   const [currentLanguage, setCurrentLanguage] = useState('en');
+  const [playerModalVisible, setPlayerModalVisible] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<ContentItem | null>(null);
   const isFocused = useIsFocused();
+  const { 
+    currentSound,
+    currentItem,
+    isPlaying,
+    setCurrentItem, 
+    setCurrentSound, 
+    setIsPlaying, 
+    setIsLoaded,
+    setDuration,
+    getAudioPathWithAutoDownload,
+    stopAndUnloadAudio
+  } = useAudio();
 
   useEffect(() => {
     loadCurrentLanguage();
@@ -235,6 +340,45 @@ export default function HomeScreen() {
   };
 
   const t = (key: string) => getTranslation(homeTabTranslations, key, currentLanguage);
+
+  const handleRecommendationPress = async (item: ContentItem) => {
+    try {
+      setSelectedItem(item);
+      
+      // Stop any existing audio
+      if (currentSound) {
+        await stopAndUnloadAudio();
+      }
+      
+      // Play the audio
+      if (item.audioUrl) {
+        // Get audio path with auto-download
+        const audioPath = await getAudioPathWithAutoDownload(item.id, item.audioUrl);
+        
+        // Create and load the sound
+        const { sound } = await Audio.Sound.createAsync(
+          { uri: audioPath },
+          { shouldPlay: true }
+        );
+        
+        // Set audio context state
+        setCurrentItem(item);
+        setCurrentSound(sound);
+        setIsPlaying(true);
+        setIsLoaded(true);
+        
+        // Get and set duration
+        const status = await sound.getStatusAsync();
+        if (status.isLoaded && status.durationMillis) {
+          setDuration(status.durationMillis);
+        }
+      }
+      
+      setPlayerModalVisible(true);
+    } catch (error) {
+      console.error('Error playing track:', error);
+    }
+  };
 
   return (
     <LinearGradient
@@ -265,6 +409,13 @@ export default function HomeScreen() {
             </LinearGradient>
           </View>
 
+          {/* Recommendations */}
+          <RecommendationsView 
+            currentLanguage={currentLanguage} 
+            onItemPress={handleRecommendationPress}
+            isFocused={isFocused}
+          />
+
           {/* Daily Record Calendar */}
           <View style={styles.calendarSection}>
             <View style={styles.sectionHeader}>
@@ -278,7 +429,25 @@ export default function HomeScreen() {
 
           <View style={styles.bottomPadding} />
         </ScrollView>
+        
+        {/* MiniPlayer */}
+        {currentItem && currentSound && !playerModalVisible && (
+          <MiniPlayer
+            onPress={() => {
+              setSelectedItem(currentItem);
+              setPlayerModalVisible(true);
+            }}
+          />
+        )}
       </SafeAreaView>
+      
+      {selectedItem && (
+        <PlayerModal
+          visible={playerModalVisible}
+          onClose={() => setPlayerModalVisible(false)}
+          item={selectedItem}
+        />
+      )}
     </LinearGradient>
   );
 }
@@ -415,5 +584,48 @@ const styles = StyleSheet.create({
   },
   bottomPadding: {
     height: 100,
+  },
+  // Recommendations styles
+  recommendationsSection: {
+    marginTop: 20,
+    paddingHorizontal: 20,
+  },
+  recommendationsContainer: {
+    paddingLeft: 0,
+    paddingRight: 20,
+  },
+  recommendationItem: {
+    width: 120,
+    alignItems: 'center',
+  },
+  recommendationThumbnail: {
+    width: 100,
+    height: 100,
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginBottom: 8,
+  },
+  recommendationImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  recommendationGradient: {
+    width: '100%',
+    height: '100%',
+  },
+  recommendationTitle: {
+    fontSize: 12,
+    color: '#ffffff',
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  recommendationDuration: {
+    fontSize: 10,
+    color: 'rgba(255, 255, 255, 0.7)',
+    textAlign: 'center',
+  },
+  recommendationSeparator: {
+    width: 12,
   },
 });

@@ -27,6 +27,7 @@ export interface ContentData {
     workMusic: ContentItem[];
     quickMeditation: ContentItem[];
   };
+  recommendation?: ContentItem[];
 }
 
 // API configuration
@@ -242,6 +243,34 @@ const transformApiData = async (apiData: any): Promise<ContentData> => {
             }
           }
         }
+      } else if (tab === 'recommendation' && Array.isArray(apiData[tab])) {
+        // Handle recommendation
+        const transformedItems = await Promise.all(apiData[tab].map(async (item: any) => {
+          let cachedThumbnail = item.thumbnail;
+          
+          // Cache thumbnail if it exists
+          if (item.thumbnail) {
+            try {
+              cachedThumbnail = await getCachedThumbnailPath(item.thumbnail);
+            } catch (error) {
+              console.error('Error caching thumbnail for item:', item.id, error);
+              cachedThumbnail = item.thumbnail; // fallback to original URL
+            }
+          }
+          
+          return {
+            id: item.id.toString(),
+            title: item.title,
+            duration: item.duration,
+            color: item.color,
+            icon: item.icon,
+            thumbnail: cachedThumbnail,
+            audioUrl: item.audioUrl,
+            description: item.description,
+          };
+        }));
+        
+        result.recommendation = transformedItems;
       }
     }
 
@@ -421,6 +450,17 @@ export const searchContent = async (query: string): Promise<ContentItem[]> => {
     }));
   } catch (error) {
     console.error(`Failed to search content with query "${query}":`, error);
+    throw error;
+  }
+};
+
+// Get recommendations from API
+export const getRecommendations = async (): Promise<ContentItem[]> => {
+  try {
+    const allContent = await getAllContent();
+    return allContent.recommendation || [];
+  } catch (error) {
+    console.error('Failed to fetch recommendations:', error);
     throw error;
   }
 };
