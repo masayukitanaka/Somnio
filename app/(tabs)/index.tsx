@@ -27,56 +27,49 @@ const ToolsMenu = ({ currentLanguage }: { currentLanguage: string }) => {
       id: 'breathing',
       title: 'Breathing',
       icon: 'air',
-      color: '#4FC3F7',
-      gradient: ['#4FC3F7', '#29B6F6'] as [string, string],
+      color: '#64bdd6ff',
       onPress: () => navigation.navigate('breathing-exercise'),
     },
     {
       id: 'stretching',
       title: 'Stretching',
       icon: 'accessibility',
-      color: '#66BB6A',
-      gradient: ['#66BB6A', '#4CAF50'] as [string, string],
+      color: '#4b9055ff',
       onPress: () => navigation.navigate('stretching'),
     },
     {
       id: 'pomodoro',
       title: 'Pomodoro',
       icon: 'timer',
-      color: '#FF7043',
-      gradient: ['#FF7043', '#FF5722'] as [string, string],
+      color: '#d35b43ff',
       onPress: () => navigation.navigate('pomodoro-timer'),
     },
     {
       id: 'tasks',
       title: 'Tasks',
       icon: 'checklist',
-      color: '#AB47BC',
-      gradient: ['#AB47BC', '#9C27B0'] as [string, string],
+      color: '#b258b4ff',
       onPress: () => navigation.navigate('tasks'),
     },
     {
       id: 'journal',
       title: 'Journal',
       icon: 'book',
-      color: '#FFB74D',
-      gradient: ['#FFB74D', '#FF9800'] as [string, string],
+      color: '#e19d4eff',
       onPress: () => navigation.navigate('journal'),
     },
     {
       id: 'sudoku',
       title: 'Sudoku',
       icon: 'grid-on',
-      color: '#EC407A',
-      gradient: ['#EC407A', '#E91E63'] as [string, string],
+      color: '#db618cff',
       onPress: () => navigation.navigate('sudoku'),
     },
     {
       id: 'settings',
       title: 'Settings',
       icon: 'settings',
-      color: '#78909C',
-      gradient: ['#78909C', '#607D8B'] as [string, string],
+      color: '#528097ff',
       onPress: () => navigation.navigate('profile'),
     },
   ];
@@ -94,19 +87,16 @@ const ToolsMenu = ({ currentLanguage }: { currentLanguage: string }) => {
         {menuItems.map((item) => (
           <TouchableOpacity
             key={item.id}
-            style={styles.menuButton}
+            style={[styles.menuButton, { backgroundColor: item.color }]}
             onPress={item.onPress}
-            activeOpacity={0.8}
+            activeOpacity={0.7}
           >
-            <LinearGradient
-              colors={item.gradient}
-              style={styles.menuButtonGradient}
-            >
-              <MaterialIcons name={item.icon as any} size={32} color="#ffffff" />
+            <View style={styles.menuButtonContent}>
+              <MaterialIcons name={item.icon as any} size={28} color="#ffffff" />
               <ThemedText style={styles.menuButtonText}>
                 {item.title}
               </ThemedText>
-            </LinearGradient>
+            </View>
           </TouchableOpacity>
         ))}
       </View>
@@ -741,17 +731,17 @@ const styles = StyleSheet.create({
   },
   menuButton: {
     width: '48%',
-    marginBottom: 15,
-    borderRadius: 15,
+    marginBottom: 12,
+    borderRadius: 12,
     overflow: 'hidden',
-    elevation: 3,
+    elevation: 2,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
   },
-  menuButtonGradient: {
-    paddingVertical: 20,
+  menuButtonContent: {
+    paddingVertical: 18,
     paddingHorizontal: 15,
     alignItems: 'center',
     flexDirection: 'row',
@@ -760,7 +750,7 @@ const styles = StyleSheet.create({
   menuButtonText: {
     fontSize: 14,
     color: '#ffffff',
-    fontWeight: '600',
-    marginLeft: 10,
+    fontWeight: '500',
+    marginLeft: 12,
   },
 });
