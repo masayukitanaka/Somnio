@@ -15,6 +15,7 @@ import { MiniPlayer } from '@/components/MiniPlayer';
 import { getCurrentLanguage, getTranslation, homeTabTranslations } from '@/utils/i18n';
 import { getRecommendations, ContentItem } from '@/services/contentService';
 import { useAudio } from '@/contexts/AudioContext';
+import AnimatedCircle from '@/components/AnimatedCircle';
 
 const { width } = Dimensions.get('window');
 
@@ -487,20 +488,7 @@ export default function HomeScreen() {
             <ThemedText type="subtitle">{t('journey_to_better_sleep')}</ThemedText>
           </ThemedView>
           
-          {/* Key Image Section */}
-          <View style={styles.keyImageContainer}>
-            <LinearGradient
-              colors={['rgba(32, 82, 149, 0.3)', 'rgba(10, 38, 71, 0.3)']}
-              style={styles.keyImageGradient}
-            >
-              <View style={styles.keyImageContent}>
-                <MaterialIcons name="nights-stay" size={80} color="#ffffff" />
-                <ThemedText type="defaultSemiBold" style={styles.keyImageText}>
-                  {t('track_your_wellness')}
-                </ThemedText>
-              </View>
-            </LinearGradient>
-          </View>
+          <AnimatedCircle />
 
           {/* Recommendations */}
           <RecommendationsView 
