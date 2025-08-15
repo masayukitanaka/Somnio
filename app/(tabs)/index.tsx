@@ -24,6 +24,13 @@ const ToolsMenu = ({ currentLanguage }: { currentLanguage: string }) => {
   
   const menuItems = [
     {
+      id: 'meditation',
+      title: 'Meditation Timer',
+      icon: 'self-improvement',
+      color: '#7B68EE',
+      onPress: () => navigation.navigate('meditation-timer'),
+    },
+    {
       id: 'breathing',
       title: 'Breathing',
       icon: 'air',

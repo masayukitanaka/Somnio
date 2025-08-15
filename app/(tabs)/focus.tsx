@@ -200,6 +200,10 @@ export default function FocusScreen() {
     router.push('/sudoku');
   };
 
+  const handleMeditationTimer = () => {
+    router.push('/meditation-timer');
+  };
+
 
   return (
     <>
@@ -233,6 +237,12 @@ export default function FocusScreen() {
                 {t('productivity_tools')}
               </ThemedText>
               <View style={styles.toolsGrid}>
+                <ToolButton
+                  title="Meditation Timer"
+                  icon="self-improvement"
+                  onPress={handleMeditationTimer}
+                  color="rgba(123, 104, 238, 0.8)"
+                />
                 <ToolButton
                   title={t('pomodoro_timer')}
                   icon="timer"
