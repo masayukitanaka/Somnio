@@ -21,12 +21,14 @@ import { useAudio } from '@/contexts/AudioContext';
 import { useSleepTimer } from '@/hooks/useSleepTimer';
 import { VolumeSlider } from './VolumeSlider';
 import { SleepTimer } from './SleepTimer';
+import { FavoriteService } from '@/services/favoriteService';
 
 const { height: screenHeight, width: screenWidth } = Dimensions.get('window');
 
 interface PlayerModalProps {
   visible: boolean;
   onClose: () => void;
+  onFavoriteChange?: () => void;
   item: {
     id: string;
     title: string;
@@ -39,12 +41,13 @@ interface PlayerModalProps {
   } | null;
 }
 
-export function PlayerModal({ visible, onClose, item }: PlayerModalProps) {
+export function PlayerModal({ visible, onClose, onFavoriteChange, item }: PlayerModalProps) {
   const translateY = useRef(new Animated.Value(screenHeight)).current;
   const [volumeSliderVisible, setVolumeSliderVisible] = React.useState(false);
   const [sleepTimerVisible, setSleepTimerVisible] = React.useState(false);
   const [seekIndicatorPosition, setSeekIndicatorPosition] = React.useState<number | null>(null);
   const [isSeeking, setIsSeeking] = React.useState(false);
+  const [isFavorite, setIsFavorite] = React.useState(false);
   const progressBarRef = useRef<View>(null);
 
   // Convert underscore to hyphen in icon names for MaterialIcons compatibility
@@ -88,6 +91,10 @@ export function PlayerModal({ visible, onClose, item }: PlayerModalProps) {
       }).start();
       if (!currentItem || currentItem.id !== item?.id) {
         loadAudio();
+      }
+      // Check favorite status when modal opens
+      if (item?.id) {
+        checkFavoriteStatus();
       }
     } else {
       Animated.timing(translateY, {
@@ -302,6 +309,31 @@ export function PlayerModal({ visible, onClose, item }: PlayerModalProps) {
     return 'volume-up';
   };
 
+  const checkFavoriteStatus = async () => {
+    if (!item?.id) return;
+    try {
+      const favorite = await FavoriteService.isFavorite(item.id);
+      setIsFavorite(favorite);
+    } catch (error) {
+      console.error('Error checking favorite status:', error);
+    }
+  };
+
+  const handleFavoriteToggle = async () => {
+    if (!item?.id) return;
+    
+    try {
+      const newFavoriteStatus = await FavoriteService.toggleFavorite(item.id);
+      setIsFavorite(newFavoriteStatus);
+      // Provide haptic feedback
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      // Notify parent component of favorite change
+      onFavoriteChange?.();
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
+    }
+  };
+
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
@@ -511,8 +543,15 @@ export function PlayerModal({ visible, onClose, item }: PlayerModalProps) {
                 />
               </TouchableOpacity>
               
-              <TouchableOpacity style={styles.bottomButton}>
-                <MaterialIcons name="favorite-border" size={24} color="#ffffff" />
+              <TouchableOpacity 
+                style={styles.bottomButton}
+                onPress={handleFavoriteToggle}
+              >
+                <MaterialIcons 
+                  name={isFavorite ? "favorite" : "favorite-border"} 
+                  size={24} 
+                  color={isFavorite ? "#FF6B6B" : "#ffffff"} 
+                />
               </TouchableOpacity>
             </View>
           </View>

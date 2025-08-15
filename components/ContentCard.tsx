@@ -4,6 +4,7 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useFocusEffect } from '@react-navigation/native';
 import { ContentItem } from '@/services/contentService';
 import { useAudio } from '@/contexts/AudioContext';
+import { FavoriteService } from '@/services/favoriteService';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.7;
@@ -12,11 +13,13 @@ const CARD_MARGIN = 10;
 interface ContentCardProps {
   item: ContentItem;
   onPress: () => void;
+  onFavoriteChange?: () => void;
 }
 
-export const ContentCard: React.FC<ContentCardProps> = ({ item, onPress }) => {
+export const ContentCard: React.FC<ContentCardProps> = ({ item, onPress, onFavoriteChange }) => {
   const [isDownloaded, setIsDownloaded] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(false);
   const { isAudioDownloaded, downloadAudio } = useAudio();
 
   // Convert underscore to hyphen in icon names for MaterialIcons compatibility
@@ -24,12 +27,14 @@ export const ContentCard: React.FC<ContentCardProps> = ({ item, onPress }) => {
 
   useEffect(() => {
     checkDownloadStatus();
+    checkFavoriteStatus();
   }, [item.id]);
 
   // Re-check download status when screen receives focus
   useFocusEffect(
     useCallback(() => {
       checkDownloadStatus();
+      checkFavoriteStatus();
       
       // Also check periodically while focused
       const checkInterval = setInterval(() => {
@@ -49,6 +54,15 @@ export const ContentCard: React.FC<ContentCardProps> = ({ item, onPress }) => {
     }
   };
 
+  const checkFavoriteStatus = async () => {
+    try {
+      const favorite = await FavoriteService.isFavorite(item.id);
+      setIsFavorite(favorite);
+    } catch (error) {
+      console.error('Error checking favorite status:', error);
+    }
+  };
+
   const handleDownloadClick = async (e: any) => {
     e.stopPropagation();
     
@@ -62,6 +76,19 @@ export const ContentCard: React.FC<ContentCardProps> = ({ item, onPress }) => {
       console.error('Download failed:', error);
     } finally {
       setIsDownloading(false);
+    }
+  };
+
+  const handleFavoriteClick = async (e: any) => {
+    e.stopPropagation();
+    
+    try {
+      const newFavoriteStatus = await FavoriteService.toggleFavorite(item.id);
+      setIsFavorite(newFavoriteStatus);
+      // Notify parent component of favorite change
+      onFavoriteChange?.();
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
     }
   };
 
@@ -107,6 +134,16 @@ export const ContentCard: React.FC<ContentCardProps> = ({ item, onPress }) => {
               color={getDownloadIconColor()}
             />
           </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.favoriteButton}
+            onPress={handleFavoriteClick}
+          >
+            <MaterialIcons 
+              name={isFavorite ? "favorite" : "favorite-border"}
+              size={24} 
+              color={isFavorite ? "#FF6B6B" : "rgba(255, 255, 255, 0.9)"}
+            />
+          </TouchableOpacity>
           <View style={styles.cardContent}>
             <Text style={styles.cardTitle}>{item.title}</Text>
             <Text style={styles.cardDuration}>{item.duration}</Text>
@@ -129,6 +166,16 @@ export const ContentCard: React.FC<ContentCardProps> = ({ item, onPress }) => {
               name={getDownloadIcon() as any}
               size={20} 
               color={getDownloadIconColor()}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.favoriteButton}
+            onPress={handleFavoriteClick}
+          >
+            <MaterialIcons 
+              name={isFavorite ? "favorite" : "favorite-border"}
+              size={24} 
+              color={isFavorite ? "#FF6B6B" : "rgba(255, 255, 255, 0.9)"}
             />
           </TouchableOpacity>
           <View style={styles.cardContent}>
@@ -200,6 +247,17 @@ const styles = StyleSheet.create({
   },
   downloadedButton: {
     backgroundColor: 'rgba(76, 175, 80, 0.2)',
+  },
+  favoriteButton: {
+    position: 'absolute',
+    bottom: 10,
+    right: 10,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   cardTitle: {
     fontSize: 18,

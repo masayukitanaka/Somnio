@@ -16,21 +16,38 @@ import CoffeeSteamAnimation from '@/components/CoffeeSteamAnimation';
 import { getRelaxContent, ContentItem, clearApiCache } from '@/services/contentService';
 import { useAudio } from '@/contexts/AudioContext';
 import { contentTabTranslations, getCurrentLanguage, getTranslation } from '@/utils/i18n';
+import { FavoriteService } from '@/services/favoriteService';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.7;
 const CARD_MARGIN = 10;
+
+// Sort content to prioritize favorites first
+const sortContentByFavorites = async (items: ContentItem[]): Promise<ContentItem[]> => {
+  const favorites = await FavoriteService.getFavorites();
+  const favoriteSet = new Set(favorites);
+  
+  return items.sort((a, b) => {
+    const aIsFavorite = favoriteSet.has(a.id);
+    const bIsFavorite = favoriteSet.has(b.id);
+    
+    if (aIsFavorite && !bIsFavorite) return -1;
+    if (!aIsFavorite && bIsFavorite) return 1;
+    return 0;
+  });
+};
 
 interface RelaxContent {
   calmingSounds: ContentItem[];
   guidedRelaxation: ContentItem[];
 }
 
-const ContentSection = ({ title, data, icon, onItemPress, isLoading, refreshKey }: { 
+const ContentSection = ({ title, data, icon, onItemPress, onFavoriteChange, isLoading, refreshKey }: { 
   title: string; 
   data: ContentItem[]; 
   icon?: string; 
   onItemPress: (item: ContentItem) => void;
+  onFavoriteChange?: () => void;
   isLoading?: boolean;
   refreshKey?: number;
 }) => (
@@ -53,6 +70,7 @@ const ContentSection = ({ title, data, icon, onItemPress, isLoading, refreshKey 
             key={`${item.id}-${refreshKey}`}
             item={item} 
             onPress={() => onItemPress(item)}
+            onFavoriteChange={onFavoriteChange}
           />
         )}
         keyExtractor={(item) => `${item.id}-${refreshKey}`}
@@ -166,7 +184,14 @@ export default function RelaxScreen() {
     try {
       setIsLoading(true);
       const relaxContent = await getRelaxContent();
-      setContent(relaxContent);
+      
+      // Sort each category by favorites
+      const sortedContent = {
+        calmingSounds: await sortContentByFavorites(relaxContent.calmingSounds),
+        guidedRelaxation: await sortContentByFavorites(relaxContent.guidedRelaxation),
+      };
+      
+      setContent(sortedContent);
     } catch (error) {
       console.error('Error loading relax content:', error);
     } finally {
@@ -182,6 +207,11 @@ export default function RelaxScreen() {
   const handleCloseModal = () => {
     setModalVisible(false);
     setSelectedItem(null);
+  };
+
+  const handleFavoriteChange = () => {
+    // Reload and re-sort content when favorites change
+    loadContent();
   };
 
   const handleBreathingExercise = () => {
@@ -241,6 +271,7 @@ export default function RelaxScreen() {
               data={content.calmingSounds} 
               icon="volume-up" 
               onItemPress={handleItemPress}
+              onFavoriteChange={handleFavoriteChange}
               isLoading={isLoading}
               refreshKey={refreshKey}
             />
@@ -249,6 +280,7 @@ export default function RelaxScreen() {
               data={content.guidedRelaxation} 
               icon="self-improvement" 
               onItemPress={handleItemPress}
+              onFavoriteChange={handleFavoriteChange}
               isLoading={isLoading}
               refreshKey={refreshKey}
             />
@@ -261,6 +293,7 @@ export default function RelaxScreen() {
       <PlayerModal
         visible={modalVisible}
         onClose={handleCloseModal}
+        onFavoriteChange={handleFavoriteChange}
         item={selectedItem}
       />
       <MiniPlayer onPress={() => {

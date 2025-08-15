@@ -16,21 +16,38 @@ import PenAnimation from '@/components/PenAnimation';
 import { getFocusContent, ContentItem, clearApiCache } from '@/services/contentService';
 import { useAudio } from '@/contexts/AudioContext';
 import { contentTabTranslations, getCurrentLanguage, getTranslation } from '@/utils/i18n';
+import { FavoriteService } from '@/services/favoriteService';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.7;
 const CARD_MARGIN = 10;
+
+// Sort content to prioritize favorites first
+const sortContentByFavorites = async (items: ContentItem[]): Promise<ContentItem[]> => {
+  const favorites = await FavoriteService.getFavorites();
+  const favoriteSet = new Set(favorites);
+  
+  return items.sort((a, b) => {
+    const aIsFavorite = favoriteSet.has(a.id);
+    const bIsFavorite = favoriteSet.has(b.id);
+    
+    if (aIsFavorite && !bIsFavorite) return -1;
+    if (!aIsFavorite && bIsFavorite) return 1;
+    return 0;
+  });
+};
 
 interface FocusContent {
   workMusic: ContentItem[];
   quickMeditation: ContentItem[];
 }
 
-const ContentSection = ({ title, data, icon, onItemPress, isLoading, refreshKey }: { 
+const ContentSection = ({ title, data, icon, onItemPress, onFavoriteChange, isLoading, refreshKey }: { 
   title: string; 
   data: ContentItem[]; 
   icon?: string; 
   onItemPress: (item: ContentItem) => void;
+  onFavoriteChange?: () => void;
   isLoading?: boolean;
   refreshKey?: number;
 }) => (
@@ -53,6 +70,7 @@ const ContentSection = ({ title, data, icon, onItemPress, isLoading, refreshKey 
             key={`${item.id}-${refreshKey}`}
             item={item} 
             onPress={() => onItemPress(item)}
+            onFavoriteChange={onFavoriteChange}
           />
         )}
         keyExtractor={(item) => `${item.id}-${refreshKey}`}
@@ -166,7 +184,14 @@ export default function FocusScreen() {
     try {
       setIsLoading(true);
       const focusContent = await getFocusContent();
-      setContent(focusContent);
+      
+      // Sort each category by favorites
+      const sortedContent = {
+        workMusic: await sortContentByFavorites(focusContent.workMusic),
+        quickMeditation: await sortContentByFavorites(focusContent.quickMeditation),
+      };
+      
+      setContent(sortedContent);
     } catch (error) {
       console.error('Error loading focus content:', error);
     } finally {
@@ -182,6 +207,11 @@ export default function FocusScreen() {
   const handleCloseModal = () => {
     setModalVisible(false);
     setSelectedItem(null);
+  };
+
+  const handleFavoriteChange = () => {
+    // Reload and re-sort content when favorites change
+    loadContent();
   };
 
   const handlePomodoroTimer = () => {
@@ -276,6 +306,7 @@ export default function FocusScreen() {
               data={content.workMusic} 
               icon="music-note" 
               onItemPress={handleItemPress}
+              onFavoriteChange={handleFavoriteChange}
               isLoading={isLoading}
               refreshKey={refreshKey}
             />
@@ -284,6 +315,7 @@ export default function FocusScreen() {
               data={content.quickMeditation} 
               icon="self-improvement" 
               onItemPress={handleItemPress}
+              onFavoriteChange={handleFavoriteChange}
               isLoading={isLoading}
               refreshKey={refreshKey}
             />
@@ -296,6 +328,7 @@ export default function FocusScreen() {
       <PlayerModal
         visible={modalVisible}
         onClose={handleCloseModal}
+        onFavoriteChange={handleFavoriteChange}
         item={selectedItem}
       />
       <MiniPlayer onPress={() => {
