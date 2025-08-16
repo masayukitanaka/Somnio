@@ -15,6 +15,7 @@ import { MiniPlayer } from '@/components/MiniPlayer';
 import { getCurrentLanguage, getTranslation, homeTabTranslations } from '@/utils/i18n';
 import { getRecommendations, ContentItem } from '@/services/contentService';
 import { useAudio } from '@/contexts/AudioContext';
+import { useTheme } from '@/contexts/ThemeContext';
 
 const { width } = Dimensions.get('window');
 
@@ -399,6 +400,7 @@ export default function HomeScreen() {
   const [playerModalVisible, setPlayerModalVisible] = useState(false);
   const [selectedItem, setSelectedItem] = useState<ContentItem | null>(null);
   const isFocused = useIsFocused();
+  const { colors } = useTheme();
   const { 
     currentSound,
     currentItem,
@@ -475,11 +477,11 @@ export default function HomeScreen() {
 
   return (
     <LinearGradient
-      colors={['#0A2647', '#144272', '#205295']}
+      colors={colors.backgroundGradient as readonly [string, string, ...string[]]}
       style={styles.gradient}
     >
       <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="light-content" backgroundColor="#0A2647" />
+        <StatusBar barStyle="light-content" backgroundColor={colors.backgroundGradient[0]} />
         <RemoveAdsButton />
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
           <ThemedView style={[styles.header, { backgroundColor: 'transparent' }]}>

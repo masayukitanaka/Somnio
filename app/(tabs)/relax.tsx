@@ -17,6 +17,7 @@ import { getRelaxContent, ContentItem, clearApiCache } from '@/services/contentS
 import { useAudio } from '@/contexts/AudioContext';
 import { contentTabTranslations, getCurrentLanguage, getTranslation } from '@/utils/i18n';
 import { FavoriteService } from '@/services/favoriteService';
+import { useTheme } from '@/contexts/ThemeContext';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.7;
@@ -95,6 +96,7 @@ const ActionButton = ({ title, icon, onPress, color }: { title: string; icon: st
 
 export default function RelaxScreen() {
   const router = useRouter();
+  const { colors } = useTheme();
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedItem, setSelectedItem] = useState<ContentItem | null>(null);
   const [content, setContent] = useState<RelaxContent>({
@@ -225,11 +227,11 @@ export default function RelaxScreen() {
   return (
     <>
       <LinearGradient
-        colors={['#0A2647', '#144272', '#205295']}
+        colors={colors.backgroundGradient as readonly [string, string, ...string[]]}
         style={styles.gradient}
       >
         <SafeAreaView style={styles.container}>
-          <StatusBar barStyle="light-content" backgroundColor="#0A2647" />
+          <StatusBar barStyle="light-content" backgroundColor={colors.backgroundGradient[0]} />
           <RemoveAdsButton />
           <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
             

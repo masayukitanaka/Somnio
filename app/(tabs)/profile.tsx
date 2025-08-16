@@ -10,6 +10,8 @@ import { RemoveAdsButton } from '@/components/RemoveAdsButton';
 import { clearApiCache, clearThumbnailCache, clearApiCacheForLanguageChange } from '@/services/contentService';
 import { AudioAssetManager } from '@/services/AudioAssetManager';
 import { profileTranslations, getCurrentLanguage, getTranslation } from '@/utils/i18n';
+import { useTheme } from '@/contexts/ThemeContext';
+import { presetThemes, ColorSettings } from '@/services/colorSettingsService';
 
 const termsUrl = 'https://example.com/terms'; // Replace with actual URL
 const supportUrl = 'https://example.com/support'; // Replace with actual URL
@@ -41,7 +43,9 @@ export default function ProfileScreen() {
   const [saveBattery, setSaveBattery] = useState(false);
   const [showUILanguageModal, setShowUILanguageModal] = useState(false);
   const [showAudioLanguageModal, setShowAudioLanguageModal] = useState(false);
+  const [showThemeModal, setShowThemeModal] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState('en');
+  const { colors, updateColors } = useTheme();
 
   useEffect(() => {
     loadSettings();
@@ -158,11 +162,11 @@ export default function ProfileScreen() {
 
   return (
     <LinearGradient
-      colors={['#0A2647', '#144272', '#205295']}
+      colors={colors.backgroundGradient as readonly [string, string, ...string[]]}
       style={styles.gradient}
     >
       <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="light-content" backgroundColor="#0A2647" />
+        <StatusBar barStyle="light-content" backgroundColor={colors.backgroundGradient[0]} />
         <RemoveAdsButton />
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
           <ThemedView style={[styles.header, { backgroundColor: 'transparent' }]}>
@@ -203,6 +207,25 @@ export default function ProfileScreen() {
                     {audioLanguages.map(lang => 
                       AVAILABLE_AUDIO_LANGUAGES.find(l => l.code === lang)?.name
                     ).join(', ')}
+                  </Text>
+                </View>
+              </View>
+              <MaterialIcons name="chevron-right" size={24} color="rgba(255, 255, 255, 0.6)" />
+            </TouchableOpacity>
+
+            {/* Theme Setting */}
+            <TouchableOpacity 
+              style={styles.settingItem} 
+              onPress={() => setShowThemeModal(true)}
+            >
+              <View style={styles.settingLeft}>
+                <MaterialIcons name="palette" size={24} color="#ffffff" />
+                <View style={styles.settingTextContainer}>
+                  <Text style={styles.settingTitle}>{t('theme')}</Text>
+                  <Text style={styles.settingSubtitle}>
+                    {Object.entries(presetThemes).find(
+                      ([_, theme]) => JSON.stringify(theme.colors.backgroundGradient) === JSON.stringify(colors.backgroundGradient)
+                    )?.[1].name || t('custom')}
                   </Text>
                 </View>
               </View>
@@ -350,6 +373,47 @@ export default function ProfileScreen() {
             </View>
           </View>
         )}
+
+        {/* Theme Modal */}
+        {showThemeModal && (
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>{t('select_theme')}</Text>
+              <ScrollView style={{ maxHeight: 400 }}>
+                {Object.entries(presetThemes).map(([key, theme]) => (
+                  <TouchableOpacity
+                    key={key}
+                    style={styles.themeOption}
+                    onPress={() => {
+                      updateColors(theme.colors);
+                      setShowThemeModal(false);
+                    }}
+                  >
+                    <View style={styles.themePreview}>
+                      <LinearGradient
+                        colors={theme.colors.backgroundGradient as readonly [string, string, ...string[]]}
+                        style={styles.themeGradient}
+                      />
+                      <View 
+                        style={[
+                          styles.themeTabBar, 
+                          { backgroundColor: theme.colors.tabBarBackground }
+                        ]} 
+                      />
+                    </View>
+                    <Text style={styles.themeName}>{theme.name}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+              <TouchableOpacity
+                style={styles.modalCloseButton}
+                onPress={() => setShowThemeModal(false)}
+              >
+                <Text style={styles.modalCloseButtonText}>{t('cancel')}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
       </SafeAreaView>
     </LinearGradient>
   );
@@ -487,5 +551,34 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#ffffff',
+  },
+  themeOption: {
+    marginBottom: 16,
+    alignItems: 'center',
+  },
+  themePreview: {
+    width: '100%',
+    height: 120,
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginBottom: 8,
+    position: 'relative',
+  },
+  themeGradient: {
+    flex: 1,
+  },
+  themeTabBar: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 30,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  themeName: {
+    fontSize: 14,
+    color: '#ffffff',
+    textAlign: 'center',
   },
 });

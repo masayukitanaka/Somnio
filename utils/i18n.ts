@@ -913,6 +913,24 @@ export const profileTranslations: Translations = {
   },
 
   // Settings items
+  'theme': {
+    'en': 'Theme',
+    'ja': 'テーマ',
+    'es': 'Tema',
+    'zh': '主题',
+  },
+  'select_theme': {
+    'en': 'Select Theme',
+    'ja': 'テーマを選択',
+    'es': 'Seleccionar tema',
+    'zh': '选择主题',
+  },
+  'custom': {
+    'en': 'Custom',
+    'ja': 'カスタム',
+    'es': 'Personalizado',
+    'zh': '自定义',
+  },
   'ui_language': {
     'en': 'UI Language',
     'ja': 'UI言語',
