@@ -1,137 +1,67 @@
-import { View, StyleSheet, Image, Animated, Easing } from 'react-native';
-import { useEffect, useRef } from 'react';
+import { View, StyleSheet, Image } from 'react-native';
+import { useEffect } from 'react';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withRepeat,
+  withSequence,
+  withTiming,
+  Easing,
+} from 'react-native-reanimated';
 
 export default function PenAnimation() {
-  const translateX = useRef(new Animated.Value(-15)).current;
-  const translateY = useRef(new Animated.Value(0)).current;
+  const translateX = useSharedValue(-15);
+  const translateY = useSharedValue(0);
 
   useEffect(() => {
-    const moveAnimation = Animated.loop(
-      Animated.sequence([
+    // Create zigzag writing animation
+    translateX.value = withRepeat(
+      withSequence(
         // Start position to first zigzag point
-        Animated.parallel([
-          Animated.timing(translateX, {
-            toValue: -12,
-            duration: 250,
-            easing: Easing.linear,
-            useNativeDriver: true,
-          }),
-          Animated.timing(translateY, {
-            toValue: -3,
-            duration: 250,
-            easing: Easing.linear,
-            useNativeDriver: true,
-          }),
-        ]),
+        withTiming(-12, { duration: 250, easing: Easing.linear }),
         // Zigzag motion moving right
-        Animated.parallel([
-          Animated.timing(translateX, {
-            toValue: -6,
-            duration: 200,
-            easing: Easing.linear,
-            useNativeDriver: true,
-          }),
-          Animated.timing(translateY, {
-            toValue: 3,
-            duration: 200,
-            easing: Easing.linear,
-            useNativeDriver: true,
-          }),
-        ]),
-        Animated.parallel([
-          Animated.timing(translateX, {
-            toValue: 0,
-            duration: 200,
-            easing: Easing.linear,
-            useNativeDriver: true,
-          }),
-          Animated.timing(translateY, {
-            toValue: -3,
-            duration: 200,
-            easing: Easing.linear,
-            useNativeDriver: true,
-          }),
-        ]),
-        Animated.parallel([
-          Animated.timing(translateX, {
-            toValue: 6,
-            duration: 200,
-            easing: Easing.linear,
-            useNativeDriver: true,
-          }),
-          Animated.timing(translateY, {
-            toValue: 3,
-            duration: 200,
-            easing: Easing.linear,
-            useNativeDriver: true,
-          }),
-        ]),
-        Animated.parallel([
-          Animated.timing(translateX, {
-            toValue: 12,
-            duration: 200,
-            easing: Easing.linear,
-            useNativeDriver: true,
-          }),
-          Animated.timing(translateY, {
-            toValue: -3,
-            duration: 200,
-            easing: Easing.linear,
-            useNativeDriver: true,
-          }),
-        ]),
-        Animated.parallel([
-          Animated.timing(translateX, {
-            toValue: 15,
-            duration: 200,
-            easing: Easing.linear,
-            useNativeDriver: true,
-          }),
-          Animated.timing(translateY, {
-            toValue: 3,
-            duration: 200,
-            easing: Easing.linear,
-            useNativeDriver: true,
-          }),
-        ]),
+        withTiming(-6, { duration: 200, easing: Easing.linear }),
+        withTiming(0, { duration: 200, easing: Easing.linear }),
+        withTiming(6, { duration: 200, easing: Easing.linear }),
+        withTiming(12, { duration: 200, easing: Easing.linear }),
+        withTiming(15, { duration: 200, easing: Easing.linear }),
         // Quick return to start
-        Animated.parallel([
-          Animated.timing(translateX, {
-            toValue: -15,
-            duration: 400,
-            easing: Easing.out(Easing.ease),
-            useNativeDriver: true,
-          }),
-          Animated.timing(translateY, {
-            toValue: 0,
-            duration: 400,
-            easing: Easing.out(Easing.ease),
-            useNativeDriver: true,
-          }),
-        ]),
-      ])
+        withTiming(-15, { duration: 400, easing: Easing.out(Easing.ease) })
+      ),
+      -1,
+      false
     );
 
-    moveAnimation.start();
+    translateY.value = withRepeat(
+      withSequence(
+        // Start position to first zigzag point
+        withTiming(-3, { duration: 250, easing: Easing.linear }),
+        // Zigzag motion (up and down pattern)
+        withTiming(3, { duration: 200, easing: Easing.linear }),
+        withTiming(-3, { duration: 200, easing: Easing.linear }),
+        withTiming(3, { duration: 200, easing: Easing.linear }),
+        withTiming(-3, { duration: 200, easing: Easing.linear }),
+        withTiming(3, { duration: 200, easing: Easing.linear }),
+        // Quick return to start
+        withTiming(0, { duration: 400, easing: Easing.out(Easing.ease) })
+      ),
+      -1,
+      false
+    );
+  }, []);
 
-    return () => {
-      moveAnimation.stop();
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [
+        { translateX: translateX.value },
+        { translateY: translateY.value },
+      ],
+      opacity: 0.9,
     };
-  }, [translateX, translateY]);
+  });
 
   return (
-    <Animated.View
-      style={[
-        styles.pen,
-        {
-          transform: [
-            { translateX },
-            { translateY },
-          ],
-          opacity: 0.9,
-        },
-      ]}
-    >
+    <Animated.View style={[styles.pen, animatedStyle]}>
       <Image
         source={require('../assets/images/pen.png')}
         style={styles.image}
