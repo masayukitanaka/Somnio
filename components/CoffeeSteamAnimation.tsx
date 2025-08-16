@@ -1,71 +1,79 @@
-import React, { useEffect, useRef } from 'react';
-import { View, Image, Animated, StyleSheet } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Image, StyleSheet } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withRepeat,
+  withSequence,
+  withDelay,
+  withTiming,
+  interpolate,
+  Easing,
+} from 'react-native-reanimated';
 
 export default function CoffeeSteamAnimation() {
-  // Steam animation refs
-  const steam1Anim = useRef(new Animated.Value(0)).current;
-  const steam2Anim = useRef(new Animated.Value(0)).current;
-  const steam3Anim = useRef(new Animated.Value(0)).current;
+  // Steam animation shared values
+  const steam1Progress = useSharedValue(0);
+  const steam2Progress = useSharedValue(0);
+  const steam3Progress = useSharedValue(0);
 
   useEffect(() => {
-    // Create steam animation loop
-    const createSteamAnimation = (animValue: Animated.Value, delay: number) => {
-      return Animated.loop(
-        Animated.sequence([
-          Animated.delay(delay),
-          Animated.timing(animValue, {
-            toValue: 1,
-            duration: 3000,
-            useNativeDriver: true,
-          }),
-          Animated.timing(animValue, {
-            toValue: 0,
-            duration: 0,
-            useNativeDriver: true,
-          }),
-        ])
-      );
-    };
-
     // Start animations with different delays
-    Animated.parallel([
-      createSteamAnimation(steam1Anim, 0),
-      createSteamAnimation(steam2Anim, 1000),
-      createSteamAnimation(steam3Anim, 2000),
-    ]).start();
-  }, [steam1Anim, steam2Anim, steam3Anim]);
+    steam1Progress.value = withRepeat(
+      withSequence(
+        withTiming(1, { duration: 3000, easing: Easing.inOut(Easing.ease) }),
+        withTiming(0, { duration: 0 })
+      ),
+      -1,
+      false
+    );
+
+    steam2Progress.value = withDelay(
+      1000,
+      withRepeat(
+        withSequence(
+          withTiming(1, { duration: 3000, easing: Easing.inOut(Easing.ease) }),
+          withTiming(0, { duration: 0 })
+        ),
+        -1,
+        false
+      )
+    );
+
+    steam3Progress.value = withDelay(
+      2000,
+      withRepeat(
+        withSequence(
+          withTiming(1, { duration: 3000, easing: Easing.inOut(Easing.ease) }),
+          withTiming(0, { duration: 0 })
+        ),
+        -1,
+        false
+      )
+    );
+  }, []);
 
   // Helper function to create steam particles
-  const renderSteam = (animValue: Animated.Value, index: number) => {
-    const translateY = animValue.interpolate({
-      inputRange: [0, 1],
-      outputRange: [0, -50],
-    });
+  const renderSteam = (progress: Animated.SharedValue<number>, index: number) => {
+    const animatedStyle = useAnimatedStyle(() => {
+      const translateY = interpolate(progress.value, [0, 1], [0, -50]);
+      const opacity = interpolate(progress.value, [0, 0.5, 1], [0, 0.8, 0]);
+      const scale = interpolate(progress.value, [0, 1], [0.5, 1.5]);
 
-    const opacity = animValue.interpolate({
-      inputRange: [0, 0.5, 1],
-      outputRange: [0, 0.8, 0],
-    });
-
-    const scale = animValue.interpolate({
-      inputRange: [0, 1],
-      outputRange: [0.5, 1.5],
+      return {
+        transform: [
+          { translateY },
+          { translateX: index === 0 ? -10 : index === 1 ? 0 : 10 },
+          { scale },
+        ],
+        opacity,
+      };
     });
 
     return (
       <Animated.View
         key={index}
-        style={[
-          styles.steam,
-          {
-            transform: [
-              { translateY },
-              { translateX: index === 0 ? -10 : index === 1 ? 0 : 10 },
-              { scale },
-            ],
-            opacity,
-          },
-        ]}
+        style={[styles.steam, animatedStyle]}
       />
     );
   };
@@ -77,9 +85,9 @@ export default function CoffeeSteamAnimation() {
         style={styles.coffeeImage}
       />
       <View style={styles.steamContainer}>
-        {renderSteam(steam1Anim, 0)}
-        {renderSteam(steam2Anim, 1)}
-        {renderSteam(steam3Anim, 2)}
+        {renderSteam(steam1Progress, 0)}
+        {renderSteam(steam2Progress, 1)}
+        {renderSteam(steam3Progress, 2)}
       </View>
     </View>
   );
