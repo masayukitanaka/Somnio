@@ -20,6 +20,7 @@ export const ContentCard: React.FC<ContentCardProps> = ({ item, onPress, onFavor
   const [isDownloaded, setIsDownloaded] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [showDownloadIcon, setShowDownloadIcon] = useState(false);
   const { isAudioDownloaded, downloadAudio } = useAudio();
 
   // Convert underscore to hyphen in icon names for MaterialIcons compatibility
@@ -33,15 +34,23 @@ export const ContentCard: React.FC<ContentCardProps> = ({ item, onPress, onFavor
   // Re-check download status when screen receives focus
   useFocusEffect(
     useCallback(() => {
-      checkDownloadStatus();
-      checkFavoriteStatus();
+      // Delay showing the download icon to prevent flickering
+      const timer = setTimeout(() => {
+        checkDownloadStatus();
+        checkFavoriteStatus();
+        setShowDownloadIcon(true);
+      }, 500); // Wait 500ms before showing the icon
       
       // Also check periodically while focused
       const checkInterval = setInterval(() => {
         checkDownloadStatus();
       }, 2000); // Check every 2 seconds
 
-      return () => clearInterval(checkInterval);
+      return () => {
+        clearTimeout(timer);
+        clearInterval(checkInterval);
+        setShowDownloadIcon(false); // Hide icon when leaving
+      };
     }, [item.id])
   );
 
@@ -123,17 +132,19 @@ export const ContentCard: React.FC<ContentCardProps> = ({ item, onPress, onFavor
             color="rgba(255, 255, 255, 0.8)" 
             style={styles.cardIcon}
           />
-          <TouchableOpacity 
-            style={[styles.downloadButton, isDownloaded && styles.downloadedButton]}
-            onPress={handleDownloadClick}
-            disabled={isDownloaded || isDownloading}
-          >
-            <MaterialIcons 
-              name={getDownloadIcon() as any}
-              size={20} 
-              color={getDownloadIconColor()}
-            />
-          </TouchableOpacity>
+          {showDownloadIcon && (
+            <TouchableOpacity 
+              style={[styles.downloadButton, isDownloaded && styles.downloadedButton]}
+              onPress={handleDownloadClick}
+              disabled={isDownloaded || isDownloading}
+            >
+              <MaterialIcons 
+                name={getDownloadIcon() as any}
+                size={20} 
+                color={getDownloadIconColor()}
+              />
+            </TouchableOpacity>
+          )}
           <TouchableOpacity 
             style={styles.favoriteButton}
             onPress={handleFavoriteClick}
@@ -157,17 +168,19 @@ export const ContentCard: React.FC<ContentCardProps> = ({ item, onPress, onFavor
             color="rgba(255, 255, 255, 0.6)" 
             style={styles.cardIcon}
           />
-          <TouchableOpacity 
-            style={[styles.downloadButton, isDownloaded && styles.downloadedButton]}
-            onPress={handleDownloadClick}
-            disabled={isDownloaded || isDownloading}
-          >
-            <MaterialIcons 
-              name={getDownloadIcon() as any}
-              size={20} 
-              color={getDownloadIconColor()}
-            />
-          </TouchableOpacity>
+          {showDownloadIcon && (
+            <TouchableOpacity 
+              style={[styles.downloadButton, isDownloaded && styles.downloadedButton]}
+              onPress={handleDownloadClick}
+              disabled={isDownloaded || isDownloading}
+            >
+              <MaterialIcons 
+                name={getDownloadIcon() as any}
+                size={20} 
+                color={getDownloadIconColor()}
+              />
+            </TouchableOpacity>
+          )}
           <TouchableOpacity 
             style={styles.favoriteButton}
             onPress={handleFavoriteClick}

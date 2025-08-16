@@ -12,13 +12,13 @@ export default function PenAnimation() {
         Animated.parallel([
           Animated.timing(translateX, {
             toValue: -12,
-            duration: 500,
+            duration: 250,
             easing: Easing.linear,
             useNativeDriver: true,
           }),
           Animated.timing(translateY, {
             toValue: -3,
-            duration: 500,
+            duration: 250,
             easing: Easing.linear,
             useNativeDriver: true,
           }),
@@ -27,13 +27,13 @@ export default function PenAnimation() {
         Animated.parallel([
           Animated.timing(translateX, {
             toValue: -6,
-            duration: 400,
+            duration: 200,
             easing: Easing.linear,
             useNativeDriver: true,
           }),
           Animated.timing(translateY, {
             toValue: 3,
-            duration: 400,
+            duration: 200,
             easing: Easing.linear,
             useNativeDriver: true,
           }),
@@ -41,13 +41,13 @@ export default function PenAnimation() {
         Animated.parallel([
           Animated.timing(translateX, {
             toValue: 0,
-            duration: 400,
+            duration: 200,
             easing: Easing.linear,
             useNativeDriver: true,
           }),
           Animated.timing(translateY, {
             toValue: -3,
-            duration: 400,
+            duration: 200,
             easing: Easing.linear,
             useNativeDriver: true,
           }),
@@ -55,13 +55,13 @@ export default function PenAnimation() {
         Animated.parallel([
           Animated.timing(translateX, {
             toValue: 6,
-            duration: 400,
+            duration: 200,
             easing: Easing.linear,
             useNativeDriver: true,
           }),
           Animated.timing(translateY, {
             toValue: 3,
-            duration: 400,
+            duration: 200,
             easing: Easing.linear,
             useNativeDriver: true,
           }),
@@ -69,13 +69,13 @@ export default function PenAnimation() {
         Animated.parallel([
           Animated.timing(translateX, {
             toValue: 12,
-            duration: 400,
+            duration: 200,
             easing: Easing.linear,
             useNativeDriver: true,
           }),
           Animated.timing(translateY, {
             toValue: -3,
-            duration: 400,
+            duration: 200,
             easing: Easing.linear,
             useNativeDriver: true,
           }),
@@ -83,13 +83,13 @@ export default function PenAnimation() {
         Animated.parallel([
           Animated.timing(translateX, {
             toValue: 15,
-            duration: 400,
+            duration: 200,
             easing: Easing.linear,
             useNativeDriver: true,
           }),
           Animated.timing(translateY, {
             toValue: 3,
-            duration: 400,
+            duration: 200,
             easing: Easing.linear,
             useNativeDriver: true,
           }),
@@ -98,13 +98,13 @@ export default function PenAnimation() {
         Animated.parallel([
           Animated.timing(translateX, {
             toValue: -15,
-            duration: 800,
+            duration: 400,
             easing: Easing.out(Easing.ease),
             useNativeDriver: true,
           }),
           Animated.timing(translateY, {
             toValue: 0,
-            duration: 800,
+            duration: 400,
             easing: Easing.out(Easing.ease),
             useNativeDriver: true,
           }),
