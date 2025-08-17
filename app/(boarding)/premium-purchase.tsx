@@ -23,6 +23,86 @@ import Animated, {
 import { PanGestureHandler } from "react-native-gesture-handler";
 import { breathingGradient } from "@/constants/onboardingData";
 import { getColorSettings } from "@/services/colorSettingsService";
+import { getLanguageSettings } from "@/services/languageSettingsService";
+
+const translations = {
+  en: {
+    title: "Upgrade to Premium",
+    subtitle: "Enjoy the same complete functionality with an ad-free experience",
+    features: {
+      content: "All meditation content included",
+      access: "Complete feature access", 
+      ads: "No advertisements"
+    },
+    monthlyPlan: "Monthly Plan",
+    yearlyPlan: "Yearly Plan",
+    perMonth: "per month",
+    perYear: "per year",
+    sliderText: "Slide to Purchase",
+    processing: "Processing...",
+    disclaimer: "Cancel anytime. Free version includes all features with ads.",
+    successTitle: "Purchase Successful!",
+    successMessage: "Thank you for upgrading to Premium. Enjoy ad-free experience!",
+    continueButton: "Continue"
+  },
+  es: {
+    title: "Actualizar a Premium",
+    subtitle: "Disfruta de la misma funcionalidad completa con una experiencia sin anuncios",
+    features: {
+      content: "Todo el contenido de meditación incluido",
+      access: "Acceso completo a funciones",
+      ads: "Sin anuncios"
+    },
+    monthlyPlan: "Plan Mensual",
+    yearlyPlan: "Plan Anual", 
+    perMonth: "por mes",
+    perYear: "por año",
+    sliderText: "Desliza para Comprar",
+    processing: "Procesando...",
+    disclaimer: "Cancela en cualquier momento. La versión gratuita incluye todas las funciones con anuncios.",
+    successTitle: "¡Compra Exitosa!",
+    successMessage: "Gracias por actualizar a Premium. ¡Disfruta de la experiencia sin anuncios!",
+    continueButton: "Continuar"
+  },
+  zh: {
+    title: "升级到高级版",
+    subtitle: "享受相同的完整功能和无广告体验",
+    features: {
+      content: "包含所有冥想内容",
+      access: "完整功能访问",
+      ads: "无广告"
+    },
+    monthlyPlan: "月度计划",
+    yearlyPlan: "年度计划",
+    perMonth: "每月",
+    perYear: "每年", 
+    sliderText: "滑动购买",
+    processing: "处理中...",
+    disclaimer: "随时取消。免费版包含所有功能和广告。",
+    successTitle: "购买成功！",
+    successMessage: "感谢您升级到高级版。享受无广告体验！",
+    continueButton: "继续"
+  },
+  ja: {
+    title: "プレミアムにアップグレード",
+    subtitle: "同じ完全な機能を広告なしでお楽しみください",
+    features: {
+      content: "すべての瞑想コンテンツが含まれます",
+      access: "完全な機能アクセス",
+      ads: "広告表示なし"
+    },
+    monthlyPlan: "月額プラン",
+    yearlyPlan: "年額プラン",
+    perMonth: "月額",
+    perYear: "年額",
+    sliderText: "スライドして購入",
+    processing: "処理中...",
+    disclaimer: "いつでもキャンセル可能。無料版は広告付きですべての機能を含みます。",
+    successTitle: "購入成功！",
+    successMessage: "プレミアムへのアップグレードありがとうございます。広告なしの体験をお楽しみください！",
+    continueButton: "続行"
+  }
+};
 
 const { width } = Dimensions.get("window");
 const SLIDER_WIDTH = width - 80;
@@ -38,18 +118,18 @@ interface PricingPlan {
   isPopular?: boolean;
 }
 
-const pricingPlans: PricingPlan[] = [
+const getPricingPlans = (t: any): PricingPlan[] => [
   {
     id: "monthly",
-    title: "Monthly Plan",
+    title: t.monthlyPlan,
     price: "$1.99",
-    period: "per month",
+    period: t.perMonth,
   },
   {
     id: "yearly",
-    title: "Yearly Plan",
+    title: t.yearlyPlan,
     price: "$19.99",
-    period: "per year",
+    period: t.perYear,
     originalPrice: "$23.88",
     isPopular: true,
   },
@@ -59,13 +139,32 @@ export default function PremiumPurchaseScreen() {
   const [selectedPlan, setSelectedPlan] = useState("yearly");
   const [isProcessing, setIsProcessing] = useState(false);
   const [backgroundColors, setBackgroundColors] = useState(breathingGradient);
+  const [currentLanguage, setCurrentLanguage] = useState('en');
 
   const translateX = useSharedValue(0);
   const isCompleted = useSharedValue(false);
 
+  const getCurrentTranslation = () => {
+    return translations[currentLanguage as keyof typeof translations] || translations.en;
+  };
+
+  const t = getCurrentTranslation();
+  const pricingPlans = getPricingPlans(t);
+
   useEffect(() => {
     loadColorSettings();
+    loadLanguageSettings();
   }, []);
+
+  const loadLanguageSettings = async () => {
+    try {
+      const languageSettings = await getLanguageSettings();
+      setCurrentLanguage(languageSettings.uiLanguage);
+    } catch (error) {
+      console.error('Error loading language settings:', error);
+      // Keep default language (English)
+    }
+  };
 
   const loadColorSettings = async () => {
     try {
@@ -94,11 +193,11 @@ export default function PremiumPurchaseScreen() {
     setTimeout(() => {
       setIsProcessing(false);
       Alert.alert(
-        "Purchase Successful!",
-        "Thank you for upgrading to Premium. Enjoy ad-free experience!",
+        t.successTitle,
+        t.successMessage,
         [
           {
-            text: "Continue",
+            text: t.continueButton,
             onPress: () => router.push("/(boarding)/ready"),
           },
         ]
@@ -172,24 +271,24 @@ export default function PremiumPurchaseScreen() {
         <Animated.View entering={FadeIn.duration(800)} style={styles.content}>
           <View style={styles.titleContainer}>
             <Ionicons name="star" size={48} color="#FFD700" style={styles.starIcon} />
-            <Text style={styles.title}>Upgrade to Premium</Text>
+            <Text style={styles.title}>{t.title}</Text>
             <Text style={styles.subtitle}>
-              Enjoy the same complete functionality with an ad-free experience
+              {t.subtitle}
             </Text>
           </View>
 
           <View style={styles.featuresContainer}>
             <View style={styles.featureItem}>
               <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
-              <Text style={styles.featureText}>All meditation content included</Text>
+              <Text style={styles.featureText}>{t.features.content}</Text>
             </View>
             <View style={styles.featureItem}>
               <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
-              <Text style={styles.featureText}>Complete feature access</Text>
+              <Text style={styles.featureText}>{t.features.access}</Text>
             </View>
             <View style={styles.featureItem}>
               <Ionicons name="remove-circle" size={24} color="#FF5722" />
-              <Text style={styles.featureText}>No advertisements</Text>
+              <Text style={styles.featureText}>{t.features.ads}</Text>
             </View>
           </View>
 
@@ -225,7 +324,7 @@ export default function PremiumPurchaseScreen() {
             <PanGestureHandler onGestureEvent={gestureHandler}>
               <Animated.View style={[styles.slider, backgroundAnimatedStyle]}>
                 <Animated.Text style={[styles.sliderText, textAnimatedStyle]}>
-                  {isProcessing ? "Processing..." : "Slide to Purchase"}
+                  {isProcessing ? t.processing : t.sliderText}
                 </Animated.Text>
                 <Animated.View style={[styles.sliderButton, buttonAnimatedStyle]}>
                   {isProcessing ? (
@@ -241,7 +340,7 @@ export default function PremiumPurchaseScreen() {
           </View>
 
           <Text style={styles.disclaimer}>
-            Cancel anytime. Free version includes all features with ads.
+            {t.disclaimer}
           </Text>
         </Animated.View>
       </SafeAreaView>

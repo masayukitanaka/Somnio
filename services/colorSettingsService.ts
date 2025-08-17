@@ -23,16 +23,6 @@ export const presetThemes = {
     name: 'Ocean Blue',
     colors: defaultColorSettings,
   },
-  sunset: {
-    name: 'Sunset',
-    colors: {
-      backgroundGradient: ['#FF6B6B', '#FF8E53', '#FFD93D'],
-      tabBarBackground: '#FF6B6B',
-      tabBarBorder: 'rgba(255, 255, 255, 0.2)',
-      tabActiveTint: '#FFFFFF',
-      tabInactiveTint: 'rgba(255, 255, 255, 0.5)',
-    },
-  },
   forest: {
     name: 'Forest',
     colors: {
@@ -41,16 +31,6 @@ export const presetThemes = {
       tabBarBorder: 'rgba(255, 255, 255, 0.15)',
       tabActiveTint: '#FFFFFF',
       tabInactiveTint: 'rgba(255, 255, 255, 0.6)',
-    },
-  },
-  purple: {
-    name: 'Purple Dream',
-    colors: {
-      backgroundGradient: ['#4A148C', '#7B1FA2', '#9C27B0'],
-      tabBarBackground: '#4A148C',
-      tabBarBorder: 'rgba(255, 255, 255, 0.2)',
-      tabActiveTint: '#FFFFFF',
-      tabInactiveTint: 'rgba(255, 255, 255, 0.5)',
     },
   },
   dark: {
@@ -63,6 +43,96 @@ export const presetThemes = {
       tabInactiveTint: 'rgba(255, 255, 255, 0.4)',
     },
   },
+
+  // Added
+  lavender: {
+    name: 'Lavender',
+    colors: {
+      backgroundGradient: ['#7E5A9B', '#9C7BB5', '#B89FCF'], // 柔らかいラベンダー調
+      tabBarBackground: '#7E5A9B',
+      tabBarBorder: 'rgba(255, 255, 255, 0.2)',
+      tabActiveTint: '#FFFFFF',
+      tabInactiveTint: 'rgba(255, 255, 255, 0.6)',
+    },
+  },
+
+  sand: {
+    name: 'Sand',
+    colors: {
+      backgroundGradient: ['#A68A64', '#BFA28D', '#D4C2A5'], // 落ち着いたベージュ
+      tabBarBackground: '#A68A64',
+      tabBarBorder: 'rgba(255, 255, 255, 0.2)',
+      tabActiveTint: '#FFFFFF',
+      tabInactiveTint: 'rgba(255, 255, 255, 0.6)',
+    },
+  },
+
+  zen: {
+    name: 'Zen',
+    colors: {
+      backgroundGradient: ['#4F6D7A', '#6B8A96', '#8FA9B7'], // 静かなグレイッシュブルー
+      tabBarBackground: '#4F6D7A',
+      tabBarBorder: 'rgba(255, 255, 255, 0.2)',
+      tabActiveTint: '#FFFFFF',
+      tabInactiveTint: 'rgba(255, 255, 255, 0.6)',
+    },
+  },
+
+  meadow: {
+    name: 'Meadow',
+    colors: {
+      backgroundGradient: ['#4A7C3A', '#6A9B55', '#8FB879'], // 草原をイメージした深緑
+      tabBarBackground: '#4A7C3A',
+      tabBarBorder: 'rgba(255, 255, 255, 0.2)',
+      tabActiveTint: '#FFFFFF',
+      tabInactiveTint: 'rgba(255, 255, 255, 0.6)',
+    },
+  },
+
+    autumnGlow: {
+    name: 'Autumn Glow',
+    colors: {
+      backgroundGradient: ['#8A2D3B', '#641B2E', '#4A101B'], // 暗めに寄せて深い秋色
+      tabBarBackground: '#641B2E',
+      tabBarBorder: 'rgba(255, 255, 255, 0.2)',
+      tabActiveTint: '#FFFFFF',
+      tabInactiveTint: 'rgba(255, 255, 255, 0.65)',
+    },
+  },
+
+  vintageDusk: {
+    name: 'Vintage Dusk',
+    colors: {
+      backgroundGradient: ['#604652', '#735557', '#8A6A70'], // ヴィンテージ感を保ちつつ暗め
+      tabBarBackground: '#604652',
+      tabBarBorder: 'rgba(255, 255, 255, 0.2)',
+      tabActiveTint: '#FFFFFF',
+      tabInactiveTint: 'rgba(255, 255, 255, 0.65)',
+    },
+  },
+
+  springMist: {
+    name: 'Spring Mist',
+    colors: {
+      backgroundGradient: ['#5F7F5F', '#6F9270', '#7FA585'], // 淡い緑ではなく深めの落ち着いたグリーン
+      tabBarBackground: '#5F7F5F',
+      tabBarBorder: 'rgba(255, 255, 255, 0.2)',
+      tabActiveTint: '#FFFFFF',
+      tabInactiveTint: 'rgba(255, 255, 255, 0.65)',
+    },
+  },
+
+  blushSerenity: {
+    name: 'Blush Serenity',
+    colors: {
+      backgroundGradient: ['#9C6C7C', '#B7838F', '#D9A5A9'], // パステルを避けてシックなピンク系に
+      tabBarBackground: '#9C6C7C',
+      tabBarBorder: 'rgba(255, 255, 255, 0.2)',
+      tabActiveTint: '#FFFFFF',
+      tabInactiveTint: 'rgba(255, 255, 255, 0.65)',
+    },
+  },
+
 };
 
 export async function getColorSettings(): Promise<ColorSettings> {

@@ -13,6 +13,7 @@ import { Ionicons } from "@expo/vector-icons";
 import Animated, { 
   FadeIn, 
 } from "react-native-reanimated";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { 
   availableLanguages, 
   getLanguageSettings, 
@@ -22,6 +23,41 @@ import {
 import { breathingGradient } from "@/constants/onboardingData";
 import Carousel from "@/components/Carousel";
 import LanguageCarouselItem from "@/components/LanguageCarouselItem";
+
+const translations = {
+  en: {
+    title: "Choose Your Languages",
+    subtitle: "Swipe left or right to browse languages",
+    uiLanguageTitle: "UI Language",
+    audioLanguagesTitle: "Audio Languages",
+    audioDescription: "Select languages for guided meditations (multiple selection allowed)",
+    continueButton: "Continue"
+  },
+  es: {
+    title: "Elige Tus Idiomas",
+    subtitle: "Desliza izquierda o derecha para explorar idiomas",
+    uiLanguageTitle: "Idioma de la Interfaz",
+    audioLanguagesTitle: "Idiomas de Audio",
+    audioDescription: "Selecciona idiomas para meditaciones guiadas (selección múltiple permitida)",
+    continueButton: "Continuar"
+  },
+  zh: {
+    title: "选择您的语言",
+    subtitle: "左右滑动浏览语言",
+    uiLanguageTitle: "界面语言",
+    audioLanguagesTitle: "音频语言",
+    audioDescription: "选择引导冥想的语言（允许多选）",
+    continueButton: "继续"
+  },
+  ja: {
+    title: "言語を選択",
+    subtitle: "左右にスワイプして言語を選択",
+    uiLanguageTitle: "UI言語",
+    audioLanguagesTitle: "音声言語",
+    audioDescription: "ガイド付き瞑想の言語を選択（複数選択可能）",
+    continueButton: "続行"
+  }
+};
 
 const { width } = Dimensions.get("window");
 const LANGUAGE_ITEM_WIDTH = width * 0.25;
@@ -37,6 +73,12 @@ export default function LanguageSettingsScreen() {
     code: key,
     ...availableLanguages[key as keyof typeof availableLanguages]
   }));
+
+  const getCurrentTranslation = () => {
+    return translations[uiLanguage as keyof typeof translations] || translations.en;
+  };
+
+  const t = getCurrentTranslation();
 
   useEffect(() => {
     loadSettings();
@@ -76,11 +118,17 @@ export default function LanguageSettingsScreen() {
 
   const handleContinue = async () => {
     try {
+      // Save using the same keys as profile.tsx
+      await AsyncStorage.setItem('ui_language', uiLanguage);
+      await AsyncStorage.setItem('audio_languages', JSON.stringify(audioLanguages));
+      
+      // Also save using the service for compatibility
       const settings: LanguageSettings = {
         uiLanguage,
         audioLanguages,
       };
       await saveLanguageSettings(settings);
+      
       router.push("/(boarding)/color-settings");
     } catch (error) {
       console.error('Error saving language settings:', error);
@@ -127,15 +175,15 @@ export default function LanguageSettingsScreen() {
 
         <Animated.View entering={FadeIn.duration(800)} style={styles.content}>
           <View style={styles.titleContainer}>
-            <Text style={styles.title}>Choose Your Languages</Text>
+            <Text style={styles.title}>{t.title}</Text>
             <Text style={styles.subtitle}>
-              Swipe left or right to browse languages
+              {t.subtitle}
             </Text>
           </View>
 
           {/* UI Language Carousel */}
           <View style={styles.languageCarouselContainer}>
-            <Text style={styles.sectionTitle}>UI Language</Text>
+            <Text style={styles.sectionTitle}>{t.uiLanguageTitle}</Text>
             
             <Carousel
               data={languageData}
@@ -159,10 +207,10 @@ export default function LanguageSettingsScreen() {
           <View style={styles.audioLanguageSection}>
             <View style={styles.sectionTitleContainer}>
               <Ionicons name="musical-notes" size={24} color="#ffffff" style={styles.musicIcon} />
-              <Text style={styles.sectionTitle}>Audio Languages</Text>
+              <Text style={styles.sectionTitle}>{t.audioLanguagesTitle}</Text>
             </View>
             <Text style={styles.sectionDescription}>
-              Select languages for guided meditations (multiple selection allowed)
+              {t.audioDescription}
             </Text>
             
             <View style={styles.audioLanguagesContainer}>
@@ -204,7 +252,7 @@ export default function LanguageSettingsScreen() {
 
         <View style={styles.footer}>
           <TouchableOpacity onPress={handleContinue} style={styles.continueButton}>
-            <Text style={styles.continueButtonText}>Continue</Text>
+            <Text style={styles.continueButtonText}>{t.continueButton}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>

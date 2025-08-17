@@ -22,6 +22,31 @@ import {
 import { breathingGradient } from "@/constants/onboardingData";
 import Carousel from "@/components/Carousel";
 import ColorThemeCarouselItem from "@/components/ColorThemeCarouselItem";
+import { getLanguageSettings } from "@/services/languageSettingsService";
+import { useTheme } from '@/contexts/ThemeContext';
+
+const translations = {
+  en: {
+    title: "Choose Your Theme",
+    subtitle: "Swipe to explore different color themes",
+    continueButton: "Get Started"
+  },
+  es: {
+    title: "Elige Tu Tema",
+    subtitle: "Desliza para explorar diferentes temas de color",
+    continueButton: "Comenzar"
+  },
+  zh: {
+    title: "选择您的主题",
+    subtitle: "滑动探索不同的颜色主题",
+    continueButton: "开始"
+  },
+  ja: {
+    title: "テーマを選択",
+    subtitle: "スワイプして異なるカラーテーマを探索",
+    continueButton: "開始"
+  }
+};
 
 const { width } = Dimensions.get("window");
 const THEME_ITEM_WIDTH = 120;
@@ -31,6 +56,8 @@ export default function ColorSettingsScreen() {
   const [selectedTheme, setSelectedTheme] = useState('default');
   const [isLoading, setIsLoading] = useState(true);
   const [backgroundColors, setBackgroundColors] = useState(breathingGradient);
+  const [currentLanguage, setCurrentLanguage] = useState('en');
+  const { updateColors } = useTheme();
 
   const themeKeys = Object.keys(presetThemes);
   const themeData = themeKeys.map(key => ({
@@ -38,9 +65,26 @@ export default function ColorSettingsScreen() {
     ...presetThemes[key as keyof typeof presetThemes]
   }));
 
+  const getCurrentTranslation = () => {
+    return translations[currentLanguage as keyof typeof translations] || translations.en;
+  };
+
+  const t = getCurrentTranslation();
+
   useEffect(() => {
     loadSettings();
+    loadLanguageSettings();
   }, []);
+
+  const loadLanguageSettings = async () => {
+    try {
+      const languageSettings = await getLanguageSettings();
+      setCurrentLanguage(languageSettings.uiLanguage);
+    } catch (error) {
+      console.error('Error loading language settings:', error);
+      // Keep default language (English)
+    }
+  };
 
   useEffect(() => {
     // Update background when theme changes
@@ -78,7 +122,13 @@ export default function ColorSettingsScreen() {
   const handleContinue = async () => {
     try {
       const selectedColors = presetThemes[selectedTheme as keyof typeof presetThemes].colors;
+      
+      // Save using ThemeContext (same as profile.tsx)
+      updateColors(selectedColors);
+      
+      // Also save using the service for compatibility
       await saveColorSettings(selectedColors);
+      
       router.push("/(boarding)/premium-purchase");
     } catch (error) {
       console.error('Error saving color settings:', error);
@@ -110,9 +160,9 @@ export default function ColorSettingsScreen() {
 
         <Animated.View entering={FadeIn.duration(800)} style={styles.content}>
           <View style={styles.titleContainer}>
-            <Text style={styles.title}>Choose Your Theme</Text>
+            <Text style={styles.title}>{t.title}</Text>
             <Text style={styles.subtitle}>
-              Swipe to explore different color themes
+              {t.subtitle}
             </Text>
           </View>
 
@@ -141,7 +191,7 @@ export default function ColorSettingsScreen() {
 
         <View style={styles.footer}>
           <TouchableOpacity onPress={handleContinue} style={styles.continueButton}>
-            <Text style={styles.continueButtonText}>Get Started</Text>
+            <Text style={styles.continueButtonText}>{t.continueButton}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
