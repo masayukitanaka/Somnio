@@ -4,6 +4,7 @@ import { ThemeProvider } from '@/contexts/ThemeContext';
 import { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 const ONBOARDING_KEY = '@somnio_onboarding_completed';
 
@@ -51,20 +52,21 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeProvider>
-      <AudioProvider>
-        <Stack
-        screenOptions={{
-          headerStyle: {
-            backgroundColor: '#0A2647',
-          },
-          headerTintColor: '#ffffff',
-          headerTitleStyle: {
-            fontWeight: 'bold',
-          },
-          headerShadowVisible: false,
-        }}
-      >
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ThemeProvider>
+        <AudioProvider>
+          <Stack
+          screenOptions={{
+            headerStyle: {
+              backgroundColor: '#0A2647',
+            },
+            headerTintColor: '#ffffff',
+            headerTitleStyle: {
+              fontWeight: 'bold',
+            },
+            headerShadowVisible: false,
+          }}
+        >
         <Stack.Screen 
           name="index" 
           options={{ 
@@ -113,8 +115,9 @@ export default function RootLayout() {
             headerShown: false 
           }} 
         />
-      </Stack>
-      </AudioProvider>
-    </ThemeProvider>
+        </Stack>
+        </AudioProvider>
+      </ThemeProvider>
+    </GestureHandlerRootView>
   );
 }

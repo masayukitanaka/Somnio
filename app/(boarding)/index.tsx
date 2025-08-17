@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   View,
   Text,
@@ -8,50 +8,27 @@ import {
   SafeAreaView,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  interpolate,
+} from "react-native-reanimated";
+import { onboardingConfig } from "@/constants/onboardingData";
+
+const { width } = Dimensions.get("window");
 
 const ONBOARDING_KEY = "@somnio_onboarding_completed";
 
+const onboardingPages = onboardingConfig.pages;
+
 export default function OnboardingScreen() {
-  const [currentPage, setCurrentPage] = useState(0);
-
-  const onboardingPages = [
-    {
-      title: "Welcome to Somnio",
-      description: "Your personal wellness companion for better sleep, focus, and relaxation",
-      gradient: ["#667eea", "#764ba2"] as [string, string, ...string[]],
-    },
-    {
-      title: "Better Sleep",
-      description: "Drift off to peaceful sleep with calming sounds and guided meditations",
-      gradient: ["#f093fb", "#f5576c"] as [string, string, ...string[]],
-    },
-    {
-      title: "Stay Focused",
-      description: "Boost your productivity with focus timers and concentration exercises",
-      gradient: ["#4facfe", "#00f2fe"] as [string, string, ...string[]],
-    },
-    {
-      title: "Relax & Unwind",
-      description: "Take a break with breathing exercises and stretching routines",
-      gradient: ["#43e97b", "#38f9d7"] as [string, string, ...string[]],
-    },
-  ];
-
-  const handleNext = () => {
-    if (currentPage < onboardingPages.length - 1) {
-      setCurrentPage(currentPage + 1);
-    }
-  };
-
-  const handleSkip = async () => {
-    await completeOnboarding();
-  };
-
-  const handleGetStarted = async () => {
-    await completeOnboarding();
-  };
+  const params = useLocalSearchParams<{ page?: string }>();
+  const initialPage = params.page ? parseInt(params.page) : 0;
+  const translateX = useSharedValue(-width * initialPage);
+  const [currentIndex, setCurrentIndex] = React.useState(initialPage);
 
   const completeOnboarding = async () => {
     try {
@@ -63,38 +40,160 @@ export default function OnboardingScreen() {
     }
   };
 
-  const currentPageData = onboardingPages[currentPage];
+  const goToPage = (index: number) => {
+    if (index >= 0 && index < onboardingPages.length) {
+      translateX.value = withSpring(-width * index, {
+        damping: 20,
+        stiffness: 100,
+      });
+      setCurrentIndex(index);
+    }
+  };
+
+  const handleNext = () => {
+    if (currentIndex === onboardingConfig.breathingExerciseAfterPageIndex) {
+      // Show breathing exercise after specified page
+      router.push("/(boarding)/breathing-intro");
+    } else if (currentIndex < onboardingPages.length - 1) {
+      goToPage(currentIndex + 1);
+    }
+  };
+
+  const handleSkip = () => {
+    completeOnboarding();
+  };
+
+  const handleGetStarted = () => {
+    completeOnboarding();
+  };
+
+  // Removed pan gesture to prevent crashes
+
+  const containerStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ translateX: translateX.value }],
+    };
+  });
 
   return (
-    <LinearGradient colors={currentPageData.gradient} style={styles.container}>
+    <View style={styles.container}>
+      <View style={styles.gradientContainer}>
+        {onboardingPages.map((page, index) => {
+          const animatedGradientStyle = useAnimatedStyle(() => {
+            const inputRange = [(index - 1) * width, index * width, (index + 1) * width];
+            const opacity = interpolate(
+              -translateX.value,
+              inputRange,
+              [0, 1, 0],
+              "clamp"
+            );
+
+            return {
+              opacity,
+              position: "absolute" as const,
+              width: "100%",
+              height: "100%",
+            };
+          });
+
+          return (
+            <Animated.View key={index} style={animatedGradientStyle}>
+              <LinearGradient colors={page.gradient} style={StyleSheet.absoluteFillObject} />
+            </Animated.View>
+          );
+        })}
+      </View>
+
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.header}>
-          {currentPage < onboardingPages.length - 1 && (
+          {currentIndex < onboardingPages.length - 1 && (
             <TouchableOpacity onPress={handleSkip} style={styles.skipButton}>
               <Text style={styles.skipText}>Skip</Text>
             </TouchableOpacity>
           )}
         </View>
 
-        <View style={styles.content}>
-          <Text style={styles.title}>{currentPageData.title}</Text>
-          <Text style={styles.description}>{currentPageData.description}</Text>
-        </View>
+        <Animated.View style={[styles.pagesContainer, containerStyle]}>
+            {onboardingPages.map((page, index) => {
+              const pageAnimatedStyle = useAnimatedStyle(() => {
+                const inputRange = [
+                  (index - 1) * width,
+                  index * width,
+                  (index + 1) * width,
+                ];
+
+                const scale = interpolate(
+                  -translateX.value,
+                  inputRange,
+                  [0.8, 1, 0.8],
+                  "clamp"
+                );
+
+                const opacity = interpolate(
+                  -translateX.value,
+                  inputRange,
+                  [0.3, 1, 0.3],
+                  "clamp"
+                );
+
+                return {
+                  transform: [{ scale }],
+                  opacity,
+                };
+              });
+
+              return (
+                <Animated.View
+                  key={index}
+                  style={[styles.page, pageAnimatedStyle]}
+                >
+                  <Text style={styles.title}>{page.title}</Text>
+                  <Text style={styles.description}>{page.description}</Text>
+                </Animated.View>
+              );
+            })}
+          </Animated.View>
 
         <View style={styles.footer}>
           <View style={styles.pagination}>
-            {onboardingPages.map((_, index) => (
-              <View
-                key={index}
-                style={[
-                  styles.paginationDot,
-                  index === currentPage && styles.paginationDotActive,
-                ]}
-              />
-            ))}
+            {onboardingPages.map((_, index) => {
+              const dotAnimatedStyle = useAnimatedStyle(() => {
+                const inputRange = [
+                  (index - 1) * width,
+                  index * width,
+                  (index + 1) * width,
+                ];
+
+                const dotWidth = interpolate(
+                  -translateX.value,
+                  inputRange,
+                  [10, 30, 10],
+                  "clamp"
+                );
+
+                const opacity = interpolate(
+                  -translateX.value,
+                  inputRange,
+                  [0.3, 1, 0.3],
+                  "clamp"
+                );
+
+                return {
+                  width: dotWidth,
+                  opacity,
+                };
+              });
+
+              return (
+                <Animated.View
+                  key={index}
+                  style={[styles.paginationDot, dotAnimatedStyle]}
+                />
+              );
+            })}
           </View>
 
-          {currentPage < onboardingPages.length - 1 ? (
+          {currentIndex < onboardingPages.length - 1 ? (
             <TouchableOpacity onPress={handleNext} style={styles.nextButton}>
               <Text style={styles.nextButtonText}>Next</Text>
             </TouchableOpacity>
@@ -105,13 +204,18 @@ export default function OnboardingScreen() {
           )}
         </View>
       </SafeAreaView>
-    </LinearGradient>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  gradientContainer: {
+    position: "absolute",
+    width: "100%",
+    height: "100%",
   },
   safeArea: {
     flex: 1,
@@ -130,8 +234,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     opacity: 0.8,
   },
-  content: {
+  pagesContainer: {
     flex: 1,
+    flexDirection: "row",
+    width: width * onboardingPages.length,
+  },
+  page: {
+    width,
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 40,
@@ -158,18 +267,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     marginBottom: 40,
+    alignItems: "center",
   },
   paginationDot: {
-    width: 10,
     height: 10,
     borderRadius: 5,
     backgroundColor: "#fff",
-    opacity: 0.3,
     marginHorizontal: 5,
-  },
-  paginationDotActive: {
-    opacity: 1,
-    width: 30,
   },
   nextButton: {
     backgroundColor: "rgba(255, 255, 255, 0.3)",
