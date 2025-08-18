@@ -18,11 +18,17 @@ npx expo start --web
 
 # Linting
 npx expo lint
+
+# Type checking
+npx tsc --noEmit
+
+# Reset project
+npm run reset-project
 ```
 
 ## Architecture Overview
 
-**Somnio** is a meditation and sleep app built with React Native and Expo. The app provides audio content for sleep, relaxation, and focus with offline download capabilities.
+**Somnio** is a meditation and sleep app built with React Native and Expo. The app provides audio content for sleep, relaxation, and focus with offline download capabilities and multi-language support.
 
 ### Core Architecture Components
 
@@ -37,43 +43,73 @@ npx expo lint
 - Centralized content configuration in JSON format
 - Content organized by categories: sleep, relax, focus
 - Each item has id, title, duration, audioUrl, thumbnail, and color theming
+- Multi-language content support via API endpoints
 
-**Audio Download Flow**
-- `getAudioPathWithAutoDownload()`: Returns local path if downloaded, otherwise streams while downloading in background
-- `downloadAudio()`: Explicit download for offline use
-- Download state persisted in AsyncStorage with file tracking
-- UI shows download status: ↓ (not downloaded), ⏳ (downloading), ✅ (downloaded)
+**Theme System (`contexts/ThemeContext.tsx` + `services/colorSettingsService.ts`)**
+- Global theme management through ThemeContext
+- Preset themes defined in colorSettingsService
+- Dynamic gradient backgrounds and UI element theming
+- Persistent theme storage in AsyncStorage
 
-### Key UI Components
+**Internationalization (`utils/i18n.ts`)**
+- Multi-language support for UI (English, Spanish, Chinese, Japanese)
+- Separate audio language selection for content filtering
+- Translation system using key-based lookups
+- Language persistence in AsyncStorage
 
-**PlayerModal** - Full-screen audio player with:
-- Progress bar with seek functionality
-- Volume controls and sleep timer
-- Background blur effects and gradient theming
+### Onboarding Flow
 
-**MiniPlayer** - Persistent bottom player showing:
-- Current track info and playback controls
-- Sleep timer countdown when active
-- Clickable to reopen full player
+```
+app/(boarding)/
+├── index.tsx             # Welcome screen
+├── breathing-intro.tsx   # Breathing exercise introduction
+├── language-settings.tsx # Language selection (UI + Audio)
+├── color-settings.tsx    # Theme selection
+├── premium-purchase.tsx  # Premium upgrade option
+└── ready.tsx            # Final onboarding screen
+```
 
-**Content Cards** - Main content display with:
-- Background images and color gradients
-- Integrated download buttons (left corner)
-- Real-time download status indication
+**Key Onboarding Features:**
+- Carousel components for language and theme selection
+- Animated transitions using react-native-reanimated
+- Settings saved to AsyncStorage with keys matching profile.tsx
+- GestureHandlerRootView required in _layout.tsx for gestures
+
+### Settings Storage Keys
+
+```javascript
+// Language settings (profile.tsx compatible)
+'ui_language'        // Selected UI language code
+'audio_languages'    // JSON array of audio language codes
+
+// Theme settings (via ThemeContext)
+'color_settings'     // Color theme configuration
+
+// Service-specific keys (for backward compatibility)
+'language_settings'  // Legacy language settings object
+```
 
 ### File-Based Routing Structure
 
 ```
 app/
-├── (tabs)/           # Main tab navigation
-│   ├── index.tsx     # Home screen
-│   ├── sleep.tsx     # Sleep content
-│   ├── relax.tsx     # Relaxation content
-│   ├── focus.tsx     # Focus content
-│   └── profile.tsx   # User profile
-├── _layout.tsx       # Root layout with AudioProvider
-└── [standalone].tsx  # Additional screens
+├── (boarding)/       # Onboarding flow screens
+├── (tabs)/          # Main tab navigation
+│   ├── index.tsx    # Home screen
+│   ├── sleep.tsx    # Sleep content
+│   ├── relax.tsx    # Relaxation content  
+│   ├── focus.tsx    # Focus content
+│   └── profile.tsx  # User profile & settings
+├── _layout.tsx      # Root layout with providers
+└── [feature].tsx    # Standalone feature screens
 ```
+
+### Audio Download Flow
+
+- `getAudioPathWithAutoDownload()`: Returns local path if downloaded, otherwise streams while downloading in background
+- `downloadAudio()`: Explicit download for offline use
+- Download state persisted in AsyncStorage with file tracking
+- UI shows download status: ↓ (not downloaded), ⏳ (downloading), ✅ (downloaded)
 
 ### Sleep Timer Implementation
 
@@ -104,10 +140,18 @@ Each audio item requires:
 }
 ```
 
+### Critical Dependencies
+
+- `expo-av`: Audio playback (expo-audio is deprecated in SDK 54)
+- `react-native-gesture-handler`: Required for swipe gestures and sliders
+- `react-native-reanimated`: Animation library for UI transitions
+- `expo-file-system`: Local file management for offline audio
+- `@react-native-async-storage/async-storage`: Persistent storage
+
 ### Development Notes
 
-- Use `expo-av` for audio playback (expo-audio is deprecated in SDK 54)
-- All audio URLs in content.json currently point to the same test file for development
 - Audio files are cached in `${FileSystem.documentDirectory}audio/`
 - Download metadata stored in AsyncStorage under key 'downloaded_audio_assets'
 - Background downloads use `FileSystem.createDownloadResumable()` with progress callbacks
+- All audio URLs in content.json currently point to the same test file for development
+- Environment variables in .env.development control API endpoints and feature flags
