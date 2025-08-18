@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { initDatabase } from '@/services/database';
 
 const ONBOARDING_KEY = '@somnio_onboarding_completed';
 
@@ -18,6 +19,13 @@ export default function RootLayout() {
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
 
   useEffect(() => {
+    // Initialize database
+    initDatabase().then(() => {
+      console.log('Database initialized');
+    }).catch(error => {
+      console.error('Failed to initialize database:', error);
+    });
+    
     checkOnboardingStatus();
   }, []);
 

@@ -16,8 +16,16 @@ import { getCurrentLanguage, getTranslation, homeTabTranslations } from '@/utils
 import { getRecommendations, ContentItem } from '@/services/contentService';
 import { useAudio } from '@/contexts/AudioContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useProgressTracking } from '@/hooks/useProgressTracking';
+import { DailyProgress } from '@/services/progressService';
 
 const { width } = Dimensions.get('window');
+
+// Calculate calendar dimensions
+const CALENDAR_PADDING = 32; // 16px on each side
+const CALENDAR_WIDTH = width - 40 - CALENDAR_PADDING; // Account for screen padding
+const DAY_CELL_WIDTH = Math.floor(CALENDAR_WIDTH / 7);
+const DAY_CELL_SPACING = 2;
 
 // Tools Menu Component
 const ToolsMenu = ({ currentLanguage }: { currentLanguage: string }) => {
@@ -198,16 +206,6 @@ const RecommendationsView = ({
   );
 };
 
-interface DayRecord {
-  date: string;
-  hasActivity: boolean;
-  starLevel?: number; // 0 = no star, 1-3 = star level
-  activities?: {
-    sleep?: boolean;
-    relax?: boolean;
-    focus?: boolean;
-  };
-}
 
 // Star images
 const starImages = {
@@ -218,9 +216,10 @@ const starImages = {
 
 const CalendarView = ({ currentLanguage }: { currentLanguage: string }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [monthRecords, setMonthRecords] = useState<DayRecord[]>([]);
+  const [monthRecords, setMonthRecords] = useState<DailyProgress[]>([]);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const { getProgressRange } = useProgressTracking();
   
   useEffect(() => {
     loadMonthRecords();
@@ -230,33 +229,20 @@ const CalendarView = ({ currentLanguage }: { currentLanguage: string }) => {
     try {
       const year = currentDate.getFullYear();
       const month = currentDate.getMonth();
-      const records: DayRecord[] = [];
       
-      // Load records for current month from AsyncStorage
-      const monthKey = `records_${year}_${month}`;
-      const storedRecords = await AsyncStorage.getItem(monthKey);
+      // Get first and last day of month
+      const firstDay = new Date(year, month, 1);
+      const lastDay = new Date(year, month + 1, 0);
       
-      if (storedRecords) {
-        records.push(...JSON.parse(storedRecords));
-      } else {
-        // Generate random data for demonstration
-        const daysInMonth = new Date(year, month + 1, 0).getDate();
-        for (let day = 1; day <= daysInMonth; day++) {
-          // Random chance of having activity (70% chance)
-          if (Math.random() < 0.7) {
-            const starLevel = Math.floor(Math.random() * 4); // 0-3 (0 = no star)
-            records.push({
-              date: `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
-              hasActivity: true,
-              starLevel: starLevel,
-            });
-          }
-        }
-      }
+      const startDate = firstDay.toISOString().split('T')[0];
+      const endDate = lastDay.toISOString().split('T')[0];
       
+      // Load real progress data from database
+      const records = await getProgressRange(startDate, endDate);
       setMonthRecords(records);
     } catch (error) {
       console.error('Error loading month records:', error);
+      setMonthRecords([]);
     }
   };
 
@@ -283,7 +269,7 @@ const CalendarView = ({ currentLanguage }: { currentLanguage: string }) => {
     return days;
   };
 
-  const getRecordForDay = (day: number | null): DayRecord | undefined => {
+  const getRecordForDay = (day: number | null): DailyProgress | undefined => {
     if (!day) return undefined;
     
     const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
@@ -292,7 +278,7 @@ const CalendarView = ({ currentLanguage }: { currentLanguage: string }) => {
 
   const hasActivityOnDay = (day: number | null) => {
     const record = getRecordForDay(day);
-    return record?.hasActivity || false;
+    return record ? (record.stars > 0) : false;
   };
 
   const isToday = (day: number | null) => {
@@ -351,7 +337,7 @@ const CalendarView = ({ currentLanguage }: { currentLanguage: string }) => {
       <View style={styles.calendarGrid}>
         {getDaysInMonth(currentDate).map((day, index) => {
           const record = getRecordForDay(day);
-          const starLevel = record?.starLevel;
+          const starLevel = record?.stars;
           
           return (
             <View key={index} style={styles.dayCell}>
@@ -386,7 +372,10 @@ const CalendarView = ({ currentLanguage }: { currentLanguage: string }) => {
       
       <DayDetailModal
         visible={modalVisible}
-        onClose={() => setModalVisible(false)}
+        onClose={() => {
+          setModalVisible(false);
+          loadMonthRecords(); // Refresh calendar when modal closes
+        }}
         date={selectedDate}
         currentLanguage={currentLanguage}
         onDateChange={(newDate) => setSelectedDate(newDate)}
@@ -401,6 +390,7 @@ export default function HomeScreen() {
   const [selectedItem, setSelectedItem] = useState<ContentItem | null>(null);
   const isFocused = useIsFocused();
   const { colors } = useTheme();
+  const { syncHealthKitData } = useProgressTracking();
   const { 
     currentSound,
     currentItem,
@@ -422,8 +412,10 @@ export default function HomeScreen() {
   useEffect(() => {
     if (isFocused) {
       loadCurrentLanguage();
+      // Sync HealthKit data when tab is focused
+      syncHealthKitData();
     }
-  }, [isFocused]);
+  }, [isFocused, syncHealthKitData]);
 
   const loadCurrentLanguage = async () => {
     try {
@@ -477,7 +469,7 @@ export default function HomeScreen() {
 
   return (
     <LinearGradient
-      colors={colors.backgroundGradient as readonly [string, string, ...string[]]}
+      colors={colors.backgroundGradient}
       style={styles.gradient}
     >
       <SafeAreaView style={styles.container}>
@@ -606,7 +598,8 @@ const styles = StyleSheet.create({
   calendarContainer: {
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
     borderRadius: 20,
-    padding: 20,
+    paddingVertical: 20,
+    paddingHorizontal: 16,
   },
   calendarHeader: {
     flexDirection: 'row',
@@ -621,10 +614,12 @@ const styles = StyleSheet.create({
   weekDaysRow: {
     flexDirection: 'row',
     marginBottom: 10,
+    width: '100%',
   },
   weekDayCell: {
-    flex: 1,
+    width: DAY_CELL_WIDTH,
     alignItems: 'center',
+    paddingHorizontal: DAY_CELL_SPACING,
   },
   weekDayText: {
     fontSize: 12,
@@ -633,23 +628,28 @@ const styles = StyleSheet.create({
   calendarGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    width: '100%',
   },
   dayCell: {
-    width: `${100 / 7}%`,
-    aspectRatio: 1,
-    padding: 4,
+    width: DAY_CELL_WIDTH,
+    height: DAY_CELL_WIDTH,
+    paddingHorizontal: DAY_CELL_SPACING,
+    paddingVertical: DAY_CELL_SPACING,
   },
   dayContent: {
     flex: 1,
+    minHeight: 30,
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 8,
     position: 'relative',
+    marginHorizontal: 1,
   },
   dayText: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#ffffff',
     zIndex: 1,
+    textAlign: 'center',
   },
   todayCell: {
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
