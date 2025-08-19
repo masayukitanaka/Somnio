@@ -360,11 +360,8 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     marginRight: CARD_MARGIN * 2,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 5,
+    elevation: 5, // Android shadow only
+    // iOS shadows removed to prevent warning
   },
   cardBackground: {
     width: '100%',
@@ -430,11 +427,8 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     alignItems: 'center',
     gap: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 5,
+    elevation: 5, // Android shadow only
+    // iOS shadows removed to prevent warning
   },
   actionButtonText: {
     fontSize: 16,

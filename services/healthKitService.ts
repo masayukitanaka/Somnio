@@ -158,7 +158,8 @@ class HealthKitService {
           const sourceName = sample.sourceName || 'Unknown Source';
           const categoryValue = sample.value || sample.categoryValue;
           
-          console.log(`Sleep sample from ${sourceName}: ${sample.startDate} to ${sample.endDate}, category: ${categoryValue}`);
+
+          // console.log(`Sleep sample from ${sourceName}: ${sample.startDate} to ${sample.endDate}, category: ${categoryValue}`);
           
           // According to Apple HealthKit documentation:
           // HKCategoryValueSleepAnalysis values (iOS 16+):
@@ -186,7 +187,7 @@ class HealthKitService {
             const duration = (end.getTime() - start.getTime()) / (1000 * 60); // Convert to minutes
             
             if (duration > 0) {
-              console.log(`Adding ${duration} minutes of ${categoryValue} sleep from ${sourceName}`);
+              // console.log(`Adding ${duration} minutes of ${categoryValue} sleep from ${sourceName}`);
               
               // Initialize source if not exists
               if (!sourceMap.has(sourceId)) {

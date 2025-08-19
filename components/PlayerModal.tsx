@@ -612,11 +612,8 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     overflow: 'hidden',
     marginBottom: 30,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 8,
+    elevation: 8, // Android shadow only
+    // iOS shadows removed to prevent warning
   },
   thumbnailImage: {
     width: '100%',
@@ -689,11 +686,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     top: -6,
     marginLeft: -10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 5,
+    elevation: 5, // Android shadow only
+    // iOS shadows removed to prevent warning
   },
   timeContainer: {
     flexDirection: 'row',

@@ -631,11 +631,8 @@ const styles = StyleSheet.create({
   },
   modalTabActive: {
     backgroundColor: '#ffffff',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 3,
+    elevation: 3, // Android shadow only
+    // iOS shadows removed to prevent warning
   },
   modalTabText: {
     fontSize: 14,
