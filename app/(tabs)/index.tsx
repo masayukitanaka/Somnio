@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { StyleSheet, ScrollView, SafeAreaView, StatusBar, View, TouchableOpacity, Dimensions, Image, Text, FlatList } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Audio } from 'expo-av';
@@ -162,7 +162,7 @@ const RecommendationsView = ({
     }
   };
 
-  const renderRecommendationItem = ({ item }: { item: ContentItem }) => {
+  const renderRecommendationItem = useCallback(({ item }: { item: ContentItem }) => {
     return (
       <TouchableOpacity 
         style={styles.recommendationItem}
@@ -186,7 +186,7 @@ const RecommendationsView = ({
         </ThemedText>
       </TouchableOpacity>
     );
-  };
+  }, [onItemPress]);
 
   if (loading) {
     return null; // Skip rendering while loading
@@ -208,6 +208,15 @@ const RecommendationsView = ({
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.recommendationsContainer}
         ItemSeparatorComponent={() => <View style={styles.recommendationSeparator} />}
+        getItemLayout={(_, index) => ({
+          length: 120,
+          offset: 120 * index,
+          index,
+        })}
+        removeClippedSubviews={true}
+        maxToRenderPerBatch={5}
+        updateCellsBatchingPeriod={50}
+        windowSize={10}
       />
     </View>
   );
@@ -221,7 +230,7 @@ const starImages = {
   3: require('@/assets/images/star_3.png'),
 };
 
-const CalendarView = ({ currentLanguage }: { currentLanguage: string }) => {
+const CalendarView = React.memo(({ currentLanguage }: { currentLanguage: string }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [monthRecords, setMonthRecords] = useState<DailyProgress[]>([]);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -389,7 +398,7 @@ const CalendarView = ({ currentLanguage }: { currentLanguage: string }) => {
       />
     </View>
   );
-};
+});
 
 export default function HomeScreen() {
   const [currentLanguage, setCurrentLanguage] = useState('en');
