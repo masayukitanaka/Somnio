@@ -1,20 +1,15 @@
 import { Platform } from 'react-native';
 import progressService from './progressService';
 
-// Check if running in Expo environment
-const isExpo = () => {
-  try {
-    return Boolean(require('expo-constants').default);
-  } catch {
-    return false;
-  }
-};
-
-// Lazy load react-native-health only on native iOS builds
+// Lazy load react-native-health only on iOS
 let AppleHealthKit: any = null;
-if (Platform.OS === 'ios' && !isExpo()) {
+if (Platform.OS === 'ios') {
   try {
-    AppleHealthKit = require('react-native-health').default;
+    const RNHealth = require('react-native-health');
+    AppleHealthKit = RNHealth.default || RNHealth;
+    console.log('AppleHealthKit loaded:', !!AppleHealthKit);
+    console.log('AppleHealthKit type:', typeof AppleHealthKit);
+    console.log('AppleHealthKit keys:', AppleHealthKit ? Object.keys(AppleHealthKit).slice(0, 5) : 'null');
   } catch (error) {
     console.warn('react-native-health not available:', error);
   }
@@ -53,13 +48,15 @@ class HealthKitService {
   }
 
   private checkAvailability() {
-    this.isAvailable = Platform.OS === 'ios' && !isExpo() && AppleHealthKit !== null;
+    console.log('Checking availability - Platform:', Platform.OS, 'AppleHealthKit:', !!AppleHealthKit);
+    this.isAvailable = Platform.OS === 'ios' && AppleHealthKit !== null;
+    console.log('HealthKit isAvailable:', this.isAvailable);
   }
 
   // Initialize HealthKit and request permissions
   async initialize(): Promise<boolean> {
     if (!this.isAvailable || !AppleHealthKit) {
-      console.log('HealthKit is not available on this platform or in Expo managed workflow');
+      console.log('HealthKit is not available on this platform');
       return false;
     }
 

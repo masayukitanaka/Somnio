@@ -33,6 +33,13 @@ const ToolsMenu = ({ currentLanguage }: { currentLanguage: string }) => {
   
   const menuItems = [
     {
+      id: 'health',
+      title: 'Health',
+      icon: 'favorite',
+      color: '#E91E63',
+      onPress: () => navigation.navigate('health'),
+    },
+    {
       id: 'meditation',
       title: 'Meditation Timer',
       icon: 'self-improvement',
