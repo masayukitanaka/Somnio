@@ -15,14 +15,15 @@ if (Platform.OS === 'ios') {
   }
 }
 
-// Sleep categories in iOS 16+
+// Sleep categories according to Apple HealthKit documentation
+// https://developer.apple.com/documentation/healthkit/hkcategoryvaluesleepanalysis
 enum SleepCategory {
-  InBed = 'INBED',
-  Asleep = 'ASLEEP', 
-  Awake = 'AWAKE',
-  Core = 'CORE',
-  Deep = 'DEEP',
-  REM = 'REM'
+  Awake = 0,              // awake
+  AsleepUnspecified = 1,  // asleepUnspecified (legacy, counts as sleep)
+  InBed = 2,              // inBed (not actual sleep)
+  AsleepCore = 3,         // asleepCore
+  AsleepDeep = 4,         // asleepDeep
+  AsleepREM = 5           // asleepREM
 }
 
 interface HealthInputOptions {
@@ -155,37 +156,57 @@ class HealthKitService {
         results.forEach((sample: any) => {
           const sourceId = sample.sourceId || 'unknown';
           const sourceName = sample.sourceName || 'Unknown Source';
+          const categoryValue = sample.value || sample.categoryValue;
           
-          console.log(`Sleep sample from ${sourceName}: ${sample.startDate} to ${sample.endDate}`);
+          console.log(`Sleep sample from ${sourceName}: ${sample.startDate} to ${sample.endDate}, category: ${categoryValue}`);
           
-          // Since sample.value doesn't exist, calculate duration from time difference
-          // All sleep samples are considered as actual sleep time
-          const start = new Date(sample.startDate);
-          const end = new Date(sample.endDate);
-          const duration = (end.getTime() - start.getTime()) / (1000 * 60); // Convert to minutes
+          // According to Apple HealthKit documentation:
+          // HKCategoryValueSleepAnalysis values (iOS 16+):
+          // - awake (0)
+          // - asleepCore (3)
+          // - asleepDeep (4)
+          // - asleepREM (5)
+          // - asleepUnspecified (1) - legacy value
+          // - inBed (2) - not actual sleep
           
-          // Only process samples with positive duration
-          if (duration > 0) {
-            console.log(`Adding ${duration} minutes of sleep from ${sourceName}`);
+          // Only count actual sleep stages: CORE, DEEP, REM, or legacy ASLEEP
+          const isSleeping = 
+            categoryValue === 3 || // asleepCore
+            categoryValue === 4 || // asleepDeep
+            categoryValue === 5 || // asleepREM
+            categoryValue === 1 || // asleepUnspecified (legacy)
+            categoryValue === 'ASLEEP' || // Legacy string value
+            categoryValue === 'CORE' ||
+            categoryValue === 'DEEP' ||
+            categoryValue === 'REM';
+          
+          if (isSleeping) {
+            const start = new Date(sample.startDate);
+            const end = new Date(sample.endDate);
+            const duration = (end.getTime() - start.getTime()) / (1000 * 60); // Convert to minutes
             
-            // Initialize source if not exists
-            if (!sourceMap.has(sourceId)) {
-              sourceMap.set(sourceId, {
-                sourceName,
-                totalMinutes: 0,
-                earliestStart: null,
-                latestEnd: null
-              });
-            }
-            
-            const sourceData = sourceMap.get(sourceId)!;
-            sourceData.totalMinutes += duration;
-            
-            if (!sourceData.earliestStart || start < sourceData.earliestStart) {
-              sourceData.earliestStart = start;
-            }
-            if (!sourceData.latestEnd || end > sourceData.latestEnd) {
-              sourceData.latestEnd = end;
+            if (duration > 0) {
+              console.log(`Adding ${duration} minutes of ${categoryValue} sleep from ${sourceName}`);
+              
+              // Initialize source if not exists
+              if (!sourceMap.has(sourceId)) {
+                sourceMap.set(sourceId, {
+                  sourceName,
+                  totalMinutes: 0,
+                  earliestStart: null,
+                  latestEnd: null
+                });
+              }
+              
+              const sourceData = sourceMap.get(sourceId)!;
+              sourceData.totalMinutes += duration;
+              
+              if (!sourceData.earliestStart || start < sourceData.earliestStart) {
+                sourceData.earliestStart = start;
+              }
+              if (!sourceData.latestEnd || end > sourceData.latestEnd) {
+                sourceData.latestEnd = end;
+              }
             }
           }
         });
@@ -194,12 +215,12 @@ class HealthKitService {
         const sources = Array.from(sourceMap.entries()).map(([sourceId, data]) => ({
           sourceId,
           sourceName: data.sourceName,
-          totalHours: data.totalMinutes / 60,
+          totalHours: Math.round((data.totalMinutes / 60) * 10) / 10, // Round to 1 decimal place
           startTime: data.earliestStart?.toISOString(),
           endTime: data.latestEnd?.toISOString()
         }));
         
-        const totalHours = sources.reduce((sum, source) => sum + source.totalHours, 0);
+        const totalHours = Math.round(sources.reduce((sum, source) => sum + source.totalHours, 0) * 10) / 10;
         
         console.log(`Total sources: ${sources.length}, Total hours: ${totalHours}`);
 
@@ -314,25 +335,21 @@ class HealthKitService {
     const dateObj = new Date(date);
     const sleepData = await this.getSleepDataBySource(dateObj);
     
-    if (sleepData && sleepData.totalHours > 0) {
-      // Use the earliest start and latest end from all sources
-      const allSources = sleepData.sources;
-      const startTime = allSources
-        .map(s => s.startTime)
-        .filter(Boolean)
-        .sort()[0];
-      const endTime = allSources
-        .map(s => s.endTime)
-        .filter(Boolean)
-        .sort()
-        .reverse()[0];
-        
+    if (sleepData && sleepData.sources.length > 0) {
+      // Find the source with the longest sleep duration
+      const longestSleepSource = sleepData.sources.reduce((longest, current) => {
+        return current.totalHours > longest.totalHours ? current : longest;
+      });
+      
+      // Use the longest sleep duration for progress tracking
       await progressService.trackSleep(
         date,
-        sleepData.totalHours,
-        startTime,
-        endTime
+        longestSleepSource.totalHours,
+        longestSleepSource.startTime,
+        longestSleepSource.endTime
       );
+      
+      console.log(`Tracking sleep from source: ${longestSleepSource.sourceName} with ${longestSleepSource.totalHours.toFixed(1)} hours`);
     }
   }
 

@@ -26,6 +26,11 @@ const focusImages = {
   unfocused: require('@/assets/images/unfocused.png'),
 };
 
+// Sleep status images
+const sleepImages = {
+  noSleep: require('@/assets/images/no_sleep.png'),
+};
+
 interface DayDetailModalProps {
   visible: boolean;
   onClose: () => void;
@@ -192,6 +197,9 @@ export const DayDetailModal = ({
 
   const renderTabContent = () => {
     if (activeTab === 'sleep') {
+      const sleepHours = dailyProgress?.sleep?.value || 0;
+      const isGoalAchieved = sleepHours >= sleepGoal;
+      
       return (
         <View style={styles.modalTabContent}>
           <View style={styles.modalContentHeader}>
@@ -199,15 +207,38 @@ export const DayDetailModal = ({
               {t('sleep_achievement')}
             </ThemedText>
           </View>
+          
+          <View style={styles.sleepStatusContainer}>
+            {isGoalAchieved ? (
+              <View style={styles.energyFullContainer}>
+                <MaterialIcons name="bolt" size={80} color="#FFD700" />
+                <ThemedText style={styles.sleepStatusText}>
+                  {t('energy_full') || 'Energy Full!'}
+                </ThemedText>
+              </View>
+            ) : (
+              <>
+                <Image 
+                  source={sleepImages.noSleep}
+                  style={styles.sleepStatusImage}
+                />
+                <ThemedText style={styles.sleepStatusText}>
+                  {t('need_more_sleep') || 'Need More Sleep'}
+                </ThemedText>
+              </>
+            )}
+          </View>
+          
           <ThemedText style={styles.modalContentDescription}>
-            {dailyProgress?.sleep?.achieved ? 
+            {isGoalAchieved ? 
               `${t('sleep_goal_achieved')} (${sleepGoal}h+)` : 
               `${t('sleep_goal_not_achieved')} (${sleepGoal}h)`
             }
           </ThemedText>
+          
           <View style={styles.modalStats}>
             <ThemedText type="defaultSemiBold" style={styles.modalStatsValue}>
-              {dailyProgress?.sleep?.value || 0} hours
+              {sleepHours} hours
             </ThemedText>
             <ThemedText style={styles.modalStatsLabel}>
               {t('today_total')}
@@ -531,7 +562,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContainer: {
-    height: '70%',
+    height: '80%',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     overflow: 'hidden',
@@ -627,8 +658,8 @@ const styles = StyleSheet.create({
   },
   modalContentHeader: {
     alignItems: 'center',
-    marginBottom: 20,
-    gap: 10,
+    marginBottom: 15,
+    gap: 8,
   },
   modalContentTitle: {
     fontSize: 18,
@@ -638,7 +669,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666666',
     textAlign: 'center',
-    marginBottom: 30,
+    marginBottom: 20,
   },
   modalStats: {
     alignItems: 'center',
@@ -659,10 +690,32 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#999999',
   },
+  // Sleep status styles
+  sleepStatusContainer: {
+    alignItems: 'center',
+    marginTop: 10,
+    marginBottom: 15,
+  },
+  sleepStatusImage: {
+    width: 100,
+    height: 100,
+    resizeMode: 'contain',
+    marginBottom: 10,
+  },
+  sleepStatusText: {
+    fontSize: 16,
+    color: '#666666',
+    textAlign: 'center',
+    fontWeight: 'bold',
+  },
+  energyFullContainer: {
+    alignItems: 'center',
+  },
   // Meditation status styles
   meditationStatusContainer: {
     alignItems: 'center',
-    marginVertical: 20,
+    marginTop: 10,
+    marginBottom: 15,
   },
   meditationStatusImage: {
     width: 80,
@@ -692,7 +745,8 @@ const styles = StyleSheet.create({
   // Focus status styles
   focusStatusContainer: {
     alignItems: 'center',
-    marginVertical: 10,
+    marginTop: 10,
+    marginBottom: 15,
   },
   focusStatusImage: {
     width: 80,
