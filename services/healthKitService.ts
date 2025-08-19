@@ -15,12 +15,25 @@ if (Platform.OS === 'ios') {
   }
 }
 
-interface SleepSampleValue {
+// Sleep categories in iOS 16+
+enum SleepCategory {
+  InBed = 'INBED',
+  Asleep = 'ASLEEP', 
+  Awake = 'AWAKE',
+  Core = 'CORE',
+  Deep = 'DEEP',
+  REM = 'REM'
+}
+
+interface HealthInputOptions {
   startDate: string;
   endDate: string;
+}
+
+interface HealthValue {
   value: number;
-  sourceName: string;
-  sourceId: string;
+  startDate: string;
+  endDate: string;
 }
 
 const getPermissions = () => {
@@ -81,8 +94,17 @@ class HealthKitService {
     });
   }
 
-  // Get sleep data for a specific date
-  async getSleepData(date: Date): Promise<{ totalHours: number; startTime?: string; endTime?: string } | null> {
+  // Get sleep data for a specific date grouped by source
+  async getSleepDataBySource(date: Date): Promise<{ 
+    sources: Array<{
+      sourceId: string;
+      sourceName: string;
+      totalHours: number;
+      startTime?: string;
+      endTime?: string;
+    }>;
+    totalHours: number;
+  } | null> {
     if (!AppleHealthKit || !this.isAvailable) {
       console.log('HealthKit not available for sleep data');
       return null;
@@ -94,11 +116,14 @@ class HealthKitService {
     }
 
     return new Promise((resolve) => {
-      const startOfDay = new Date(date);
-      startOfDay.setHours(0, 0, 0, 0);
-      
+      // For sleep data, we want to get data from last night
+      // Typically sleep from 6 PM yesterday to noon today
       const endOfDay = new Date(date);
-      endOfDay.setHours(23, 59, 59, 999);
+      endOfDay.setHours(12, 0, 0, 0); // Noon today
+      
+      const startOfDay = new Date(date);
+      startOfDay.setDate(startOfDay.getDate() - 1);
+      startOfDay.setHours(18, 0, 0, 0); // 6 PM yesterday
 
       const options: HealthInputOptions = {
         startDate: startOfDay.toISOString(),
@@ -117,31 +142,70 @@ class HealthKitService {
           return;
         }
 
-        // Calculate total sleep duration
-        let totalMinutes = 0;
-        let earliestStart: Date | null = null;
-        let latestEnd: Date | null = null;
+        // Group sleep data by source
+        const sourceMap = new Map<string, {
+          sourceName: string;
+          totalMinutes: number;
+          earliestStart: Date | null;
+          latestEnd: Date | null;
+        }>();
 
+        console.log(`Found ${results.length} sleep samples for date range`);
+        
         results.forEach((sample: any) => {
+          const sourceId = sample.sourceId || 'unknown';
+          const sourceName = sample.sourceName || 'Unknown Source';
+          
+          console.log(`Sleep sample from ${sourceName}: ${sample.startDate} to ${sample.endDate}`);
+          
+          // Since sample.value doesn't exist, calculate duration from time difference
+          // All sleep samples are considered as actual sleep time
           const start = new Date(sample.startDate);
           const end = new Date(sample.endDate);
           const duration = (end.getTime() - start.getTime()) / (1000 * 60); // Convert to minutes
-          totalMinutes += duration;
-
-          if (!earliestStart || start < earliestStart) {
-            earliestStart = start;
-          }
-          if (!latestEnd || end > latestEnd) {
-            latestEnd = end;
+          
+          // Only process samples with positive duration
+          if (duration > 0) {
+            console.log(`Adding ${duration} minutes of sleep from ${sourceName}`);
+            
+            // Initialize source if not exists
+            if (!sourceMap.has(sourceId)) {
+              sourceMap.set(sourceId, {
+                sourceName,
+                totalMinutes: 0,
+                earliestStart: null,
+                latestEnd: null
+              });
+            }
+            
+            const sourceData = sourceMap.get(sourceId)!;
+            sourceData.totalMinutes += duration;
+            
+            if (!sourceData.earliestStart || start < sourceData.earliestStart) {
+              sourceData.earliestStart = start;
+            }
+            if (!sourceData.latestEnd || end > sourceData.latestEnd) {
+              sourceData.latestEnd = end;
+            }
           }
         });
-
-        const totalHours = totalMinutes / 60;
+        
+        // Convert map to array and calculate totals
+        const sources = Array.from(sourceMap.entries()).map(([sourceId, data]) => ({
+          sourceId,
+          sourceName: data.sourceName,
+          totalHours: data.totalMinutes / 60,
+          startTime: data.earliestStart?.toISOString(),
+          endTime: data.latestEnd?.toISOString()
+        }));
+        
+        const totalHours = sources.reduce((sum, source) => sum + source.totalHours, 0);
+        
+        console.log(`Total sources: ${sources.length}, Total hours: ${totalHours}`);
 
         resolve({
-          totalHours,
-          startTime: earliestStart?.toISOString(),
-          endTime: latestEnd?.toISOString()
+          sources,
+          totalHours
         });
       });
     });
@@ -149,6 +213,7 @@ class HealthKitService {
 
   // Get mindfulness session data for a specific date
   async getMindfulnessData(date: Date): Promise<{ totalMinutes: number; sessions: Array<{ start: string; end: string }> } | null> {
+    console.log('getMindfulnessData()');
     if (!AppleHealthKit || !this.isAvailable) {
       console.log('HealthKit not available for mindfulness data');
       return null;
@@ -156,6 +221,7 @@ class HealthKitService {
 
     if (!this.isAuthorized) {
       const authorized = await this.initialize();
+      console.log('authorized:', authorized);
       if (!authorized) return null;
     }
 
@@ -179,6 +245,7 @@ class HealthKitService {
         }
 
         if (!results || results.length === 0) {
+          console.error('No mindfulsession found');
           resolve(null);
           return;
         }
@@ -187,7 +254,11 @@ class HealthKitService {
         const sessions: Array<{ start: string; end: string }> = [];
 
         results.forEach((sample) => {
-          const duration = sample.value; // Duration in minutes
+          console.log(`Mindfulness session: `, sample);
+          // Calculate duration from time difference if value is not present
+          const start = new Date(sample.startDate);
+          const end = new Date(sample.endDate);
+          const duration = sample.value || ((end.getTime() - start.getTime()) / (1000 * 60)); // Duration in minutes
           totalMinutes += duration;
           
           // Note: The actual session times might not be available in the response
@@ -197,6 +268,7 @@ class HealthKitService {
             end: sample.endDate
           });
         });
+        console.log(`Total mindfulness sessions: ${sessions.length}, Total minutes: ${totalMinutes}`);
 
         resolve({
           totalMinutes,
@@ -225,7 +297,7 @@ class HealthKitService {
         endDate: endDate.toISOString()
       };
 
-      AppleHealthKit.saveMindfulSession(options, (error: string, result: HealthValue) => {
+      AppleHealthKit.saveMindfulSession(options, (error: string) => {
         if (error) {
           console.error('Error saving mindfulness session:', error);
           resolve(false);
@@ -240,14 +312,26 @@ class HealthKitService {
   // Sync sleep data with progress tracking
   async syncSleepData(date: string): Promise<void> {
     const dateObj = new Date(date);
-    const sleepData = await this.getSleepData(dateObj);
+    const sleepData = await this.getSleepDataBySource(dateObj);
     
-    if (sleepData) {
+    if (sleepData && sleepData.totalHours > 0) {
+      // Use the earliest start and latest end from all sources
+      const allSources = sleepData.sources;
+      const startTime = allSources
+        .map(s => s.startTime)
+        .filter(Boolean)
+        .sort()[0];
+      const endTime = allSources
+        .map(s => s.endTime)
+        .filter(Boolean)
+        .sort()
+        .reverse()[0];
+        
       await progressService.trackSleep(
         date,
         sleepData.totalHours,
-        sleepData.startTime,
-        sleepData.endTime
+        startTime,
+        endTime
       );
     }
   }

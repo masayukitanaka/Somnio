@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, SafeAreaView, View, TouchableOpacity, Text, Platform, ActivityIndicator } from 'react-native';
+import { StyleSheet, ScrollView, SafeAreaView, View, TouchableOpacity, Text, Platform, ActivityIndicator, Modal } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
@@ -68,11 +68,32 @@ const healthTranslations = {
     es: 'Los datos de salud solo están disponibles en dispositivos iOS con Apple Health',
     zh: '健康数据仅在配备 Apple Health 的 iOS 设备上可用',
     ja: 'ヘルスデータはApple HealthのあるiOSデバイスでのみ利用可能です'
+  },
+  all_sources: {
+    en: 'All Sources',
+    es: 'Todas las Fuentes',
+    zh: '所有来源',
+    ja: 'すべてのソース'
+  },
+  sleep_source: {
+    en: 'Sleep Source',
+    es: 'Fuente de Sueño',
+    zh: '睡眠来源',
+    ja: '睡眠ソース'
   }
 };
 
+interface SleepSource {
+  sourceId: string;
+  sourceName: string;
+  totalHours: number;
+  startTime?: string;
+  endTime?: string;
+}
+
 interface HealthData {
   sleep?: number;
+  sleepSources?: SleepSource[];
   mindfulMinutes?: number;
 }
 
@@ -83,6 +104,9 @@ export default function HealthScreen() {
   const [healthData, setHealthData] = useState<HealthData>({});
   const [loading, setLoading] = useState(true);
   const [isHealthAvailable, setIsHealthAvailable] = useState(Platform.OS === 'ios');
+  const [selectedSourceId, setSelectedSourceId] = useState<string>('all');
+  const [sourceModalVisible, setSourceModalVisible] = useState(false);
+  
 
   useEffect(() => {
     loadCurrentLanguage();
@@ -116,14 +140,15 @@ export default function HealthScreen() {
       
       const today = new Date();
       
-      // Get sleep data
-      const sleepData = await healthKitService.getSleepData(today);
+      // Get sleep data by source
+      const sleepData = await healthKitService.getSleepDataBySource(today);
       
       // Get mindfulness data  
       const mindfulnessData = await healthKitService.getMindfulnessData(today);
       
       setHealthData({
         sleep: sleepData ? Math.round(sleepData.totalHours * 60) : undefined,
+        sleepSources: sleepData?.sources || [],
         mindfulMinutes: mindfulnessData ? Math.round(mindfulnessData.totalMinutes) : undefined
       });
     } catch (error) {
@@ -136,24 +161,30 @@ export default function HealthScreen() {
 
   const t = (key: string) => getTranslation(healthTranslations, key, currentLanguage);
 
-  const healthMetrics = [
-    {
-      id: 'sleep',
-      icon: 'bedtime',
-      label: t('sleep'),
-      value: healthData.sleep ? (healthData.sleep / 60).toFixed(1) : t('no_data'),
-      unit: healthData.sleep ? t('hours') : '',
-      color: '#9C27B0'
-    },
-    {
-      id: 'mindful',
-      icon: 'spa',
-      label: t('mindful_minutes'),
-      value: healthData.mindfulMinutes || t('no_data'),
-      unit: healthData.mindfulMinutes ? t('minutes') : '',
-      color: '#00BCD4'
+  // Calculate sleep hours based on selected source
+  const getSleepHours = () => {
+    if (!healthData.sleepSources || healthData.sleepSources.length === 0) {
+      return undefined;
     }
-  ];
+    
+    if (selectedSourceId === 'all') {
+      return healthData.sleep;
+    }
+    
+    const selectedSource = healthData.sleepSources.find(s => s.sourceId === selectedSourceId);
+    return selectedSource ? Math.round(selectedSource.totalHours * 60) : undefined;
+  };
+
+  const sleepHours = getSleepHours();
+
+  
+  const getSelectedSourceName = () => {
+    if (selectedSourceId === 'all') {
+      return t('all_sources');
+    }
+    const source = healthData.sleepSources?.find(s => s.sourceId === selectedSourceId);
+    return source?.sourceName || t('all_sources');
+  };
 
   return (
     <LinearGradient
@@ -161,19 +192,6 @@ export default function HealthScreen() {
       style={styles.gradient}
     >
       <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity 
-            onPress={() => router.back()}
-            style={styles.backButton}
-          >
-            <MaterialIcons name="arrow-back" size={24} color="#ffffff" />
-          </TouchableOpacity>
-          <ThemedText type="title" style={styles.title}>
-            {t('health_title')}
-          </ThemedText>
-          <View style={styles.placeholder} />
-        </View>
-
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
           <View style={styles.content}>
             {!isHealthAvailable ? (
@@ -195,31 +213,73 @@ export default function HealthScreen() {
                   </ThemedText>
                 </View>
 
-                <View style={styles.metricsGrid}>
-                  {healthMetrics.map((metric) => (
-                    <View key={metric.id} style={styles.metricCard}>
-                      <View style={[styles.metricIconContainer, { backgroundColor: metric.color + '20' }]}>
-                        <MaterialIcons 
-                          name={metric.icon as any} 
-                          size={32} 
-                          color={metric.color} 
-                        />
-                      </View>
-                      <ThemedText style={styles.metricLabel}>
-                        {metric.label}
+                {/* Sleep Section */}
+                <View style={styles.sleepSection}>
+                  {/* Source selector for sleep data */}
+                  {healthData.sleepSources && healthData.sleepSources.length > 1 && (
+                    <TouchableOpacity 
+                      style={styles.sourceSelector}
+                      onPress={() => setSourceModalVisible(true)}
+                    >
+                      <ThemedText style={styles.sourceSelectorLabel}>
+                        {t('sleep_source')}:
                       </ThemedText>
-                      <View style={styles.metricValueContainer}>
-                        <ThemedText type="defaultSemiBold" style={styles.metricValue}>
-                          {metric.value}
-                        </ThemedText>
-                        {metric.unit ? (
-                          <ThemedText style={styles.metricUnit}>
-                            {' '}{metric.unit}
-                          </ThemedText>
-                        ) : null}
-                      </View>
+                      <ThemedText style={styles.sourceSelectorValue}>
+                        {getSelectedSourceName()}
+                      </ThemedText>
+                      <MaterialIcons name="arrow-drop-down" size={24} color="#ffffff" />
+                    </TouchableOpacity>
+                  )}
+                  
+                  {/* Sleep Metric Card */}
+                  <View style={[styles.metricCard, styles.fullWidthCard]}>
+                    <View style={[styles.metricIconContainer, { backgroundColor: '#9C27B020' }]}>
+                      <MaterialIcons 
+                        name="bedtime" 
+                        size={32} 
+                        color="#9C27B0" 
+                      />
                     </View>
-                  ))}
+                    <ThemedText style={styles.metricLabel}>
+                      {t('sleep')}
+                    </ThemedText>
+                    <View style={styles.metricValueContainer}>
+                      <ThemedText type="defaultSemiBold" style={styles.metricValue}>
+                        {sleepHours ? (sleepHours / 60).toFixed(1) : t('no_data')}
+                      </ThemedText>
+                      {sleepHours ? (
+                        <ThemedText style={styles.metricUnit}>
+                          {' '}{t('hours')}
+                        </ThemedText>
+                      ) : null}
+                    </View>
+                  </View>
+                </View>
+
+                {/* Mindfulness Section */}
+                <View style={styles.mindfulnessSection}>
+                  <View style={[styles.metricCard, styles.fullWidthCard]}>
+                    <View style={[styles.metricIconContainer, { backgroundColor: '#00BCD420' }]}>
+                      <MaterialIcons 
+                        name="spa" 
+                        size={32} 
+                        color="#00BCD4" 
+                      />
+                    </View>
+                    <ThemedText style={styles.metricLabel}>
+                      {t('mindful_minutes')}
+                    </ThemedText>
+                    <View style={styles.metricValueContainer}>
+                      <ThemedText type="defaultSemiBold" style={styles.metricValue}>
+                        {healthData.mindfulMinutes || t('no_data')}
+                      </ThemedText>
+                      {healthData.mindfulMinutes ? (
+                        <ThemedText style={styles.metricUnit}>
+                          {' '}{t('minutes')}
+                        </ThemedText>
+                      ) : null}
+                    </View>
+                  </View>
                 </View>
 
                 {Object.keys(healthData).length === 0 && (
@@ -238,6 +298,74 @@ export default function HealthScreen() {
           </View>
         </ScrollView>
       </SafeAreaView>
+      
+      {/* Source Selection Modal */}
+      <Modal
+        visible={sourceModalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setSourceModalVisible(false)}
+      >
+        <TouchableOpacity 
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setSourceModalVisible(false)}
+        >
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <ThemedText type="defaultSemiBold" style={styles.modalTitle}>
+                {t('sleep_source')}
+              </ThemedText>
+            </View>
+            
+            {/* All Sources option */}
+            <TouchableOpacity
+              style={[
+                styles.sourceOption,
+                selectedSourceId === 'all' && styles.selectedSourceOption
+              ]}
+              onPress={() => {
+                setSelectedSourceId('all');
+                setSourceModalVisible(false);
+              }}
+            >
+              <ThemedText style={styles.sourceOptionText}>
+                {t('all_sources')}
+              </ThemedText>
+              {selectedSourceId === 'all' && (
+                <MaterialIcons name="check" size={20} color="#ffffff" />
+              )}
+            </TouchableOpacity>
+            
+            {/* Individual sources */}
+            {healthData.sleepSources?.map((source) => (
+              <TouchableOpacity
+                key={source.sourceId}
+                style={[
+                  styles.sourceOption,
+                  selectedSourceId === source.sourceId && styles.selectedSourceOption
+                ]}
+                onPress={() => {
+                  setSelectedSourceId(source.sourceId);
+                  setSourceModalVisible(false);
+                }}
+              >
+                <View style={styles.sourceOptionContent}>
+                  <ThemedText style={styles.sourceOptionText}>
+                    {source.sourceName}
+                  </ThemedText>
+                  <ThemedText style={styles.sourceOptionHours}>
+                    {(source.totalHours).toFixed(1)} {t('hours')}
+                  </ThemedText>
+                </View>
+                {selectedSourceId === source.sourceId && (
+                  <MaterialIcons name="check" size={20} color="#ffffff" />
+                )}
+              </TouchableOpacity>
+            ))}
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </LinearGradient>
   );
 }
@@ -249,29 +377,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 10,
-  },
-  backButton: {
-    padding: 8,
-  },
-  title: {
-    color: '#ffffff',
-    fontSize: 24,
-  },
-  placeholder: {
-    width: 40,
-  },
   scrollView: {
     flex: 1,
   },
   content: {
     padding: 20,
+    paddingTop: 40,
   },
   todaySection: {
     marginBottom: 20,
@@ -281,19 +392,20 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     marginBottom: 8,
   },
-  metricsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
+  sleepSection: {
+    marginBottom: 20,
+  },
+  mindfulnessSection: {
     marginBottom: 20,
   },
   metricCard: {
-    width: '48%',
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
     borderRadius: 16,
     padding: 16,
-    marginBottom: 16,
     alignItems: 'center',
+  },
+  fullWidthCard: {
+    width: '100%',
   },
   metricIconContainer: {
     width: 60,
@@ -353,5 +465,68 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#ffffff',
     marginLeft: 12,
+  },
+  sourceSelector: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 12,
+  },
+  sourceSelectorLabel: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.7)',
+    marginRight: 8,
+  },
+  sourceSelectorValue: {
+    fontSize: 14,
+    color: '#ffffff',
+    flex: 1,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#2C3E50',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingTop: 20,
+    paddingBottom: 40,
+    maxHeight: '60%',
+  },
+  modalHeader: {
+    paddingHorizontal: 20,
+    paddingBottom: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  modalTitle: {
+    fontSize: 18,
+    color: '#ffffff',
+  },
+  sourceOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+  },
+  selectedSourceOption: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  sourceOptionContent: {
+    flex: 1,
+  },
+  sourceOptionText: {
+    fontSize: 16,
+    color: '#ffffff',
+  },
+  sourceOptionHours: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.6)',
+    marginTop: 4,
   },
 });

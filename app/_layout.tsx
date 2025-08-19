@@ -6,6 +6,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { initDatabase } from '@/services/database';
+import { TouchableOpacity } from 'react-native';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 const ONBOARDING_KEY = '@somnio_onboarding_completed';
 
@@ -121,6 +123,20 @@ export default function RootLayout() {
           name="stretching" 
           options={{ 
             headerShown: false 
+          }} 
+        />
+        <Stack.Screen 
+          name="health" 
+          options={{ 
+            title: 'Health',
+            headerLeft: () => (
+              <TouchableOpacity 
+                onPress={() => router.back()}
+                style={{ paddingRight: 15 }}
+              >
+                <MaterialIcons name="arrow-back-ios" size={24} color="#ffffff" />
+              </TouchableOpacity>
+            ),
           }} 
         />
         </Stack>

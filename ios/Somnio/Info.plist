@@ -54,9 +54,9 @@
       <true/>
     </dict>
     <key>NSHealthShareUsageDescription</key>
-    <string>Allow $(PRODUCT_NAME) to check health info</string>
+    <string>Allow StepCounter to access your health data to display your daily steps, distance, flights climbed, mindfulness sessions, and sleep data</string>
     <key>NSHealthUpdateUsageDescription</key>
-    <string>Allow $(PRODUCT_NAME) to update health info</string>
+    <string>Allow StepCounter to save your mindfulness sessions to HealthKit</string>
     <key>NSMicrophoneUsageDescription</key>
     <string>Allow $(PRODUCT_NAME) to access your microphone</string>
     <key>NSUserActivityTypes</key>
@@ -65,7 +65,6 @@
     </array>
     <key>UIBackgroundModes</key>
     <array>
-      <string>audio</string>
       <string>audio</string>
     </array>
     <key>UILaunchStoryboardName</key>
