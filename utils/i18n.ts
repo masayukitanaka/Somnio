@@ -894,6 +894,30 @@ export const homeTabTranslations: Translations = {
     'es': 'Herramientas',
     'zh': '工具',
   },
+  'sleep_goal_achieved': {
+    'en': 'Sleep goal achieved',
+    'ja': '睡眠目標達成',
+    'es': 'Objetivo de sueño alcanzado',
+    'zh': '睡眠目标达成',
+  },
+  'sleep_goal_not_achieved': {
+    'en': 'Sleep goal not achieved',
+    'ja': '睡眠目標未達成',
+    'es': 'Objetivo de sueño no alcanzado',
+    'zh': '睡眠目标未达成',
+  },
+  'energy_full': {
+    'en': 'Energy Full!',
+    'ja': 'エネルギー満タン！',
+    'es': '¡Energía completa!',
+    'zh': '能量充满！',
+  },
+  'need_more_sleep': {
+    'en': 'Need More Sleep',
+    'ja': 'もっと睡眠が必要',
+    'es': 'Necesitas más sueño',
+    'zh': '需要更多睡眠',
+  },
 };
 
 // Translation strings for profile screen

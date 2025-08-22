@@ -106,11 +106,8 @@ const styles = StyleSheet.create({
     height: 280,
     borderRadius: 30,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    elevation: 8, // Android shadow only
+    // iOS shadows removed to prevent warning
   },
   content: {
     flex: 1,
@@ -155,11 +152,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     left: -5,
     marginBottom: -8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 4,
+    elevation: 4, // Android shadow only
+    // iOS shadows removed to prevent warning
   },
   volumeText: {
     fontSize: 12,

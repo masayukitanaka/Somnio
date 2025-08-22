@@ -139,11 +139,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 5,
+    elevation: 5, // Android shadow only
+    // iOS shadows removed to prevent warning
     zIndex: 1000,
   },
   icon: {

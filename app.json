@@ -7,11 +7,21 @@
     "icon": "./assets/images/icon.png",
     "scheme": "somnio",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "UIBackgroundModes": ["audio"]
+        "UIBackgroundModes": [
+          "audio"
+        ],
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSHealthShareUsageDescription": "This app uses Apple Health to track your sleep and mindfulness data to help improve your wellness journey.",
+        "NSHealthUpdateUsageDescription": "This app saves mindfulness session data to Apple Health to keep your health records complete."
+      },
+      "bundleIdentifier": "com.playernumber888.Somnio",
+      "entitlements": {
+        "com.apple.developer.healthkit": true,
+        "com.apple.developer.healthkit.access": []
       }
     },
     "android": {
@@ -19,7 +29,8 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.playernumber888.Somnio"
     },
     "web": {
       "bundler": "metro",
@@ -36,10 +47,25 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
+      ],
+      "expo-sqlite",
+      [
+        "react-native-health",
+        {
+          "isClinicalDataEnabled": false,
+          "healthSharePermission": "Allow StepCounter to access your health data to display your daily steps, distance, flights climbed, mindfulness sessions, and sleep data",
+          "healthUpdatePermission": "Allow StepCounter to save your mindfulness sessions to HealthKit"
+        }
       ]
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "68985d4a-f161-459b-984e-b84c48fd6596"
+      }
     }
   }
 }

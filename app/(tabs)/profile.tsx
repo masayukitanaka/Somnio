@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, SafeAreaView, StatusBar, View, Text, TouchableOpacity, Switch, Alert, Linking } from 'react-native';
+import { StyleSheet, ScrollView, SafeAreaView, StatusBar, View, Text, TouchableOpacity, Switch, Alert, Linking, Modal, TextInput } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -12,6 +12,7 @@ import { AudioAssetManager } from '@/services/AudioAssetManager';
 import { profileTranslations, getCurrentLanguage, getTranslation } from '@/utils/i18n';
 import { useTheme } from '@/contexts/ThemeContext';
 import { presetThemes, ColorSettings } from '@/services/colorSettingsService';
+import { useSleepTracking } from '@/hooks/useProgressTracking';
 
 const termsUrl = 'https://example.com/terms'; // Replace with actual URL
 const supportUrl = 'https://example.com/support'; // Replace with actual URL
@@ -44,8 +45,11 @@ export default function ProfileScreen() {
   const [showUILanguageModal, setShowUILanguageModal] = useState(false);
   const [showAudioLanguageModal, setShowAudioLanguageModal] = useState(false);
   const [showThemeModal, setShowThemeModal] = useState(false);
+  const [showSleepGoalModal, setShowSleepGoalModal] = useState(false);
+  const [sleepGoalInput, setSleepGoalInput] = useState('');
   const [currentLanguage, setCurrentLanguage] = useState('en');
   const { colors, updateColors } = useTheme();
+  const { sleepGoal, updateSleepGoal } = useSleepTracking();
 
   useEffect(() => {
     loadSettings();
@@ -162,7 +166,7 @@ export default function ProfileScreen() {
 
   return (
     <LinearGradient
-      colors={colors.backgroundGradient as readonly [string, string, ...string[]]}
+      colors={colors.backgroundGradient}
       style={styles.gradient}
     >
       <SafeAreaView style={styles.container}>
@@ -226,6 +230,26 @@ export default function ProfileScreen() {
                     {Object.entries(presetThemes).find(
                       ([_, theme]) => JSON.stringify(theme.colors.backgroundGradient) === JSON.stringify(colors.backgroundGradient)
                     )?.[1].name || t('custom')}
+                  </Text>
+                </View>
+              </View>
+              <MaterialIcons name="chevron-right" size={24} color="rgba(255, 255, 255, 0.6)" />
+            </TouchableOpacity>
+
+            {/* Sleep Goal Setting */}
+            <TouchableOpacity 
+              style={styles.settingItem} 
+              onPress={() => {
+                setSleepGoalInput(sleepGoal.toString());
+                setShowSleepGoalModal(true);
+              }}
+            >
+              <View style={styles.settingLeft}>
+                <MaterialIcons name="nights-stay" size={24} color="#ffffff" />
+                <View style={styles.settingTextContainer}>
+                  <Text style={styles.settingTitle}>{t('sleep_goal')}</Text>
+                  <Text style={styles.settingSubtitle}>
+                    {sleepGoal} {t('hours_per_night')}
                   </Text>
                 </View>
               </View>
@@ -391,7 +415,7 @@ export default function ProfileScreen() {
                   >
                     <View style={styles.themePreview}>
                       <LinearGradient
-                        colors={theme.colors.backgroundGradient as readonly [string, string, ...string[]]}
+                        colors={theme.colors.backgroundGradient}
                         style={styles.themeGradient}
                       />
                       <View 
@@ -414,6 +438,50 @@ export default function ProfileScreen() {
             </View>
           </View>
         )}
+
+        {/* Sleep Goal Modal */}
+        <Modal
+          visible={showSleepGoalModal}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setShowSleepGoalModal(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>{t('set_sleep_goal')}</Text>
+              <Text style={styles.modalSubtitle}>{t('enter_target_sleep_hours')}</Text>
+              
+              <TextInput
+                style={styles.sleepGoalInput}
+                value={sleepGoalInput}
+                onChangeText={setSleepGoalInput}
+                placeholder={t('hours')}
+                keyboardType="numeric"
+                autoFocus={true}
+              />
+              
+              <View style={styles.sleepGoalButtons}>
+                <TouchableOpacity
+                  style={[styles.modalCloseButton, styles.sleepGoalCancelButton]}
+                  onPress={() => setShowSleepGoalModal(false)}
+                >
+                  <Text style={styles.modalCloseButtonText}>{t('cancel')}</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity
+                  style={[styles.modalCloseButton, styles.sleepGoalSaveButton]}
+                  onPress={async () => {
+                    const hours = parseFloat(sleepGoalInput) || 8;
+                    await updateSleepGoal(hours);
+                    setShowSleepGoalModal(false);
+                  }}
+                >
+                  <Text style={styles.sleepGoalSaveText}>{t('save')}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
       </SafeAreaView>
     </LinearGradient>
   );
@@ -580,5 +648,32 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#ffffff',
     textAlign: 'center',
+  },
+  sleepGoalInput: {
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 18,
+    color: '#ffffff',
+    textAlign: 'center',
+    marginBottom: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+  },
+  sleepGoalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  sleepGoalCancelButton: {
+    flex: 1,
+  },
+  sleepGoalSaveButton: {
+    flex: 1,
+    backgroundColor: '#6366F1',
+  },
+  sleepGoalSaveText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#ffffff',
   },
 });

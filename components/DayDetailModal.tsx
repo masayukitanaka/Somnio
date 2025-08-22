@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, TouchableOpacity, Image, Modal, TextInput } from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { ThemedText } from '@/components/ThemedText';
 import { getTranslation, homeTabTranslations } from '@/utils/i18n';
+import { useProgressTracking, useSleepTracking } from '@/hooks/useProgressTracking';
+import { DailyProgress } from '@/services/progressService';
 
 // Star images
 const starImages = {
@@ -25,6 +26,11 @@ const focusImages = {
   unfocused: require('@/assets/images/unfocused.png'),
 };
 
+// Sleep status images
+const sleepImages = {
+  noSleep: require('@/assets/images/no_sleep.png'),
+};
+
 interface DayDetailModalProps {
   visible: boolean;
   onClose: () => void;
@@ -41,34 +47,43 @@ export const DayDetailModal = ({
   onDateChange 
 }: DayDetailModalProps) => {
   const [activeTab, setActiveTab] = useState<'sleep' | 'mindfulness' | 'focus'>('sleep');
-  const [meditationMinutes, setMeditationMinutes] = useState(0);
+  const [dailyProgress, setDailyProgress] = useState<DailyProgress | null>(null);
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [editInputValue, setEditInputValue] = useState('');
-  const [isFocused, setIsFocused] = useState(false);
   const [focusEditModalVisible, setFocusEditModalVisible] = useState(false);
+  const [sleepEditModalVisible, setSleepEditModalVisible] = useState(false);
+  const [sleepEditValue, setSleepEditValue] = useState('');
+  
+  const { getDailyProgress, trackMindfulness, trackFocus } = useProgressTracking();
+  const { trackSleepManual, sleepGoal } = useSleepTracking();
   const t = (key: string) => getTranslation(homeTabTranslations, key, currentLanguage);
 
   // Load data for the selected date
   useEffect(() => {
     if (date) {
-      loadMeditationData();
-      loadFocusData();
+      loadDailyProgress();
     }
   }, [date]);
 
-  const loadMeditationData = async () => {
+  const loadDailyProgress = async () => {
     if (!date) return;
     
     try {
-      const key = `meditation_${date}`;
-      const stored = await AsyncStorage.getItem(key);
-      if (stored) {
-        setMeditationMinutes(parseInt(stored));
-      } else {
-        setMeditationMinutes(0);
-      }
+      const progress = await getDailyProgress(date);
+      setDailyProgress(progress);
     } catch (error) {
-      console.error('Error loading meditation data:', error);
+      console.error('Error loading daily progress:', error);
+    }
+  };
+
+  const saveSleepData = async (hours: number) => {
+    if (!date) return;
+    
+    try {
+      await trackSleepManual(hours, date);
+      await loadDailyProgress(); // Refresh data
+    } catch (error) {
+      console.error('Error saving sleep data:', error);
     }
   };
 
@@ -76,27 +91,10 @@ export const DayDetailModal = ({
     if (!date) return;
     
     try {
-      const key = `meditation_${date}`;
-      await AsyncStorage.setItem(key, minutes.toString());
-      setMeditationMinutes(minutes);
+      await trackMindfulness(minutes, undefined, undefined, date);
+      await loadDailyProgress(); // Refresh data
     } catch (error) {
       console.error('Error saving meditation data:', error);
-    }
-  };
-
-  const loadFocusData = async () => {
-    if (!date) return;
-    
-    try {
-      const key = `focus_${date}`;
-      const stored = await AsyncStorage.getItem(key);
-      if (stored) {
-        setIsFocused(stored === 'true');
-      } else {
-        setIsFocused(false);
-      }
-    } catch (error) {
-      console.error('Error loading focus data:', error);
     }
   };
 
@@ -104,31 +102,41 @@ export const DayDetailModal = ({
     if (!date) return;
     
     try {
-      const key = `focus_${date}`;
-      await AsyncStorage.setItem(key, focused.toString());
-      setIsFocused(focused);
+      await trackFocus(focused, date);
+      await loadDailyProgress(); // Refresh data
     } catch (error) {
       console.error('Error saving focus data:', error);
     }
+  };
+
+  const handleEditSleep = () => {
+    setSleepEditValue(dailyProgress?.sleep?.value?.toString() || '0');
+    setSleepEditModalVisible(true);
+  };
+
+  const handleSaveSleep = async () => {
+    const hours = parseFloat(sleepEditValue) || 0;
+    await saveSleepData(hours);
+    setSleepEditModalVisible(false);
   };
 
   const handleEditFocus = () => {
     setFocusEditModalVisible(true);
   };
 
-  const handleSaveFocus = (focused: boolean) => {
-    saveFocusData(focused);
+  const handleSaveFocus = async (focused: boolean) => {
+    await saveFocusData(focused);
     setFocusEditModalVisible(false);
   };
 
   const handleEditMeditation = () => {
-    setEditInputValue(meditationMinutes.toString());
+    setEditInputValue(dailyProgress?.mindfulness?.value?.toString() || '0');
     setEditModalVisible(true);
   };
 
-  const handleSaveMeditation = () => {
+  const handleSaveMeditation = async () => {
     const minutes = parseInt(editInputValue) || 0;
-    saveMeditationData(minutes);
+    await saveMeditationData(minutes);
     setEditModalVisible(false);
   };
 
@@ -145,8 +153,7 @@ export const DayDetailModal = ({
   if (!date) return null;
 
   const getStarLevelForDate = (): number => {
-    // This is a simplified version - in real app, you'd get from the actual records
-    return Math.floor(Math.random() * 4); // 0-3 (0 = no star)
+    return dailyProgress?.stars || 0;
   };
 
   const navigateDate = (direction: number) => {
@@ -190,24 +197,61 @@ export const DayDetailModal = ({
 
   const renderTabContent = () => {
     if (activeTab === 'sleep') {
+      const sleepHours = dailyProgress?.sleep?.value || 0;
+      const isGoalAchieved = sleepHours >= sleepGoal;
+      
       return (
         <View style={styles.modalTabContent}>
           <View style={styles.modalContentHeader}>
-            {/* <MaterialIcons name="nights-stay" size={40} color="#205295" /> */}
             <ThemedText type="defaultSemiBold" style={styles.modalContentTitle}>
               {t('sleep_achievement')}
             </ThemedText>
           </View>
+          
+          <View style={styles.sleepStatusContainer}>
+            {isGoalAchieved ? (
+              <View style={styles.energyFullContainer}>
+                <MaterialIcons name="bolt" size={80} color="#FFD700" />
+                <ThemedText style={styles.sleepStatusText}>
+                  {t('energy_full') || 'Energy Full!'}
+                </ThemedText>
+              </View>
+            ) : (
+              <>
+                <Image 
+                  source={sleepImages.noSleep}
+                  style={styles.sleepStatusImage}
+                />
+                <ThemedText style={styles.sleepStatusText}>
+                  {t('need_more_sleep') || 'Need More Sleep'}
+                </ThemedText>
+              </>
+            )}
+          </View>
+          
           <ThemedText style={styles.modalContentDescription}>
-            {t('sleep_achievement_desc')}
+            {isGoalAchieved ? 
+              `${t('sleep_goal_achieved')} (${sleepGoal}h+)` : 
+              `${t('sleep_goal_not_achieved')} (${sleepGoal}h)`
+            }
           </ThemedText>
+          
           <View style={styles.modalStats}>
             <ThemedText type="defaultSemiBold" style={styles.modalStatsValue}>
-              8 hours
+              {sleepHours} hours
             </ThemedText>
             <ThemedText style={styles.modalStatsLabel}>
               {t('today_total')}
             </ThemedText>
+            <TouchableOpacity 
+              style={styles.editButton} 
+              onPress={handleEditSleep}
+            >
+              <MaterialIcons name="edit" size={16} color="#205295" />
+              <ThemedText style={styles.editButtonText}>
+                {t('edit')}
+              </ThemedText>
+            </TouchableOpacity>
           </View>
         </View>
       );
@@ -225,17 +269,17 @@ export const DayDetailModal = ({
           
           <View style={styles.meditationStatusContainer}>
             <Image 
-              source={meditationMinutes > 0 ? meditationImages.guru : meditationImages.knocked}
+              source={(dailyProgress?.mindfulness?.value || 0) > 0 ? meditationImages.guru : meditationImages.knocked}
               style={styles.meditationStatusImage}
             />
             <ThemedText style={styles.meditationStatusText}>
-              {meditationMinutes > 0 ? t('meditation_completed') : t('no_meditation')}
+              {(dailyProgress?.mindfulness?.value || 0) > 0 ? t('meditation_completed') : t('no_meditation')}
             </ThemedText>
           </View>
 
           <View style={styles.modalStats}>
             <ThemedText type="defaultSemiBold" style={styles.modalStatsValue}>
-              {meditationMinutes} {t('minutes')}
+              {dailyProgress?.mindfulness?.value || 0} {t('minutes')}
             </ThemedText>
             <ThemedText style={styles.modalStatsLabel}>
               {t('meditation_time')}
@@ -266,17 +310,17 @@ export const DayDetailModal = ({
         
         <View style={styles.focusStatusContainer}>
           <Image 
-            source={isFocused ? focusImages.focused : focusImages.unfocused}
-            style={isFocused ? styles.focusStatusImage : styles.focusStatusImageUnfocused}
+            source={(dailyProgress?.focus?.achieved || false) ? focusImages.focused : focusImages.unfocused}
+            style={(dailyProgress?.focus?.achieved || false) ? styles.focusStatusImage : styles.focusStatusImageUnfocused}
           />
           <ThemedText style={styles.focusStatusText}>
-            {isFocused ? t('laser_focus') : t('all_over_the_place')}
+            {(dailyProgress?.focus?.achieved || false) ? t('laser_focus') : t('all_over_the_place')}
           </ThemedText>
         </View>
 
         <View style={styles.modalStats}>
           <ThemedText type="defaultSemiBold" style={styles.modalStatsValue}>
-            {isFocused ? t('focused') : t('unfocused')}
+            {(dailyProgress?.focus?.achieved || false) ? t('focused') : t('unfocused')}
           </ThemedText>
           <ThemedText style={styles.modalStatsLabel}>
             {t('focus_status')}
@@ -395,6 +439,51 @@ export const DayDetailModal = ({
         </View>
       </Modal>
 
+      {/* Edit Sleep Hours Modal */}
+      <Modal
+        visible={sleepEditModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setSleepEditModalVisible(false)}
+      >
+        <View style={styles.editModalOverlay}>
+          <View style={styles.editModalContainer}>
+            <ThemedText type="defaultSemiBold" style={styles.editModalTitle}>
+              {t('edit_sleep_hours')}
+            </ThemedText>
+            
+            <TextInput
+              style={styles.editModalInput}
+              value={sleepEditValue}
+              onChangeText={setSleepEditValue}
+              placeholder={t('enter_hours')}
+              keyboardType="numeric"
+              autoFocus={true}
+            />
+            
+            <View style={styles.editModalButtons}>
+              <TouchableOpacity
+                style={[styles.editModalButton, styles.editModalCancelButton]}
+                onPress={() => setSleepEditModalVisible(false)}
+              >
+                <ThemedText style={styles.editModalCancelText}>
+                  {t('cancel')}
+                </ThemedText>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={[styles.editModalButton, styles.editModalSaveButton]}
+                onPress={handleSaveSleep}
+              >
+                <ThemedText style={styles.editModalSaveText}>
+                  {t('save')}
+                </ThemedText>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       {/* Edit Focus Status Modal */}
       <Modal
         visible={focusEditModalVisible}
@@ -412,7 +501,7 @@ export const DayDetailModal = ({
               <TouchableOpacity
                 style={[
                   styles.focusOptionButton,
-                  isFocused && styles.focusOptionButtonSelected
+                  (dailyProgress?.focus?.achieved || false) && styles.focusOptionButtonSelected
                 ]}
                 onPress={() => handleSaveFocus(true)}
               >
@@ -422,7 +511,7 @@ export const DayDetailModal = ({
                 />
                 <ThemedText style={[
                   styles.focusOptionText,
-                  isFocused && styles.focusOptionTextSelected
+                  (dailyProgress?.focus?.achieved || false) && styles.focusOptionTextSelected
                 ]}>
                   {t('laser_focus')}
                 </ThemedText>
@@ -431,7 +520,7 @@ export const DayDetailModal = ({
               <TouchableOpacity
                 style={[
                   styles.focusOptionButton,
-                  !isFocused && styles.focusOptionButtonSelected
+                  !(dailyProgress?.focus?.achieved || false) && styles.focusOptionButtonSelected
                 ]}
                 onPress={() => handleSaveFocus(false)}
               >
@@ -441,7 +530,7 @@ export const DayDetailModal = ({
                 />
                 <ThemedText style={[
                   styles.focusOptionText,
-                  !isFocused && styles.focusOptionTextSelected
+                  !(dailyProgress?.focus?.achieved || false) && styles.focusOptionTextSelected
                 ]}>
                   {t('all_over_the_place')}
                 </ThemedText>
@@ -473,7 +562,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContainer: {
-    height: '70%',
+    height: '80%',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     overflow: 'hidden',
@@ -542,11 +631,8 @@ const styles = StyleSheet.create({
   },
   modalTabActive: {
     backgroundColor: '#ffffff',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 3,
+    elevation: 3, // Android shadow only
+    // iOS shadows removed to prevent warning
   },
   modalTabText: {
     fontSize: 14,
@@ -569,8 +655,8 @@ const styles = StyleSheet.create({
   },
   modalContentHeader: {
     alignItems: 'center',
-    marginBottom: 20,
-    gap: 10,
+    marginBottom: 15,
+    gap: 8,
   },
   modalContentTitle: {
     fontSize: 18,
@@ -580,7 +666,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666666',
     textAlign: 'center',
-    marginBottom: 30,
+    marginBottom: 20,
   },
   modalStats: {
     alignItems: 'center',
@@ -601,10 +687,32 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#999999',
   },
+  // Sleep status styles
+  sleepStatusContainer: {
+    alignItems: 'center',
+    marginTop: 10,
+    marginBottom: 15,
+  },
+  sleepStatusImage: {
+    width: 100,
+    height: 100,
+    resizeMode: 'contain',
+    marginBottom: 10,
+  },
+  sleepStatusText: {
+    fontSize: 16,
+    color: '#666666',
+    textAlign: 'center',
+    fontWeight: 'bold',
+  },
+  energyFullContainer: {
+    alignItems: 'center',
+  },
   // Meditation status styles
   meditationStatusContainer: {
     alignItems: 'center',
-    marginVertical: 20,
+    marginTop: 10,
+    marginBottom: 15,
   },
   meditationStatusImage: {
     width: 80,
@@ -634,7 +742,8 @@ const styles = StyleSheet.create({
   // Focus status styles
   focusStatusContainer: {
     alignItems: 'center',
-    marginVertical: 10,
+    marginTop: 10,
+    marginBottom: 15,
   },
   focusStatusImage: {
     width: 80,
