@@ -1,6 +1,7 @@
 import { Stack } from "expo-router";
 import { AudioProvider } from '@/contexts/AudioContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
+import { RewardAdProvider } from '@/contexts/RewardAdContext';
 import { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
@@ -9,6 +10,7 @@ import { initDatabase } from '@/services/database';
 import { TouchableOpacity } from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import useAdmob from '@/hooks/useAdmob';
+import { TrackingPermissionService } from '@/services/trackingPermissionService';
 
 const ONBOARDING_KEY = '@somnio_onboarding_completed';
 
@@ -20,6 +22,8 @@ const shouldAlwaysShowOnboarding = () => {
 export default function RootLayout() {
   const [isLoading, setIsLoading] = useState(true);
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
+  const [admobInitialized, setAdmobInitialized] = useState(false);
+  const [trackingPermissionHandled, setTrackingPermissionHandled] = useState(false);
   const { initialize: initializeAdMob } = useAdmob();
 
   useEffect(() => {
@@ -30,14 +34,40 @@ export default function RootLayout() {
       console.error('Failed to initialize database:', error);
     });
     
-    // Initialize AdMob
-    initializeAdMob().then((success) => {
-      if (success) {
-        console.log('AdMob initialized successfully');
-      }
-    }).catch(error => {
-      console.error('Failed to initialize AdMob:', error);
-    });
+    // Handle tracking permission first
+    if (!trackingPermissionHandled) {
+      TrackingPermissionService.handleAppLaunchTrackingPermission().then((status) => {
+        console.log('Tracking permission handled:', status.hasPermission);
+        setTrackingPermissionHandled(true);
+        
+        // Initialize AdMob after tracking permission is handled
+        if (!admobInitialized) {
+          initializeAdMob().then((success) => {
+            if (success) {
+              console.log('AdMob initialized successfully');
+              setAdmobInitialized(true);
+            }
+          }).catch(error => {
+            console.error('Failed to initialize AdMob:', error);
+          });
+        }
+      }).catch(error => {
+        console.error('Failed to handle tracking permission:', error);
+        setTrackingPermissionHandled(true);
+        
+        // Initialize AdMob even if tracking permission fails
+        if (!admobInitialized) {
+          initializeAdMob().then((success) => {
+            if (success) {
+              console.log('AdMob initialized successfully');
+              setAdmobInitialized(true);
+            }
+          }).catch(error => {
+            console.error('Failed to initialize AdMob:', error);
+          });
+        }
+      });
+    }
     
     checkOnboardingStatus();
   }, []);
@@ -76,6 +106,7 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider>
         <AudioProvider>
+          <RewardAdProvider>
           <Stack
           screenOptions={{
             headerStyle: {
@@ -151,6 +182,7 @@ export default function RootLayout() {
           }} 
         />
         </Stack>
+          </RewardAdProvider>
         </AudioProvider>
       </ThemeProvider>
     </GestureHandlerRootView>

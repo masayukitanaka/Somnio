@@ -18,6 +18,7 @@ import { getRecommendations, ContentItem } from '@/services/contentService';
 import { useAudio } from '@/contexts/AudioContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useProgressTracking } from '@/hooks/useProgressTracking';
+import { useRewardAd } from '@/contexts/RewardAdContext';
 import { DailyProgress } from '@/services/progressService';
 
 const { width } = Dimensions.get('window');
@@ -31,6 +32,26 @@ const DAY_CELL_SPACING = 2;
 // Tools Menu Component
 const ToolsMenu = ({ currentLanguage }: { currentLanguage: string }) => {
   const navigation = useNavigation<any>();
+  const { showRewardedAd } = useRewardAd();
+
+  const handleToolPress = async (toolAction: () => void, toolName: string) => {
+    try {
+      console.log(`[Tools] Accessing ${toolName} tool`);
+      
+      // Show rewarded ad before accessing tool (except Settings)
+      if (toolName.toLowerCase() !== 'settings') {
+        const canAccess = await showRewardedAd();
+        if (!canAccess) {
+          console.log(`User cancelled rewarded ad, not accessing ${toolName}`);
+          return;
+        }
+      }
+      
+      toolAction();
+    } catch (error) {
+      console.error(`Error accessing ${toolName} tool:`, error);
+    }
+  };
   
   const menuItems = [
     {
@@ -38,63 +59,63 @@ const ToolsMenu = ({ currentLanguage }: { currentLanguage: string }) => {
       title: 'Health',
       icon: 'favorite',
       color: '#E91E63',
-      onPress: () => navigation.navigate('health'),
+      onPress: () => handleToolPress(() => navigation.navigate('health'), 'Health'),
     },
     {
       id: 'meditation',
       title: 'Meditation Timer',
       icon: 'self-improvement',
       color: '#7B68EE',
-      onPress: () => navigation.navigate('meditation-timer'),
+      onPress: () => handleToolPress(() => navigation.navigate('meditation-timer'), 'Meditation Timer'),
     },
     {
       id: 'breathing',
       title: 'Breathing',
       icon: 'air',
       color: '#64bdd6ff',
-      onPress: () => navigation.navigate('breathing-exercise'),
+      onPress: () => handleToolPress(() => navigation.navigate('breathing-exercise'), 'Breathing'),
     },
     {
       id: 'stretching',
       title: 'Stretching',
       icon: 'accessibility',
       color: '#4b9055ff',
-      onPress: () => navigation.navigate('stretching'),
+      onPress: () => handleToolPress(() => navigation.navigate('stretching'), 'Stretching'),
     },
     {
       id: 'pomodoro',
       title: 'Pomodoro',
       icon: 'timer',
       color: '#d35b43ff',
-      onPress: () => navigation.navigate('pomodoro-timer'),
+      onPress: () => handleToolPress(() => navigation.navigate('pomodoro-timer'), 'Pomodoro'),
     },
     {
       id: 'tasks',
       title: 'Tasks',
       icon: 'checklist',
       color: '#b258b4ff',
-      onPress: () => navigation.navigate('tasks'),
+      onPress: () => handleToolPress(() => navigation.navigate('tasks'), 'Tasks'),
     },
     {
       id: 'journal',
       title: 'Journal',
       icon: 'book',
       color: '#e19d4eff',
-      onPress: () => navigation.navigate('journal'),
+      onPress: () => handleToolPress(() => navigation.navigate('journal'), 'Journal'),
     },
     {
       id: 'sudoku',
       title: 'Sudoku',
       icon: 'grid-on',
       color: '#db618cff',
-      onPress: () => navigation.navigate('sudoku'),
+      onPress: () => handleToolPress(() => navigation.navigate('sudoku'), 'Sudoku'),
     },
     {
       id: 'settings',
       title: 'Settings',
       icon: 'settings',
       color: '#528097ff',
-      onPress: () => navigation.navigate('profile'),
+      onPress: () => handleToolPress(() => navigation.navigate('profile'), 'Settings'),
     },
   ];
   
@@ -408,6 +429,7 @@ export default function HomeScreen() {
   const isFocused = useIsFocused();
   const { colors } = useTheme();
   const { syncHealthKitData } = useProgressTracking();
+  const { showRewardedAd } = useRewardAd();
   const { 
     currentSound,
     currentItem,
@@ -448,6 +470,13 @@ export default function HomeScreen() {
   const handleRecommendationPress = async (item: ContentItem) => {
     try {
       setSelectedItem(item);
+      
+      // Show rewarded ad before playing audio content
+      const canPlay = await showRewardedAd();
+      if (!canPlay) {
+        console.log('User cancelled rewarded ad, not playing audio');
+        return;
+      }
       
       // Stop any existing audio
       if (currentSound) {

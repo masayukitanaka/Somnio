@@ -13,6 +13,8 @@ import { profileTranslations, getCurrentLanguage, getTranslation } from '@/utils
 import { useTheme } from '@/contexts/ThemeContext';
 import { presetThemes, ColorSettings } from '@/services/colorSettingsService';
 import { useSleepTracking } from '@/hooks/useProgressTracking';
+import { useRewardAd } from '@/contexts/RewardAdContext';
+import { TrackingPermissionService, TrackingPermissionStatus } from '@/services/trackingPermissionService';
 
 const termsUrl = 'https://example.com/terms'; // Replace with actual URL
 const supportUrl = 'https://example.com/support'; // Replace with actual URL
@@ -48,13 +50,25 @@ export default function ProfileScreen() {
   const [showSleepGoalModal, setShowSleepGoalModal] = useState(false);
   const [sleepGoalInput, setSleepGoalInput] = useState('');
   const [currentLanguage, setCurrentLanguage] = useState('en');
+  const [trackingPermissionStatus, setTrackingPermissionStatus] = useState<TrackingPermissionStatus | null>(null);
   const { colors, updateColors } = useTheme();
   const { sleepGoal, updateSleepGoal } = useSleepTracking();
+  const { clearRewardAdCooldown } = useRewardAd();
 
   useEffect(() => {
     loadSettings();
     loadCurrentLanguage();
+    loadTrackingPermissionStatus();
   }, []);
+
+  const loadTrackingPermissionStatus = async () => {
+    try {
+      const status = await TrackingPermissionService.getTrackingPermissionStatus();
+      setTrackingPermissionStatus(status);
+    } catch (error) {
+      console.error('Error loading tracking permission status:', error);
+    }
+  };
 
   const loadCurrentLanguage = async () => {
     try {
@@ -149,6 +163,64 @@ export default function ProfileScreen() {
 
   const handleContactSupport = () => {
     Linking.openURL(supportUrl); // Replace with actual URL
+  };
+
+  const handleClearRewardCooldown = () => {
+    Alert.alert(
+      'Clear Reward Ad Cooldown',
+      'This will reset the reward ad cooldown timer. This is for development/testing only.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Clear',
+          onPress: async () => {
+            try {
+              await clearRewardAdCooldown();
+              Alert.alert('Success', 'Reward ad cooldown has been cleared.');
+            } catch (error) {
+              console.error('Error clearing reward cooldown:', error);
+              Alert.alert('Error', 'Failed to clear reward cooldown.');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleTrackingPermission = () => {
+    const hasPermission = trackingPermissionStatus?.hasPermission;
+    const title = hasPermission ? 'Tracking Permission Granted' : 'Tracking Permission';
+    const message = hasPermission 
+      ? 'You have granted tracking permission for personalized ads. You can change this in iOS Settings > Privacy & Security > Tracking.'
+      : 'Would you like to enable tracking for personalized ads? This helps support the app and provides more relevant content.';
+
+    Alert.alert(
+      title,
+      message,
+      hasPermission 
+        ? [{ text: 'OK' }]
+        : [
+            { text: 'Not Now', style: 'cancel' },
+            {
+              text: 'Enable',
+              onPress: async () => {
+                try {
+                  const status = await TrackingPermissionService.requestTrackingPermission();
+                  setTrackingPermissionStatus(status);
+                  
+                  if (status.hasPermission) {
+                    Alert.alert('Success', 'Tracking permission has been granted. Personalized ads are now enabled.');
+                  } else {
+                    Alert.alert('Permission Denied', 'Tracking permission was denied. You can change this later in iOS Settings.');
+                  }
+                } catch (error) {
+                  console.error('Error requesting tracking permission:', error);
+                  Alert.alert('Error', 'Failed to request tracking permission.');
+                }
+              },
+            },
+          ]
+    );
   };
 
   // Translation helper function
@@ -288,6 +360,43 @@ export default function ProfileScreen() {
               </View>
               <MaterialIcons name="chevron-right" size={24} color="rgba(255, 255, 255, 0.6)" />
             </TouchableOpacity>
+
+            {/* Tracking Permission Setting */}
+            <TouchableOpacity style={styles.settingItem} onPress={handleTrackingPermission}>
+              <View style={styles.settingLeft}>
+                <MaterialIcons 
+                  name={trackingPermissionStatus?.hasPermission ? "verified-user" : "security"} 
+                  size={24} 
+                  color={trackingPermissionStatus?.hasPermission ? "#4CAF50" : "#FF9800"}
+                />
+                <View style={styles.settingTextContainer}>
+                  <Text style={styles.settingTitle}>Personalized Ads</Text>
+                  <Text style={styles.settingSubtitle}>
+                    {trackingPermissionStatus?.hasPermission 
+                      ? 'Enabled - Helping support the app'
+                      : 'Disabled - Enable for personalized content'
+                    }
+                  </Text>
+                </View>
+              </View>
+              <MaterialIcons name="chevron-right" size={24} color="rgba(255, 255, 255, 0.6)" />
+            </TouchableOpacity>
+
+            {/* Clear Reward Cooldown Button (Development Only) */}
+            {__DEV__ && (
+              <TouchableOpacity style={styles.settingItem} onPress={handleClearRewardCooldown}>
+                <View style={styles.settingLeft}>
+                  <MaterialIcons name="timer-off" size={24} color="#FF9500" />
+                  <View style={styles.settingTextContainer}>
+                    <Text style={[styles.settingTitle, { color: '#FF9500' }]}>Clear Reward Ad Cooldown</Text>
+                    <Text style={styles.settingSubtitle}>
+                      Reset reward ad timer (Development only)
+                    </Text>
+                  </View>
+                </View>
+                <MaterialIcons name="chevron-right" size={24} color="rgba(255, 255, 255, 0.6)" />
+              </TouchableOpacity>
+            )}
 
             {/* Terms and Conditions */}
             <TouchableOpacity style={styles.settingItem} onPress={handleTermsAndConditions}>

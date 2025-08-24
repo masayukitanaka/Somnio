@@ -17,6 +17,7 @@ import { useAudio } from '@/contexts/AudioContext';
 import { contentTabTranslations, getCurrentLanguage, getTranslation } from '@/utils/i18n';
 import { FavoriteService } from '@/services/favoriteService';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useRewardAd } from '@/contexts/RewardAdContext';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.7;
@@ -100,6 +101,7 @@ export default function SleepScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
   const [currentLanguage, setCurrentLanguage] = useState('en');
+  const { showRewardedAd } = useRewardAd();
 
   useEffect(() => {
     loadContent();
@@ -179,7 +181,12 @@ export default function SleepScreen() {
     }
   };
 
-  const handleItemPress = (item: ContentItem) => {
+  const handleItemPress = async (item: ContentItem) => {
+    const canAccess = await showRewardedAd();
+    if (!canAccess) {
+      console.log('User cancelled rewarded ad, not playing content');
+      return;
+    }
     setSelectedItem(item);
     setModalVisible(true);
   };

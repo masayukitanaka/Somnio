@@ -16,7 +16,8 @@
         ],
         "ITSAppUsesNonExemptEncryption": false,
         "NSHealthShareUsageDescription": "This app uses Apple Health to track your sleep and mindfulness data to help improve your wellness journey.",
-        "NSHealthUpdateUsageDescription": "This app saves mindfulness session data to Apple Health to keep your health records complete."
+        "NSHealthUpdateUsageDescription": "This app saves mindfulness session data to Apple Health to keep your health records complete.",
+        "NSUserTrackingUsageDescription": "This app would like to access your device's advertising identifier to provide you with personalized ads and content. This helps us improve your experience and keeps the app free to use."
       },
       "bundleIdentifier": "com.playernumber888.Somnio",
       "entitlements": {

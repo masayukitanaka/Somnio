@@ -19,6 +19,7 @@ import { useAudio } from '@/contexts/AudioContext';
 import { contentTabTranslations, getCurrentLanguage, getTranslation } from '@/utils/i18n';
 import { FavoriteService } from '@/services/favoriteService';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useRewardAd } from '@/contexts/RewardAdContext';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.7;
@@ -110,6 +111,7 @@ export default function FocusScreen() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [saveBattery, setSaveBattery] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState('en');
+  const { showRewardedAd } = useRewardAd();
 
   useEffect(() => {
     loadContent();
@@ -202,7 +204,12 @@ export default function FocusScreen() {
     }
   };
 
-  const handleItemPress = (item: ContentItem) => {
+  const handleItemPress = async (item: ContentItem) => {
+    const canAccess = await showRewardedAd();
+    if (!canAccess) {
+      console.log('User cancelled rewarded ad, not playing content');
+      return;
+    }
     setSelectedItem(item);
     setModalVisible(true);
   };
@@ -215,6 +222,15 @@ export default function FocusScreen() {
   const handleFavoriteChange = () => {
     // Reload and re-sort content when favorites change
     loadContent();
+  };
+
+  const handleToolPress = async (toolAction: () => void, toolName: string) => {
+    const canAccess = await showRewardedAd();
+    if (!canAccess) {
+      console.log(`User cancelled rewarded ad, not accessing ${toolName}`);
+      return;
+    }
+    toolAction();
   };
 
   const handlePomodoroTimer = () => {
@@ -273,31 +289,31 @@ export default function FocusScreen() {
                 <ToolButton
                   title="Meditation Timer"
                   icon="self-improvement"
-                  onPress={handleMeditationTimer}
+                  onPress={() => handleToolPress(handleMeditationTimer, 'Meditation Timer')}
                   color="rgba(123, 104, 238, 0.8)"
                 />
                 <ToolButton
                   title={t('pomodoro_timer')}
                   icon="timer"
-                  onPress={handlePomodoroTimer}
+                  onPress={() => handleToolPress(handlePomodoroTimer, 'Pomodoro Timer')}
                   color="rgba(239, 68, 68, 0.8)"
                 />
                 <ToolButton
                   title={t('tasks')}
                   icon="assignment"
-                  onPress={handleTasks}
+                  onPress={() => handleToolPress(handleTasks, 'Tasks')}
                   color="rgba(34, 197, 94, 0.8)"
                 />
                 <ToolButton
                   title={t('journal')}
                   icon="book"
-                  onPress={handleJournal}
+                  onPress={() => handleToolPress(handleJournal, 'Journal')}
                   color="rgba(99, 102, 241, 0.8)"
                 />
                 <ToolButton
                   title="Sudoku"
                   icon="grid-on"
-                  onPress={handleSudoku}
+                  onPress={() => handleToolPress(handleSudoku, 'Sudoku')}
                   color="rgba(251, 146, 60, 0.8)"
                 />
               </View>

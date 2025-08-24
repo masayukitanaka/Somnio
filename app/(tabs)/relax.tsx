@@ -19,6 +19,7 @@ import { useAudio } from '@/contexts/AudioContext';
 import { contentTabTranslations, getCurrentLanguage, getTranslation } from '@/utils/i18n';
 import { FavoriteService } from '@/services/favoriteService';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useRewardAd } from '@/contexts/RewardAdContext';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.7;
@@ -110,6 +111,7 @@ export default function RelaxScreen() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [saveBattery, setSaveBattery] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState('en');
+  const { showRewardedAd } = useRewardAd();
 
   useEffect(() => {
     loadContent();
@@ -202,7 +204,12 @@ export default function RelaxScreen() {
     }
   };
 
-  const handleItemPress = (item: ContentItem) => {
+  const handleItemPress = async (item: ContentItem) => {
+    const canAccess = await showRewardedAd();
+    if (!canAccess) {
+      console.log('User cancelled rewarded ad, not playing content');
+      return;
+    }
     setSelectedItem(item);
     setModalVisible(true);
   };
@@ -215,6 +222,15 @@ export default function RelaxScreen() {
   const handleFavoriteChange = () => {
     // Reload and re-sort content when favorites change
     loadContent();
+  };
+
+  const handleToolPress = async (toolAction: () => void, toolName: string) => {
+    const canAccess = await showRewardedAd();
+    if (!canAccess) {
+      console.log(`User cancelled rewarded ad, not accessing ${toolName}`);
+      return;
+    }
+    toolAction();
   };
 
   const handleBreathingExercise = () => {
@@ -256,13 +272,13 @@ export default function RelaxScreen() {
                 <ActionButton
                   title={t('breathing')}
                   icon="air"
-                  onPress={handleBreathingExercise}
+                  onPress={() => handleToolPress(handleBreathingExercise, 'Breathing Exercise')}
                   color="rgba(99, 102, 241, 0.8)"
                 />
                 <ActionButton
                   title={t('stretching')}
                   icon="accessibility"
-                  onPress={handleStretch}
+                  onPress={() => handleToolPress(handleStretch, 'Stretching')}
                   color="rgba(16, 185, 129, 0.8)"
                 />
               </View>
