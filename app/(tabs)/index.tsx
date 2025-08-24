@@ -12,6 +12,7 @@ import { RemoveAdsButton } from '@/components/RemoveAdsButton';
 import { DayDetailModal } from '@/components/DayDetailModal';
 import { PlayerModal } from '@/components/PlayerModal';
 import { MiniPlayer } from '@/components/MiniPlayer';
+import { BannerAd } from '@/components/BannerAd';
 import { getCurrentLanguage, getTranslation, homeTabTranslations } from '@/utils/i18n';
 import { getRecommendations, ContentItem } from '@/services/contentService';
 import { useAudio } from '@/contexts/AudioContext';
@@ -529,6 +530,9 @@ export default function HomeScreen() {
             </View>
             <CalendarView currentLanguage={currentLanguage} />
           </View>
+
+          {/* Banner Ad */}
+          <BannerAd />
 
           {/* Tools Menu */}
           <ToolsMenu currentLanguage={currentLanguage} />

@@ -12,6 +12,7 @@ import { RemoveAdsButton } from '@/components/RemoveAdsButton';
 import { PlayerModal } from '@/components/PlayerModal';
 import { MiniPlayer } from '@/components/MiniPlayer';
 import { ContentCard } from '@/components/ContentCard';
+import { BannerAd } from '@/components/BannerAd';
 import PenAnimation from '@/components/PenAnimation';
 import { getFocusContent, ContentItem, clearApiCache } from '@/services/contentService';
 import { useAudio } from '@/contexts/AudioContext';
@@ -301,6 +302,9 @@ export default function FocusScreen() {
                 />
               </View>
             </View>
+
+            {/* Banner Ad */}
+            <BannerAd />
 
             {/* Content Sections */}
             <ContentSection 

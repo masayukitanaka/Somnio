@@ -12,6 +12,7 @@ import { RemoveAdsButton } from '@/components/RemoveAdsButton';
 import { PlayerModal } from '@/components/PlayerModal';
 import { MiniPlayer } from '@/components/MiniPlayer';
 import { ContentCard } from '@/components/ContentCard';
+import { BannerAd } from '@/components/BannerAd';
 import CoffeeSteamAnimation from '@/components/CoffeeSteamAnimation';
 import { getRelaxContent, ContentItem, clearApiCache } from '@/services/contentService';
 import { useAudio } from '@/contexts/AudioContext';
@@ -266,6 +267,9 @@ export default function RelaxScreen() {
                 />
               </View>
             </View>
+
+            {/* Banner Ad */}
+            <BannerAd />
 
             {/* Content Sections */}
             <ContentSection 

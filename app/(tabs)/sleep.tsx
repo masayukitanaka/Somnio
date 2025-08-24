@@ -11,6 +11,7 @@ import { PlayerModal } from '@/components/PlayerModal';
 import { RemoveAdsButton } from '@/components/RemoveAdsButton';
 import { MiniPlayer } from '@/components/MiniPlayer';
 import { ContentCard } from '@/components/ContentCard';
+import { BannerAd } from '@/components/BannerAd';
 import { getSleepContent, ContentItem, clearApiCache } from '@/services/contentService';
 import { useAudio } from '@/contexts/AudioContext';
 import { contentTabTranslations, getCurrentLanguage, getTranslation } from '@/utils/i18n';
@@ -226,6 +227,10 @@ export default function SleepScreen() {
               isLoading={isLoading}
               refreshKey={refreshKey}
             />
+            
+            {/* Banner Ad */}
+            <BannerAd />
+            
             <ContentSection 
               title={t('sleep_meditation')} 
               data={content.meditation} 

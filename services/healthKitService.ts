@@ -267,7 +267,7 @@ class HealthKitService {
         }
 
         if (!results || results.length === 0) {
-          console.error('No mindfulsession found');
+          console.log('No mindfulsession found');
           resolve(null);
           return;
         }

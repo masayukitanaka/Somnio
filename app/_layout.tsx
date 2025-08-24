@@ -8,6 +8,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { initDatabase } from '@/services/database';
 import { TouchableOpacity } from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import useAdmob from '@/hooks/useAdmob';
 
 const ONBOARDING_KEY = '@somnio_onboarding_completed';
 
@@ -19,6 +20,7 @@ const shouldAlwaysShowOnboarding = () => {
 export default function RootLayout() {
   const [isLoading, setIsLoading] = useState(true);
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
+  const { initialize: initializeAdMob } = useAdmob();
 
   useEffect(() => {
     // Initialize database
@@ -26,6 +28,15 @@ export default function RootLayout() {
       console.log('Database initialized');
     }).catch(error => {
       console.error('Failed to initialize database:', error);
+    });
+    
+    // Initialize AdMob
+    initializeAdMob().then((success) => {
+      if (success) {
+        console.log('AdMob initialized successfully');
+      }
+    }).catch(error => {
+      console.error('Failed to initialize AdMob:', error);
     });
     
     checkOnboardingStatus();
